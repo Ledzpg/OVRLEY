@@ -853,7 +853,6 @@
     "shadowStrength": "Intensywność cienia"
   },
   "widget-drawer": {
-    "groupsHeading": "Zestawy",
     "groupTachClusterShort": "Zegary",
     "groupTachCluster": "Obrotomierz + prędkość + bieg",
     "groupTemperaturesShort": "Temp.",

@@ -853,7 +853,6 @@
     "width": "Largura"
   },
   "widget-drawer": {
-    "groupsHeading": "Conjuntos",
     "groupTachClusterShort": "Cluster",
     "groupTachCluster": "Tacômetro + velocímetro + marcha",
     "groupTemperaturesShort": "Temps.",

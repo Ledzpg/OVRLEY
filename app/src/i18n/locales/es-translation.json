@@ -853,7 +853,6 @@
     "shadowStrength": "Intensidad de la sombra"
   },
   "widget-drawer": {
-    "groupsHeading": "Conjuntos",
     "groupTachClusterShort": "Cuadro",
     "groupTachCluster": "Tacómetro + velocidad + marcha",
     "groupTemperaturesShort": "Temp.",

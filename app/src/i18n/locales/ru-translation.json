@@ -853,7 +853,6 @@
     "shadowStrength": "Интенсивность тени"
   },
   "widget-drawer": {
-    "groupsHeading": "Наборы",
     "groupTachClusterShort": "Панель",
     "groupTachCluster": "Тахометр + скорость + передача",
     "groupTemperaturesShort": "Темп.",

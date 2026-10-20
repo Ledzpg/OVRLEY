@@ -853,7 +853,6 @@
     "shadowStrength": "Intensità dell'ombra"
   },
   "widget-drawer": {
-    "groupsHeading": "Gruppi",
     "groupTachClusterShort": "Cruscotto",
     "groupTachCluster": "Contagiri + velocità + marcia",
     "groupTemperaturesShort": "Temp.",

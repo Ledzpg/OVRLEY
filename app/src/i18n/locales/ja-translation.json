@@ -853,7 +853,6 @@
     "shadowStrength": "影の強さ"
   },
   "widget-drawer": {
-    "groupsHeading": "セット",
     "groupTachClusterShort": "メーター",
     "groupTachCluster": "タコメーター＋速度＋ギア",
     "groupTemperaturesShort": "温度",

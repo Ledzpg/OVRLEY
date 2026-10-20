@@ -853,7 +853,6 @@
     "shadowStrength": "그림자 강도"
   },
   "widget-drawer": {
-    "groupsHeading": "세트",
     "groupTachClusterShort": "클러스터",
     "groupTachCluster": "타코미터 + 속도 + 기어",
     "groupTemperaturesShort": "온도",

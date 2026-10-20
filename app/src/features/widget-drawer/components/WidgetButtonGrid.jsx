@@ -59,7 +59,7 @@ function WidgetGroupButton({ group, onClick }) {
  *
  * @param {object} props
  * @param {(request: {type: string, displayType?: string, lapTimerMode?: string}) => void} props.onAddWidget - Called with a canonical creation request.
- * @param {(group: object) => void} props.onAddGroup - Called with a group from WIDGET_GROUPS to add all of its widgets.
+ * @param {(group: object) => void} props.onAddGroup - Called with a group from WIDGET_GROUPS (listed in its category) to add all of its widgets.
  * @param {Array<{attribute: string, source: string}>} props.availableMetrics - Canonical available activity metrics.
  * @returns {JSX.Element} Rendered React element.
  */
@@ -72,22 +72,15 @@ export function WidgetButtonGrid({ onAddWidget, onAddGroup, availableMetrics }) 
 
   return (
     <div className="flex-1 overflow-y-auto thin-scrollbar pl-2 pr-1">
-      <div className="mb-3">
-        <div className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground/60 px-1 mb-1.5">
-          {t('widget-drawer.groupsHeading', 'Sets')}
-        </div>
-        <div className="grid grid-cols-4 gap-1">
-          {WIDGET_GROUPS.map((group) => (
-            <WidgetGroupButton key={group.id} group={group} onClick={onAddGroup} />
-          ))}
-        </div>
-      </div>
       {GROUPED_QUICKMENU_ITEMS.map((group) => (
         <div key={group.category} className="mb-3">
           <div className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground/60 px-1 mb-1.5">{t(group.nameKey)}</div>
           <div className="grid grid-cols-4 gap-1">
             {group.items.map((item) => (
               <WidgetButton key={item.type} item={item} onClick={onAddWidget} isAvailable={availableAttributes.has(item.type)} />
+            ))}
+            {WIDGET_GROUPS.filter((widgetGroup) => widgetGroup.category === group.category).map((widgetGroup) => (
+              <WidgetGroupButton key={widgetGroup.id} group={widgetGroup} onClick={onAddGroup} />
             ))}
           </div>
         </div>

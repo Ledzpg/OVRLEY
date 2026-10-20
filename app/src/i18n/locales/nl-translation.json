@@ -853,7 +853,6 @@
     "shadowStrength": "Schaduwsterkte"
   },
   "widget-drawer": {
-    "groupsHeading": "Sets",
     "groupTachClusterShort": "Cluster",
     "groupTachCluster": "Toerenteller + snelheid + versnelling",
     "groupTemperaturesShort": "Temp.",

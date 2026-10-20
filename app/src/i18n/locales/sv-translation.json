@@ -853,7 +853,6 @@
     "shadowStrength": "Skuggstyrka"
   },
   "widget-drawer": {
-    "groupsHeading": "Set",
     "groupTachClusterShort": "Instrument",
     "groupTachCluster": "Varvräknare + hastighet + växel",
     "groupTemperaturesShort": "Temp.",

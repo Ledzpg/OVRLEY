@@ -853,7 +853,6 @@
     "shadowStrength": "Gölge yoğunluğu"
   },
   "widget-drawer": {
-    "groupsHeading": "Setler",
     "groupTachClusterShort": "Gösterge",
     "groupTachCluster": "Devir göstergesi + hız + vites",
     "groupTemperaturesShort": "Sıcak.",

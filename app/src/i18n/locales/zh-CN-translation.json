@@ -853,7 +853,6 @@
     "shadowStrength": "阴影强度"
   },
   "widget-drawer": {
-    "groupsHeading": "组合",
     "groupTachClusterShort": "仪表组",
     "groupTachCluster": "转速表 + 速度 + 档位",
     "groupTemperaturesShort": "温度",

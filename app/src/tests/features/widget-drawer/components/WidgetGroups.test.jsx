@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { cwd } from 'node:process'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { WidgetButtonGrid } from '@/features/widget-drawer/components/WidgetButtonGrid'
 import { WidgetDrawerContent as WidgetDrawerView } from '@/features/widget-drawer'
@@ -93,7 +93,11 @@ describe('widget group buttons', () => {
     const user = userEvent.setup()
     render(<WidgetButtonGrid onAddWidget={() => {}} onAddGroup={onAddGroup} availableMetrics={[]} />)
 
-    expect(screen.getByText('Sets')).toBeInTheDocument()
+    expect(screen.queryByText('Sets')).not.toBeInTheDocument()
+    const motorsports = screen.getByText('Motorsports').parentElement
+    for (const group of WIDGET_GROUPS) {
+      expect(within(motorsports).getByRole('button', { name: group.nameDefault })).toBeInTheDocument()
+    }
     await user.click(screen.getByRole('button', { name: 'Tachometer + speed + gear' }))
     expect(onAddGroup).toHaveBeenCalledWith(WIDGET_GROUPS[0])
     expect(screen.getByRole('button', { name: 'Coolant + intake air temperatures' })).toBeInTheDocument()

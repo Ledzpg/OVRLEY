@@ -853,7 +853,6 @@
     "shadowStrength": "Intensité de l'ombre"
   },
   "widget-drawer": {
-    "groupsHeading": "Ensembles",
     "groupTachClusterShort": "Combiné",
     "groupTachCluster": "Compte-tours + vitesse + rapport",
     "groupTemperaturesShort": "Temp.",

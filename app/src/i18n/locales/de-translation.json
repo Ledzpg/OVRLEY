@@ -853,7 +853,6 @@
     "shadowStrength": "Schattenstärke"
   },
   "widget-drawer": {
-    "groupsHeading": "Sets",
     "groupTachClusterShort": "Cluster",
     "groupTachCluster": "Drehzahlmesser + Geschwindigkeit + Gang",
     "groupTemperaturesShort": "Temp.",
