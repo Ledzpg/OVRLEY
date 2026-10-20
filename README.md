@@ -4,7 +4,9 @@
 
 # OVRLEY, fork by ledzpg
 
-<img src="docs/hero.avif" alt="OVRLEY editor" width="100%" />
+<img src="docs/fork-overlay-example.webp" alt="Overlay rendered by this fork over a motorcycle ride: RPM arc gauge, speed, gear, coolant and intake air temperatures, compass, route map and elevation" width="100%" />
+
+<sub>An overlay made with this fork: RPM arc gauge with color bands, speed, gear, coolant and intake air temperatures, G-force, compass and route/elevation.</sub>
 
 This is a fork of [OVRLEY](https://github.com/spirokai/OVRLEY) by [spirokai](https://github.com/spirokai)
 ([www.ovrley.cc](https://www.ovrley.cc)). It was built for motorcycle data logging, with a focus on tachometer
