@@ -6,6 +6,7 @@ import {
 } from '@/lib/widget/standard-metrics'
 import { BALANCE_FORMAT_OPTIONS } from '@/features/widget-preview/widgets/metric/format'
 import { FontSection, IconSection, UnitsControlRow } from '../widgetEditorSections'
+import FuelTankField from './FuelTankField'
 import { SelectField, SliderField, ToggleField } from '../widgetFormControls'
 import { buildMetricUnitUpdate } from '@/lib/widget/altitude'
 import { TYPE_DEFAULTS } from '@/lib/widget/standard-widgets'
@@ -81,6 +82,8 @@ export default function TextDisplaySection({ widget, updateWidgetData, updateWid
           options={BALANCE_FORMAT_OPTIONS}
         />
       ) : null}
+
+      {widget.type === 'fuel_level' ? <FuelTankField widget={widget} updateWidgetData={updateWidgetData} /> : null}
 
       {isDistanceWidget ? (
         <div className="grid grid-cols-2 gap-4">

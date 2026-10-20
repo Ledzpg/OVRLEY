@@ -252,6 +252,10 @@ fn validate(metric: Metric, value: f64) -> Option<f64> {
         {
             None
         }
+        Metric::FuelLevel if !(0.0..=500.0).contains(&value) => None,
+        // A battery reading of zero volts is a sensor that is not answering, not a flat battery.
+        Metric::BatteryVoltage if !(0.5..=60.0).contains(&value) => None,
+        Metric::EstimatedRange if !(0.0..=5_000_000.0).contains(&value) => None,
         Metric::Heading => Some(value.rem_euclid(360.0)),
         _ => Some(value),
     }

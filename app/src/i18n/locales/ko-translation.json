@@ -541,6 +541,7 @@
       "altitude": { "name": "고도", "shortName": "고도" },
       "aperture": { "name": "조리개", "shortName": "조리개" },
       "backdrop": { "name": "배경", "shortName": "배경" },
+      "battery_voltage": { "name": "배터리 전압", "shortName": "배터리" },
       "brake_position": { "name": "브레이크 위치", "shortName": "브레이크" },
       "cadence": { "name": "케이던스", "shortName": "케이던스" },
       "calories": { "name": "칼로리", "shortName": "칼로리" },
@@ -554,8 +555,10 @@
       "elevation": { "name": "고도", "shortName": "고도" },
       "engine_load": { "name": "엔진 부하", "shortName": "엔진 부하" },
       "engine_power": { "name": "엔진 출력", "shortName": "엔진 출력" },
+      "estimated_range": { "name": "예상 주행 가능 거리", "shortName": "주행거리" },
       "ev": { "name": "EV", "shortName": "EV" },
       "focal_length": { "name": "초점 거리", "shortName": "초점 거리" },
+      "fuel_level": { "name": "연료량", "shortName": "연료" },
       "g_force": { "name": "G-포스", "shortName": "G-포스" },
       "gear_position": { "name": "기어 위치", "shortName": "기어" },
       "gps_coordinates": { "name": "GPS 좌표", "shortName": "위치" },
@@ -850,7 +853,8 @@
     "scaleMax": "최댓값",
     "scaleMin": "최솟값",
     "shadowDistance": "그림자 거리",
-    "shadowStrength": "그림자 강도"
+    "shadowStrength": "그림자 강도",
+    "fuelTankCapacity": "연료 탱크 용량"
   },
   "widget-drawer": {
     "groupTachClusterShort": "클러스터",

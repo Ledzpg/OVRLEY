@@ -57,6 +57,16 @@
           "vertical_speed": {
             "decimals": 1
           },
+          "fuel_level": {
+            "decimals": 1,
+            "fuel_tank_capacity": 21
+          },
+          "battery_voltage": {
+            "decimals": 1
+          },
+          "estimated_range": {
+            "decimals": 0
+          },
           "speed": {
             "decimals": 0
           }
@@ -1074,6 +1084,88 @@
         "assetFile": "widget-temperature.svg"
       },
       "gaugeScale": {"min": 0, "max": 80, "redline": 60, "tickInterval": 20, "tickMinor": 3, "labelDivisor": 1},
+      "category": "motosports"
+    },
+    {
+      "type": "fuel_level",
+      "current": true,
+      "nameKey": "widgets.types.fuel_level.name",
+      "shortNameKey": "widgets.types.fuel_level.shortName",
+      "defaultDisplayUnit": "l",
+      "supportedDisplayUnits": [
+        {
+          "value": "l",
+          "label": "L"
+        },
+        {
+          "value": "percent",
+          "label": "%"
+        }
+      ],
+      "showUnitsByDefault": true,
+      "formatter": "decimal",
+      "maxDecimals": 1,
+      "interpolation": "linear",
+      "unitsMode": "selectable",
+      "icon": {
+        "source": "custom",
+        "assetFile": "widget-fuel.svg"
+      },
+      "gaugeScale": {"min": 0, "max": 21, "redline": 20, "tickInterval": 3, "tickMinor": 2, "labelDivisor": 1},
+      "category": "motosports"
+    },
+    {
+      "type": "battery_voltage",
+      "current": true,
+      "nameKey": "widgets.types.battery_voltage.name",
+      "shortNameKey": "widgets.types.battery_voltage.shortName",
+      "defaultDisplayUnit": "volt",
+      "supportedDisplayUnits": [
+        {
+          "value": "volt",
+          "label": "V"
+        }
+      ],
+      "showUnitsByDefault": true,
+      "formatter": "decimal",
+      "maxDecimals": 2,
+      "interpolation": "linear",
+      "unitsMode": "selectable",
+      "icon": {
+        "source": "custom",
+        "assetFile": "widget-battery.svg"
+      },
+      "gaugeScale": {"min": 8, "max": 16, "redline": 15, "tickInterval": 2, "tickMinor": 1, "labelDivisor": 1},
+      "category": "motosports"
+    },
+    {
+      "type": "estimated_range",
+      "current": true,
+      "nameKey": "widgets.types.estimated_range.name",
+      "shortNameKey": "widgets.types.estimated_range.shortName",
+      "defaultDisplayUnit": "km",
+      "supportedDisplayUnits": [
+        {
+          "value": "km",
+          "label": "km",
+          "renderLabel": "KM"
+        },
+        {
+          "value": "mi",
+          "label": "mi",
+          "renderLabel": "MI"
+        }
+      ],
+      "showUnitsByDefault": true,
+      "formatter": "decimal",
+      "maxDecimals": 1,
+      "interpolation": "linear",
+      "unitsMode": "selectable",
+      "icon": {
+        "source": "custom",
+        "assetFile": "widget-range.svg"
+      },
+      "gaugeScale": {"min": 0, "max": 400, "redline": 380, "tickInterval": 100, "tickMinor": 4, "labelDivisor": 1},
       "category": "motosports"
     },
     {

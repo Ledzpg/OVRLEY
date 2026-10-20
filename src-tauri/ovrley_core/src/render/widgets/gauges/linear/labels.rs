@@ -89,11 +89,13 @@ pub(super) fn label_layout(
     let min_label = format_gauge_label(
         gauge.metric,
         gauge.display_unit.as_deref(),
+        gauge.fuel_tank_capacity,
         min_value + altitude_offset_m,
     );
     let max_label = format_gauge_label(
         gauge.metric,
         gauge.display_unit.as_deref(),
+        gauge.fuel_tank_capacity,
         max_value + altitude_offset_m,
     );
     let (_, metrics) = font.metrics();

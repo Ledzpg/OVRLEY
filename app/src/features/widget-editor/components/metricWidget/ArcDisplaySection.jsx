@@ -12,6 +12,7 @@ import { SectionHeading } from '@/components/ui/section-heading'
 import { useAvailableFonts } from '@/hooks/useFonts'
 import useDisplayVariantUpdater from '../../hooks/useDisplayVariantUpdater'
 import { FontSection, UnitsControlRow } from '../widgetEditorSections'
+import FuelTankField from './FuelTankField'
 import { ColorField, SelectField, SizeSlider, SliderField, ToggleField } from '../widgetFormControls'
 import { BarFillStyleDetails, BarFillStyleField } from './BarFillStyleControls'
 import GaugeScaleControls from './GaugeScaleControls'
@@ -300,6 +301,8 @@ export default function ArcDisplaySection({ widget, updateWidgetData, updateWidg
           options={supportsUnitSelection ? unitOptions : undefined}
         />
       ) : null}
+
+      {widget.type === 'fuel_level' ? <FuelTankField widget={widget} updateWidgetData={updateWidgetData} /> : null}
 
       <GaugeScaleControls widget={widget} data={arcData} update={updateArc} />
       <GaugeZoneControls widget={widget} data={arcData} update={updateArc} />

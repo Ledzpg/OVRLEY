@@ -1,6 +1,9 @@
 import { SectionHeading } from '@/components/ui/section-heading'
 import { ToggleField, SelectField, SizeSlider, SliderField, ColorField } from '../widgetFormControls'
 import GaugeScaleControls from './GaugeScaleControls'
+import FuelTankField from './FuelTankField'
+import { getStandardMetricDisplayUnit, getStandardMetricUnitOptions } from '@/lib/widget/standard-metrics'
+import { buildMetricUnitUpdate } from '@/lib/widget/altitude'
 import GaugeZoneControls from './GaugeZoneControls'
 import useDisplayVariantUpdater from '../../hooks/useDisplayVariantUpdater'
 import { useMemo } from 'react'
@@ -84,9 +87,32 @@ export default function LinearDisplaySection({ widget, updateWidgetData, updateW
     return { min: 8, max: 100 }
   }, [linearData.orientation])
   const barGapMax = linearData.track_fill_style === 'bars' ? getLinearBarGapMax(linearData) : 0
+  const unitOptions = getStandardMetricUnitOptions(widget.type)
 
   return (
     <>
+      {unitOptions.length > 1 ? (
+        <div className="grid grid-cols-2 gap-4">
+          <SelectField
+            label={t('widget-editor.unit', 'Unit')}
+            value={getStandardMetricDisplayUnit(widget.type, widget.data)}
+            onValueChange={(displayUnit) =>
+              updateWidgetData(
+                widget.id,
+                buildMetricUnitUpdate(
+                  widget.type,
+                  widget.data.starting_altitude,
+                  getStandardMetricDisplayUnit(widget.type, widget.data),
+                  displayUnit,
+                ),
+              )
+            }
+            options={unitOptions}
+          />
+        </div>
+      ) : null}
+      {widget.type === 'fuel_level' ? <FuelTankField widget={widget} updateWidgetData={updateWidgetData} /> : null}
+
       <div className="space-y-4">
         <SectionHeading icon={SlidersHorizontal} title={t('widget-editor.gaugeTrack', 'Gauge Track')} />
         <div className="grid grid-cols-2 gap-4">

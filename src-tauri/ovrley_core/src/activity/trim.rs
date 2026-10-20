@@ -832,6 +832,45 @@ pub fn trim_activity(
         } else {
             Vec::new()
         },
+        fuel_level: if requirements.fuel_level {
+            trim_numeric_series(
+                elapsed,
+                &activity.fuel_level,
+                start,
+                end,
+                start_inner_index,
+                end_inner_index,
+                interpolation_strategy(crate::MetricKind::FuelLevel),
+            )
+        } else {
+            Vec::new()
+        },
+        battery_voltage: if requirements.battery_voltage {
+            trim_numeric_series(
+                elapsed,
+                &activity.battery_voltage,
+                start,
+                end,
+                start_inner_index,
+                end_inner_index,
+                interpolation_strategy(crate::MetricKind::BatteryVoltage),
+            )
+        } else {
+            Vec::new()
+        },
+        estimated_range: if requirements.estimated_range {
+            trim_numeric_series(
+                elapsed,
+                &activity.estimated_range,
+                start,
+                end,
+                start_inner_index,
+                end_inner_index,
+                interpolation_strategy(crate::MetricKind::EstimatedRange),
+            )
+        } else {
+            Vec::new()
+        },
         gradient: if requirements.gradient {
             trim_numeric_series(
                 elapsed,

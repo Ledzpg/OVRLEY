@@ -541,6 +541,7 @@
       "altitude": { "name": "海拔高度", "shortName": "海拔" },
       "aperture": { "name": "光圈", "shortName": "光圈" },
       "backdrop": { "name": "背景", "shortName": "背景" },
+      "battery_voltage": { "name": "电池电压", "shortName": "电压" },
       "brake_position": { "name": "刹车位置", "shortName": "刹车" },
       "cadence": { "name": "踏频", "shortName": "踏频" },
       "calories": { "name": "卡路里", "shortName": "卡路里" },
@@ -554,8 +555,10 @@
       "elevation": { "name": "海拔", "shortName": "海拔" },
       "engine_load": { "name": "发动机负载", "shortName": "发动机负载" },
       "engine_power": { "name": "发动机功率", "shortName": "发动机功率" },
+      "estimated_range": { "name": "预计续航里程", "shortName": "续航" },
       "ev": { "name": "EV", "shortName": "EV" },
       "focal_length": { "name": "焦距", "shortName": "焦距" },
+      "fuel_level": { "name": "燃油量", "shortName": "燃油" },
       "g_force": { "name": "G力", "shortName": "G力" },
       "gear_position": { "name": "挡位", "shortName": "挡位" },
       "gps_coordinates": { "name": "GPS 坐标", "shortName": "位置" },
@@ -850,7 +853,8 @@
     "scaleMax": "最大值",
     "scaleMin": "最小值",
     "shadowDistance": "阴影距离",
-    "shadowStrength": "阴影强度"
+    "shadowStrength": "阴影强度",
+    "fuelTankCapacity": "油箱容量"
   },
   "widget-drawer": {
     "groupTachClusterShort": "仪表组",

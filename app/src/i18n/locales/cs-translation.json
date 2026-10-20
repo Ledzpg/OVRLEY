@@ -541,6 +541,7 @@
       "altitude": { "name": "Nadmořská výška", "shortName": "Výška" },
       "aperture": { "name": "Clona", "shortName": "Clona" },
       "backdrop": { "name": "Pozadí", "shortName": "Pozadí" },
+      "battery_voltage": { "name": "Napětí baterie", "shortName": "Baterie" },
       "brake_position": { "name": "Poloha brzdy", "shortName": "Brzda" },
       "cadence": { "name": "Kadence", "shortName": "Kadence" },
       "calories": { "name": "Kalorie", "shortName": "Kalorie" },
@@ -554,8 +555,10 @@
       "elevation": { "name": "Výškový profil", "shortName": "Profil" },
       "engine_load": { "name": "Zátěž motoru", "shortName": "Zat. motoru" },
       "engine_power": { "name": "Výkon motoru", "shortName": "Výk. motoru" },
+      "estimated_range": { "name": "Odhadovaný dojezd", "shortName": "Dojezd" },
       "ev": { "name": "EV", "shortName": "EV" },
       "focal_length": { "name": "Ohnisková vzdálenost", "shortName": "Ohnisko" },
+      "fuel_level": { "name": "Hladina paliva", "shortName": "Palivo" },
       "g_force": { "name": "Přetížení", "shortName": "Přetížení" },
       "gear_position": { "name": "Zařazený převod", "shortName": "Převod" },
       "gps_coordinates": { "name": "GPS souřadnice", "shortName": "Poloha" },
@@ -850,7 +853,8 @@
     "scaleMax": "Maximum",
     "scaleMin": "Minimum",
     "shadowDistance": "Vzdálenost stínu",
-    "shadowStrength": "Intenzita stínu"
+    "shadowStrength": "Intenzita stínu",
+    "fuelTankCapacity": "Objem nádrže"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Přístroje",

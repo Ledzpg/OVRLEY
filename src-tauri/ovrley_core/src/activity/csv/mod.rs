@@ -70,6 +70,12 @@ enum Metric {
     CoolantTemperature,
     /// Intake air temperature in degrees Celsius.
     IntakeAirTemperature,
+    /// Fuel level in litres.
+    FuelLevel,
+    /// Battery voltage in volts.
+    BatteryVoltage,
+    /// Estimated range in metres.
+    EstimatedRange,
     /// Throttle position as a percentage from zero to one hundred.
     ThrottlePosition,
     /// Brake position as a percentage from zero to one hundred.

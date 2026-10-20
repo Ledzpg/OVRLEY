@@ -541,6 +541,7 @@
       "altitude": { "name": "Altitude", "shortName": "Altitude" },
       "aperture": { "name": "Aperture", "shortName": "Aperture" },
       "backdrop": { "name": "Backdrop", "shortName": "Backdrop" },
+      "battery_voltage": { "name": "Battery Voltage", "shortName": "Battery" },
       "brake_position": { "name": "Brake Position", "shortName": "Brake" },
       "cadence": { "name": "Cadence", "shortName": "Cadence" },
       "calories": { "name": "Calories", "shortName": "Calories" },
@@ -554,8 +555,10 @@
       "elevation": { "name": "Elevation", "shortName": "Elev." },
       "engine_load": { "name": "Engine Load", "shortName": "Eng. Load" },
       "engine_power": { "name": "Engine Power", "shortName": "Eng. Power" },
+      "estimated_range": { "name": "Estimated Range", "shortName": "Range" },
       "ev": { "name": "EV", "shortName": "EV" },
       "focal_length": { "name": "Focal Length", "shortName": "Focal L." },
+      "fuel_level": { "name": "Fuel Level", "shortName": "Fuel" },
       "g_force": { "name": "G-Force", "shortName": "G-Force" },
       "gear_position": { "name": "Gear Position", "shortName": "Gear" },
       "gps_coordinates": { "name": "GPS Coordinates", "shortName": "Location" },
@@ -850,7 +853,8 @@
     "unit": "Unit",
     "units": "Units",
     "valueColor": "Value Color",
-    "width": "Width"
+    "width": "Width",
+    "fuelTankCapacity": "Tank Capacity"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Cluster",

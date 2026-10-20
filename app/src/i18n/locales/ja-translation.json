@@ -541,6 +541,7 @@
       "altitude": { "name": "高度", "shortName": "高度" },
       "aperture": { "name": "絞り", "shortName": "絞り" },
       "backdrop": { "name": "背景", "shortName": "背景" },
+      "battery_voltage": { "name": "バッテリー電圧", "shortName": "電圧" },
       "brake_position": { "name": "ブレーキ位置", "shortName": "ブレーキ" },
       "cadence": { "name": "ケイデンス", "shortName": "ケイデンス" },
       "calories": { "name": "カロリー", "shortName": "カロリー" },
@@ -554,8 +555,10 @@
       "elevation": { "name": "標高", "shortName": "標高" },
       "engine_load": { "name": "エンジン負荷", "shortName": "エンジン負荷" },
       "engine_power": { "name": "エンジン出力", "shortName": "エンジン出力" },
+      "estimated_range": { "name": "推定航続距離", "shortName": "航続" },
       "ev": { "name": "EV", "shortName": "EV" },
       "focal_length": { "name": "焦点距離", "shortName": "焦点距離" },
+      "fuel_level": { "name": "燃料残量", "shortName": "燃料" },
       "g_force": { "name": "Gフォース", "shortName": "Gフォース" },
       "gear_position": { "name": "ギア位置", "shortName": "ギア" },
       "gps_coordinates": { "name": "GPS座標", "shortName": "位置" },
@@ -850,7 +853,8 @@
     "scaleMax": "最大",
     "scaleMin": "最小",
     "shadowDistance": "影の距離",
-    "shadowStrength": "影の強さ"
+    "shadowStrength": "影の強さ",
+    "fuelTankCapacity": "タンク容量"
   },
   "widget-drawer": {
     "groupTachClusterShort": "メーター",

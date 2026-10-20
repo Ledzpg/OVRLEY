@@ -218,6 +218,9 @@ pub struct ActivityColumns {
     pub core_temperature: NumericSeries,
     pub coolant_temperature: NumericSeries,
     pub intake_air_temperature: NumericSeries,
+    pub fuel_level: NumericSeries,
+    pub battery_voltage: NumericSeries,
+    pub estimated_range: NumericSeries,
     pub air_pressure: NumericSeries,
     pub calories: NumericSeries,
     pub gear_position: GearSeries,
@@ -360,6 +363,15 @@ pub struct RawSample {
     /// Intake air temperature in Celsius.
     #[serde(default)]
     pub intake_air_temperature: Option<f64>,
+    /// Fuel level in litres.
+    #[serde(default)]
+    pub fuel_level: Option<f64>,
+    /// Battery voltage in volts.
+    #[serde(default)]
+    pub battery_voltage: Option<f64>,
+    /// Estimated range in metres.
+    #[serde(default)]
+    pub estimated_range: Option<f64>,
     /// Air pressure in bar.
     #[serde(default)]
     pub air_pressure: Option<f64>,
@@ -567,6 +579,15 @@ pub struct ParsedActivity {
     /// Intake air temperature in degrees Celsius.
     #[serde(default)]
     pub intake_air_temperature: NumericSeries,
+    /// Fuel level in litres.
+    #[serde(default)]
+    pub fuel_level: NumericSeries,
+    /// Battery voltage in volts.
+    #[serde(default)]
+    pub battery_voltage: NumericSeries,
+    /// Estimated range in metres.
+    #[serde(default)]
+    pub estimated_range: NumericSeries,
     /// Road grade in percent.
     #[serde(default)]
     pub gradient: NumericSeries,
@@ -723,6 +744,12 @@ pub struct DenseSeriesReport {
     pub coolant_temperature: Vec<Option<f64>>,
     /// Intake air temperature in degrees Celsius.
     pub intake_air_temperature: Vec<Option<f64>>,
+    /// Fuel level in litres.
+    pub fuel_level: Vec<Option<f64>>,
+    /// Battery voltage in volts.
+    pub battery_voltage: Vec<Option<f64>>,
+    /// Estimated range in metres.
+    pub estimated_range: Vec<Option<f64>>,
     /// Heading in degrees (0–360).
     pub heading: Vec<Option<f64>>,
     /// Course latitude values.
@@ -777,6 +804,9 @@ impl DenseSeriesReport {
             MetricKind::CoreTemperature => Some(&self.core_temperature),
             MetricKind::CoolantTemperature => Some(&self.coolant_temperature),
             MetricKind::IntakeAirTemperature => Some(&self.intake_air_temperature),
+            MetricKind::FuelLevel => Some(&self.fuel_level),
+            MetricKind::BatteryVoltage => Some(&self.battery_voltage),
+            MetricKind::EstimatedRange => Some(&self.estimated_range),
             MetricKind::Heading => Some(&self.heading),
             MetricKind::Altitude => Some(preferred_elevation_series(
                 &self.barometric_altitude,
@@ -903,6 +933,12 @@ pub struct TrimmedActivity {
     pub coolant_temperature: NumericSeries,
     /// Trimmed intake air temperature samples in Celsius.
     pub intake_air_temperature: NumericSeries,
+    /// Trimmed fuel level samples in litres.
+    pub fuel_level: NumericSeries,
+    /// Trimmed battery voltage samples in volts.
+    pub battery_voltage: NumericSeries,
+    /// Trimmed estimated range samples in metres.
+    pub estimated_range: NumericSeries,
     /// Trimmed gradient samples in percent.
     pub gradient: NumericSeries,
     /// Trimmed heading samples in degrees.

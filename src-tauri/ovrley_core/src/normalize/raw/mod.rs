@@ -303,6 +303,9 @@ pub struct ValueConfig {
     pub display_unit: Option<String>,
     #[serde(default)]
     pub starting_altitude: Option<f64>,
+    /// Tank capacity in litres; fuel_level widgets need it to convert litres to a percentage.
+    #[serde(default)]
+    pub fuel_tank_capacity: Option<f64>,
     #[serde(default)]
     pub coordinate_format: Option<String>,
     #[serde(default)]

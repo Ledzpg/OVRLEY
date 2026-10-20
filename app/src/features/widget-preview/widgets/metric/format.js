@@ -329,7 +329,7 @@ export function formatStandardMetricDisplay(type, value, widgetData) {
 
   if (definition.formatter === 'distance') {
     return formatDistanceValue(
-      value === null || value === undefined ? value : convertStandardMetricValue(type, value, displayUnit),
+      value === null || value === undefined ? value : convertStandardMetricValue(type, value, displayUnit, widgetData.fuel_tank_capacity),
       effectiveUnitLabel,
       widgetData.decimals,
       showUnits,
@@ -337,7 +337,7 @@ export function formatStandardMetricDisplay(type, value, widgetData) {
   }
 
   return formatRoundedMetric(
-    value === null || value === undefined ? value : convertStandardMetricValue(type, value, displayUnit),
+    value === null || value === undefined ? value : convertStandardMetricValue(type, value, displayUnit, widgetData.fuel_tank_capacity),
     effectiveUnitLabel,
     widgetData.decimals,
   )

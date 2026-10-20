@@ -747,6 +747,27 @@ pub fn densify_activity(
                 requirements.intake_air_temperature,
                 crate::MetricKind::IntakeAirTemperature,
             ),
+            fuel_level: densify(
+                &trimmed.sample_elapsed_seconds,
+                &trimmed.fuel_level,
+                &frame_elapsed_seconds,
+                requirements.fuel_level,
+                crate::MetricKind::FuelLevel,
+            ),
+            battery_voltage: densify(
+                &trimmed.sample_elapsed_seconds,
+                &trimmed.battery_voltage,
+                &frame_elapsed_seconds,
+                requirements.battery_voltage,
+                crate::MetricKind::BatteryVoltage,
+            ),
+            estimated_range: densify(
+                &trimmed.sample_elapsed_seconds,
+                &trimmed.estimated_range,
+                &frame_elapsed_seconds,
+                requirements.estimated_range,
+                crate::MetricKind::EstimatedRange,
+            ),
             heading: if requirements.heading && !trimmed.heading.is_empty() {
                 densify_forward_fill_series(
                     &trimmed.sample_elapsed_seconds,

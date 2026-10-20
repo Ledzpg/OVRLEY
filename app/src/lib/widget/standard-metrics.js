@@ -217,9 +217,10 @@ export function getGaugeScaleDefaults(type) {
  * @param {string} type
  * @param {number} value
  * @param {string|null} displayUnit
+ * @param {number} [fuelTankCapacity] - Tank capacity in litres; used only by `fuel_level` to show a percentage.
  * @returns {number}
  */
-export function convertStandardMetricValue(type, value, displayUnit) {
+export function convertStandardMetricValue(type, value, displayUnit, fuelTankCapacity) {
   switch (type) {
     case 'speed':
       if (displayUnit === 'mph' || displayUnit === 'imperial') return value * 2.23694
@@ -232,8 +233,11 @@ export function convertStandardMetricValue(type, value, displayUnit) {
       return displayUnit === 'fahrenheit' ? (value * 9) / 5 + 32 : value
     case 'pace':
       return displayUnit === 'min_per_mi' ? value * 1.609344 : value
+    case 'fuel_level':
+      return displayUnit === 'percent' ? (value / fuelTankCapacity) * 100 : value
     case 'distance':
     case 'distance_to_home':
+    case 'estimated_range':
       if (displayUnit === 'km') return value / 1000
       if (displayUnit === 'mi') return value / 1609.344
       return displayUnit === 'ft' ? value * 3.28084 : value

@@ -407,6 +407,9 @@ fn build_activity_columns(sections: Sections, file_name: &str) -> CoreResult<Act
         core_temperature: empty(),
         coolant_temperature: empty(),
         intake_air_temperature: empty(),
+        fuel_level: empty(),
+        battery_voltage: empty(),
+        estimated_range: empty(),
         air_pressure: empty(),
         gear_position: series(layout.gear_position, identity)
             .into_iter()

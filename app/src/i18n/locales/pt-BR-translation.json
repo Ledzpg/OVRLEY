@@ -541,6 +541,7 @@
       "altitude": { "name": "Altitude", "shortName": "Altitude" },
       "aperture": { "name": "Abertura", "shortName": "Abertura" },
       "backdrop": { "name": "Plano de fundo", "shortName": "Fundo" },
+      "battery_voltage": { "name": "Tensão da bateria", "shortName": "Bateria" },
       "brake_position": { "name": "Posição do freio", "shortName": "Freio" },
       "cadence": { "name": "Cadência", "shortName": "Cadência" },
       "calories": { "name": "Calorias", "shortName": "Calorias" },
@@ -554,8 +555,10 @@
       "elevation": { "name": "Elevação", "shortName": "Elevação" },
       "engine_load": { "name": "Carga do motor", "shortName": "Carga mot." },
       "engine_power": { "name": "Potência do motor", "shortName": "Pot. motor" },
+      "estimated_range": { "name": "Autonomia estimada", "shortName": "Autonomia" },
       "ev": { "name": "EV", "shortName": "EV" },
       "focal_length": { "name": "Distância focal", "shortName": "Dist. focal" },
+      "fuel_level": { "name": "Nível de combustível", "shortName": "Comb." },
       "g_force": { "name": "Força G", "shortName": "Força G" },
       "gear_position": { "name": "Posição da marcha", "shortName": "Marcha" },
       "gps_coordinates": { "name": "Coordenadas GPS", "shortName": "Localização" },
@@ -850,7 +853,8 @@
     "unit": "Unidade",
     "units": "Unidades",
     "valueColor": "Cor do valor",
-    "width": "Largura"
+    "width": "Largura",
+    "fuelTankCapacity": "Capacidade do tanque"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Cluster",

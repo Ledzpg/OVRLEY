@@ -541,6 +541,7 @@
       "altitude": { "name": "Rakım", "shortName": "Rakım" },
       "aperture": { "name": "Diyafram", "shortName": "Diyafram" },
       "backdrop": { "name": "Arka plan", "shortName": "Arka plan" },
+      "battery_voltage": { "name": "Akü voltajı", "shortName": "Akü" },
       "brake_position": { "name": "Fren konumu", "shortName": "Fren" },
       "cadence": { "name": "Kadans", "shortName": "Kadans" },
       "calories": { "name": "Kalori", "shortName": "Kalori" },
@@ -554,8 +555,10 @@
       "elevation": { "name": "Yükseklik", "shortName": "Yükseklik" },
       "engine_load": { "name": "Motor yükü", "shortName": "Mot. yükü" },
       "engine_power": { "name": "Motor gücü", "shortName": "Mot. gücü" },
+      "estimated_range": { "name": "Tahmini menzil", "shortName": "Menzil" },
       "ev": { "name": "EV", "shortName": "EV" },
       "focal_length": { "name": "Odak uzaklığı", "shortName": "Odak u." },
+      "fuel_level": { "name": "Yakıt seviyesi", "shortName": "Yakıt" },
       "g_force": { "name": "G-kuvveti", "shortName": "G-kuvveti" },
       "gear_position": { "name": "Vites konumu", "shortName": "Vites" },
       "gps_coordinates": { "name": "GPS koordinatları", "shortName": "Konum" },
@@ -850,7 +853,8 @@
     "scaleMax": "Maksimum",
     "scaleMin": "Minimum",
     "shadowDistance": "Gölge mesafesi",
-    "shadowStrength": "Gölge yoğunluğu"
+    "shadowStrength": "Gölge yoğunluğu",
+    "fuelTankCapacity": "Depo kapasitesi"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Gösterge",

@@ -53,6 +53,9 @@ pub enum MetricIconKind {
     ThrottlePosition,
     BrakePosition,
     EngineLoad,
+    Fuel,
+    Battery,
+    Range,
     LeanAngle,
     House,
     Satellite,
@@ -364,6 +367,10 @@ fn format_validated_standard_metric_parts<'a>(
     let decimals = validated_decimals(&validated.formatting);
     let show_units = validated.show_units;
     let unit_text = show_units.then(|| standard_metric_unit_label(kind, display_unit).to_string());
+    let convert = |value: f64| match kind {
+        MetricKind::FuelLevel => convert_fuel_level(display_unit, value, validated.fuel_tank_capacity),
+        _ => convert_standard_metric_value(kind, display_unit, value),
+    };
 
     let value_text = match standard_metric_formatter(kind) {
         Some(StandardMetricFormatterKind::Speed) => raw
@@ -424,10 +431,7 @@ fn format_validated_standard_metric_parts<'a>(
                         current
                     }
                 } else {
-                    let current = format_number(
-                        convert_standard_metric_value(kind, display_unit, value),
-                        decimals,
-                    );
+                    let current = format_number(convert(value), decimals);
                     if kind == MetricKind::TotalAscent && validated.show_full_ascent == Some(true) {
                         if let Some(total) = dense_activity.full_activity_total_ascent {
                             let total = format_number(
@@ -726,6 +730,14 @@ fn format_coordinate_placeholder(coordinate_format: &str) -> String {
     }
 }
 
+/// Converts a fuel level in litres to the display unit: litres, or a percentage of the tank capacity.
+pub(crate) fn convert_fuel_level(display_unit: Option<&str>, litres: f64, tank_capacity: Option<f64>) -> f64 {
+    match (display_unit, tank_capacity) {
+        (Some("percent"), Some(capacity)) => litres / capacity * 100.0,
+        _ => litres,
+    }
+}
+
 pub(crate) fn convert_standard_metric_value(
     kind: MetricKind,
     display_unit: Option<&str>,
@@ -771,7 +783,7 @@ pub(crate) fn convert_standard_metric_value(
                 value
             }
         }
-        MetricKind::Distance | MetricKind::DistanceToHome => match display_unit.unwrap_or("km") {
+        MetricKind::Distance | MetricKind::DistanceToHome | MetricKind::EstimatedRange => match display_unit.unwrap_or("km") {
             "m" => value,
             "mi" => value / 1609.344,
             "ft" => value * 3.280_84,

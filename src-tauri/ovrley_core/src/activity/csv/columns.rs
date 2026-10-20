@@ -274,6 +274,9 @@ pub(super) fn build_activity_columns(
     let (torque, _) = series(Metric::Torque);
     let (coolant_temperature, _) = series(Metric::CoolantTemperature);
     let (intake_air_temperature, _) = series(Metric::IntakeAirTemperature);
+    let (fuel_level, _) = series(Metric::FuelLevel);
+    let (battery_voltage, _) = series(Metric::BatteryVoltage);
+    let (estimated_range, _) = series(Metric::EstimatedRange);
     let (throttle_position, _) = series(Metric::ThrottlePosition);
     let (brake_position, _) = series(Metric::BrakePosition);
     let (source_lap_number, _) = series(Metric::LapNumber);
@@ -404,6 +407,9 @@ pub(super) fn build_activity_columns(
         core_temperature: empty(),
         coolant_temperature,
         intake_air_temperature,
+        fuel_level,
+        battery_voltage,
+        estimated_range,
         air_pressure: empty(),
         iso: empty(),
         aperture: empty(),

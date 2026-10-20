@@ -8,7 +8,7 @@ use super::gauge_scale::{validate_gauge_scale, ValidatedGaugeScale};
 use super::scene::{validate_shadow_override, ShadowOverride};
 use super::helpers::{require_bool, require_f32, require_string};
 use super::raw::ValueConfig;
-use super::value::normalize_starting_altitude_m;
+use super::value::{normalize_fuel_tank_capacity, normalize_starting_altitude_m};
 use super::{resolve_bar_style_geometry, track_corner_radius_max, ResolvedBarGeometry};
 use crate::error::{CoreError, CoreResult};
 use crate::standard_metrics::is_standard_metric;
@@ -60,6 +60,8 @@ pub struct ValidatedLinearGaugeWidget {
     pub min_max_label_color: String,
     pub display_unit: Option<String>,
     pub starting_altitude_m: Option<f64>,
+    /// Tank capacity in litres; present exactly for fuel_level widgets.
+    pub fuel_tank_capacity: Option<f64>,
     /// Optional fixed scale and redline.
     pub scale: ValidatedGaugeScale,
 }
@@ -189,7 +191,7 @@ pub fn validate_linear_gauge(
         track_corner_radius_max(cross_extent, bar_span, bar_geometry.as_ref()),
     );
 
-    let display_unit = if value.value == MetricKind::Altitude {
+    let display_unit = if matches!(value.value, MetricKind::Altitude | MetricKind::FuelLevel) {
         Some(require_string(value.display_unit, &p("display_unit"))?)
     } else {
         value.display_unit
@@ -199,6 +201,14 @@ pub fn validate_linear_gauge(
         value.starting_altitude,
         display_unit.as_deref(),
         &p("starting_altitude"),
+        &p("display_unit"),
+    )?;
+
+    let fuel_tank_capacity = normalize_fuel_tank_capacity(
+        value.value,
+        value.fuel_tank_capacity,
+        display_unit.as_deref(),
+        &p("fuel_tank_capacity"),
         &p("display_unit"),
     )?;
 
@@ -233,5 +243,6 @@ pub fn validate_linear_gauge(
         min_max_label_color: require_string(value.min_max_label_color, &p("min_max_label_color"))?,
         display_unit,
         starting_altitude_m,
+        fuel_tank_capacity,
     })
 }

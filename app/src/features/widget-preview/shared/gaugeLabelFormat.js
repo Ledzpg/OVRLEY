@@ -17,11 +17,12 @@ import { convertStandardMetricValue, getStandardMetricDisplayUnit } from '@/lib/
  * @param {number} value - Raw telemetry value in native units.
  * @param {string|null|undefined} displayUnit - Configured display unit, or
  *   void to use the metric's default.
+ * @param {number} [fuelTankCapacity] - Tank capacity in litres, for fuel level labels shown as a percentage.
  * @returns {string} Integer label string (e.g. "128").
  */
-export function formatGaugeBoundaryLabel(metricType, value, displayUnit) {
+export function formatGaugeBoundaryLabel(metricType, value, displayUnit, fuelTankCapacity) {
   const effectiveUnit = displayUnit ?? getStandardMetricDisplayUnit(metricType)
-  const converted = convertStandardMetricValue(metricType, value, effectiveUnit)
+  const converted = convertStandardMetricValue(metricType, value, effectiveUnit, fuelTankCapacity)
   return String(Math.round(converted))
 }
 

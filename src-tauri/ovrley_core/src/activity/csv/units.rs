@@ -29,6 +29,12 @@ pub(super) enum Unit {
     Kilometres,
     /// Feet.
     Feet,
+    /// Miles.
+    Miles,
+    /// Litres.
+    Litres,
+    /// Volts.
+    Volts,
     /// Degrees.
     Degrees,
     /// Standard gravity units.
@@ -102,6 +108,9 @@ pub(super) fn parse_declared_unit(value: &str) -> DeclaredUnit {
         "m" | "meter" | "meters" | "metre" | "metres" => Unit::Metres,
         "km" | "kilometer" | "kilometers" | "kilometre" | "kilometres" => Unit::Kilometres,
         "ft" | "foot" | "feet" => Unit::Feet,
+        "mi" | "mile" | "miles" => Unit::Miles,
+        "l" | "lt" | "ltr" | "litre" | "litres" | "liter" | "liters" => Unit::Litres,
+        "v" | "volt" | "volts" => Unit::Volts,
         "g" => Unit::G,
         "%" | "percent" | "percentage" => Unit::Percent,
         "rpm" => Unit::RevolutionsPerMinute,
@@ -222,6 +231,9 @@ pub(super) fn compatible(metric: Metric, unit: Unit) -> bool {
         Metric::CoolantTemperature | Metric::IntakeAirTemperature => {
             matches!(unit, Unit::Celsius | Unit::Fahrenheit)
         }
+        Metric::FuelLevel => matches!(unit, Unit::Litres),
+        Metric::BatteryVoltage => matches!(unit, Unit::Volts),
+        Metric::EstimatedRange => matches!(unit, Unit::Metres | Unit::Kilometres | Unit::Miles),
         Metric::LeanAngle => matches!(unit, Unit::Degrees),
         Metric::GearPosition => matches!(unit, Unit::Raw),
         Metric::CompanionDate | Metric::GpsCoordinate | Metric::LapNumber => {
@@ -237,6 +249,7 @@ pub(super) fn convert(value: f64, unit: Unit) -> f64 {
         Unit::MilesPerHour => value * 0.44704,
         Unit::Kilometres => value * 1000.0,
         Unit::Feet => value * 0.3048,
+        Unit::Miles => value * 1609.344,
         Unit::Kilowatts => value * 1000.0,
         Unit::MetricHorsepower => value * 735.49875,
         Unit::MechanicalHorsepower => value * 745.699_871_582_270_2,
@@ -253,6 +266,8 @@ pub(super) fn convert(value: f64, unit: Unit) -> f64 {
         | Unit::Watts
         | Unit::NewtonMetres
         | Unit::Celsius
+        | Unit::Litres
+        | Unit::Volts
         | Unit::Raw => value,
     }
 }
@@ -274,6 +289,9 @@ fn default_unit(metric: Metric) -> Unit {
         Metric::EngineLoad | Metric::ThrottlePosition | Metric::BrakePosition => Unit::Percent,
         Metric::Torque => Unit::NewtonMetres,
         Metric::CoolantTemperature | Metric::IntakeAirTemperature => Unit::Celsius,
+        Metric::FuelLevel => Unit::Litres,
+        Metric::BatteryVoltage => Unit::Volts,
+        Metric::EstimatedRange => Unit::Kilometres,
         Metric::LeanAngle => Unit::Degrees,
         Metric::GearPosition => Unit::Raw,
         Metric::CompanionDate | Metric::GpsCoordinate | Metric::LapNumber => Unit::Raw,

@@ -9,7 +9,7 @@ use crate::activity::schema::{DenseActivityReport, DenseSeriesReport};
 use crate::normalize::ValidatedGaugeScale;
 use crate::render::text::parse_color;
 use crate::render::widgets::types::{FillStop, ResolvedRedline};
-use crate::render::format::convert_standard_metric_value;
+use crate::render::format::{convert_fuel_level, convert_standard_metric_value};
 use crate::types::MetricKind;
 
 /// Maps a metric value into the inclusive normalized gauge range.
@@ -187,8 +187,12 @@ pub(crate) fn metric_values(series: &DenseSeriesReport, metric: MetricKind) -> &
 pub(crate) fn format_gauge_label(
     kind: MetricKind,
     display_unit: Option<&str>,
+    fuel_tank_capacity: Option<f64>,
     value: f64,
 ) -> String {
-    let converted = convert_standard_metric_value(kind, display_unit, value);
+    let converted = match kind {
+        MetricKind::FuelLevel => convert_fuel_level(display_unit, value, fuel_tank_capacity),
+        _ => convert_standard_metric_value(kind, display_unit, value),
+    };
     (converted.round() as i64).to_string()
 }

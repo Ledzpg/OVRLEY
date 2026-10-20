@@ -337,6 +337,38 @@ fn parse_header(index: usize, value: &str) -> Option<HeaderColumn> {
             None,
             None,
         ),
+        "fuel level" | "fuel" | "fuel remaining" | "fuel quantity" | "fuel level l" | "fuel l" => (
+            Metric::FuelLevel,
+            SourcePriority::Direct,
+            None,
+            None,
+            None,
+        ),
+        "battery voltage"
+        | "battery volts"
+        | "battery v"
+        | "battery voltage v"
+        | "system voltage"
+        | "ecu voltage"
+        | "control module voltage" => (
+            Metric::BatteryVoltage,
+            SourcePriority::Direct,
+            None,
+            None,
+            None,
+        ),
+        "estimated range"
+        | "range"
+        | "remaining range"
+        | "fuel range"
+        | "estimated range km"
+        | "range km" => (
+            Metric::EstimatedRange,
+            SourcePriority::Direct,
+            None,
+            None,
+            None,
+        ),
         "engine load" | "engine load absolute" | "absolute engine load" => (
             Metric::EngineLoad,
             SourcePriority::Direct,

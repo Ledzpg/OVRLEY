@@ -541,6 +541,7 @@
       "altitude": { "name": "Высота над уровнем моря", "shortName": "Высота" },
       "aperture": { "name": "Диафрагма", "shortName": "Диафрагма" },
       "backdrop": { "name": "Фон", "shortName": "Фон" },
+      "battery_voltage": { "name": "Напряжение батареи", "shortName": "Батарея" },
       "brake_position": { "name": "Положение тормоза", "shortName": "Тормоз" },
       "cadence": { "name": "Каденс", "shortName": "Каденс" },
       "calories": { "name": "Калории", "shortName": "Калории" },
@@ -554,8 +555,10 @@
       "elevation": { "name": "Профиль высот", "shortName": "Профиль" },
       "engine_load": { "name": "Нагрузка двигателя", "shortName": "Нагрузка" },
       "engine_power": { "name": "Мощность двигателя", "shortName": "Мощн. двиг." },
+      "estimated_range": { "name": "Расчётный запас хода", "shortName": "Запас хода" },
       "ev": { "name": "EV", "shortName": "EV" },
       "focal_length": { "name": "Фокусное расстояние", "shortName": "Фокус" },
+      "fuel_level": { "name": "Уровень топлива", "shortName": "Топливо" },
       "g_force": { "name": "Перегрузка", "shortName": "Перегрузка" },
       "gear_position": { "name": "Положение передачи", "shortName": "Передача" },
       "gps_coordinates": { "name": "Координаты GPS", "shortName": "Положение" },
@@ -850,7 +853,8 @@
     "scaleMax": "Максимум",
     "scaleMin": "Минимум",
     "shadowDistance": "Расстояние тени",
-    "shadowStrength": "Интенсивность тени"
+    "shadowStrength": "Интенсивность тени",
+    "fuelTankCapacity": "Объём бака"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Панель",

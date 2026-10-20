@@ -596,6 +596,7 @@ mod tests {
             unit_color: [255; 4],
             display_unit: "kmh".to_string(),
             starting_altitude_m: None,
+            fuel_tank_capacity: None,
             prefix: String::new(),
             suffix: String::new(),
             formatting: ValidatedValueFormatting::DecimalPlaces { decimals: 0 },

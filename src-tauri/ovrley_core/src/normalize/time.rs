@@ -164,6 +164,7 @@ pub fn validate_time_value(value: ValueConfig, index: usize) -> CoreResult<Valid
             unit_color: color,
             display_unit: String::new(),
             starting_altitude_m: None,
+            fuel_tank_capacity: None,
             prefix,
             suffix,
             formatting: ValidatedValueFormatting::DecimalPlaces { decimals: 0 },

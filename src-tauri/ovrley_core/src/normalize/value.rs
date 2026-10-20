@@ -103,6 +103,8 @@ pub struct ValidatedValueWidget {
     pub display_unit: String,
     /// Optional presentation target for the first altitude sample, normalized to meters.
     pub starting_altitude_m: Option<f64>,
+    /// Tank capacity in litres; present exactly for fuel_level widgets.
+    pub fuel_tank_capacity: Option<f64>,
     pub prefix: String,
     pub suffix: String,
     pub formatting: ValidatedValueFormatting,
@@ -140,6 +142,41 @@ pub(super) fn normalize_starting_altitude_m(
     };
 
     Ok(starting_altitude.map(|altitude| altitude / meter_scale))
+}
+
+/// Validates the tank capacity of a fuel level widget.
+///
+/// Fuel level widgets must declare a positive capacity in litres and a display unit of litres or
+/// percent; every other metric must not carry the field.
+pub(super) fn normalize_fuel_tank_capacity(
+    metric: MetricKind,
+    capacity: Option<f64>,
+    display_unit: Option<&str>,
+    capacity_path: &str,
+    unit_path: &str,
+) -> CoreResult<Option<f64>> {
+    if metric != MetricKind::FuelLevel {
+        if capacity.is_some() {
+            return Err(CoreError::Config(format!(
+                "{capacity_path}: is only valid for fuel_level widgets"
+            )));
+        }
+        return Ok(None);
+    }
+
+    let capacity = capacity.ok_or_else(|| CoreError::Config(format!("{capacity_path}: required")))?;
+    if !capacity.is_finite() || capacity <= 0.0 || capacity > 1000.0 {
+        return Err(CoreError::Config(format!(
+            "{capacity_path}: expected litres greater than 0 and at most 1000, got {capacity}"
+        )));
+    }
+    let display_unit = display_unit.ok_or_else(|| CoreError::Config(format!("{unit_path}: required")))?;
+    if !matches!(display_unit, "l" | "percent") {
+        return Err(CoreError::Config(format!(
+            "{unit_path}: expected 'l' or 'percent', got '{display_unit}'"
+        )));
+    }
+    Ok(Some(capacity))
 }
 
 // ---------------------------------------------------------------------------
@@ -337,6 +374,13 @@ fn validate_value_widget_fields(
         &p("starting_altitude"),
         &p("display_unit"),
     )?;
+    let fuel_tank_capacity = normalize_fuel_tank_capacity(
+        value.value,
+        value.fuel_tank_capacity,
+        Some(display_unit.as_str()),
+        &p("fuel_tank_capacity"),
+        &p("display_unit"),
+    )?;
 
     // -- affixes are output-affecting and must be explicit ----------------
     let prefix = require_string(value.prefix, &p("prefix"))?;
@@ -431,6 +475,7 @@ fn validate_value_widget_fields(
         unit_color,
         display_unit,
         starting_altitude_m,
+        fuel_tank_capacity,
         prefix,
         suffix,
         formatting,

@@ -76,6 +76,12 @@ pub enum MetricKind {
     CoolantTemperature,
     #[serde(rename = "intake_air_temperature")]
     IntakeAirTemperature,
+    #[serde(rename = "fuel_level")]
+    FuelLevel,
+    #[serde(rename = "battery_voltage")]
+    BatteryVoltage,
+    #[serde(rename = "estimated_range")]
+    EstimatedRange,
     #[serde(rename = "heading")]
     Heading,
     #[serde(rename = "altitude")]

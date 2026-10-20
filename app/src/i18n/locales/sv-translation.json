@@ -541,6 +541,7 @@
       "altitude": { "name": "Höjd", "shortName": "Höjd" },
       "aperture": { "name": "Bländare", "shortName": "Bländare" },
       "backdrop": { "name": "Bakgrund", "shortName": "Bakgrund" },
+      "battery_voltage": { "name": "Batterispänning", "shortName": "Batteri" },
       "brake_position": { "name": "Bromsläge", "shortName": "Broms" },
       "cadence": { "name": "Kadens", "shortName": "Kadens" },
       "calories": { "name": "Kalorier", "shortName": "Kalorier" },
@@ -554,8 +555,10 @@
       "elevation": { "name": "Höjdprofil", "shortName": "Profil" },
       "engine_load": { "name": "Motorlast", "shortName": "Motorlast" },
       "engine_power": { "name": "Motoreffekt", "shortName": "Motoreffekt" },
+      "estimated_range": { "name": "Beräknad räckvidd", "shortName": "Räckvidd" },
       "ev": { "name": "EV", "shortName": "EV" },
       "focal_length": { "name": "Brännvidd", "shortName": "Brännvidd" },
+      "fuel_level": { "name": "Bränslenivå", "shortName": "Bränsle" },
       "g_force": { "name": "G-kraft", "shortName": "G-kraft" },
       "gear_position": { "name": "Växelläge", "shortName": "Växel" },
       "gps_coordinates": { "name": "GPS-koordinater", "shortName": "Position" },
@@ -850,7 +853,8 @@
     "scaleMax": "Maximum",
     "scaleMin": "Minimum",
     "shadowDistance": "Skuggavstånd",
-    "shadowStrength": "Skuggstyrka"
+    "shadowStrength": "Skuggstyrka",
+    "fuelTankCapacity": "Tankvolym"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Instrument",

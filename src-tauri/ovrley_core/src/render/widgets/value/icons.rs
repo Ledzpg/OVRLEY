@@ -118,6 +118,9 @@ pub(crate) fn metric_icon_kind_for_value(kind: MetricKind) -> Option<MetricIconK
             Some(MetricIconKind::BrakePosition)
         }
         crate::standard_metrics::MetricIconAssetKey::EngineLoad => Some(MetricIconKind::EngineLoad),
+        crate::standard_metrics::MetricIconAssetKey::Fuel => Some(MetricIconKind::Fuel),
+        crate::standard_metrics::MetricIconAssetKey::Battery => Some(MetricIconKind::Battery),
+        crate::standard_metrics::MetricIconAssetKey::Range => Some(MetricIconKind::Range),
         crate::standard_metrics::MetricIconAssetKey::LeanAngle => Some(MetricIconKind::LeanAngle),
         crate::standard_metrics::MetricIconAssetKey::House => Some(MetricIconKind::House),
         crate::standard_metrics::MetricIconAssetKey::Satellite => Some(MetricIconKind::Satellite),
@@ -188,6 +191,9 @@ fn parsed_metric_icon(icon_kind: MetricIconKind) -> Option<&'static ParsedSvgIco
             parsed_metric_icon_cached(icon_kind, &BRAKE_POSITION_ICON_CACHE)
         }
         MetricIconKind::EngineLoad => parsed_metric_icon_cached(icon_kind, &ENGINE_LOAD_ICON_CACHE),
+        MetricIconKind::Fuel => parsed_metric_icon_cached(icon_kind, &FUEL_ICON_CACHE),
+        MetricIconKind::Battery => parsed_metric_icon_cached(icon_kind, &BATTERY_ICON_CACHE),
+        MetricIconKind::Range => parsed_metric_icon_cached(icon_kind, &RANGE_ICON_CACHE),
         MetricIconKind::LeanAngle => parsed_metric_icon_cached(icon_kind, &LEAN_ANGLE_ICON_CACHE),
         MetricIconKind::House => parsed_metric_icon_cached(icon_kind, &HOUSE_ICON_CACHE),
         MetricIconKind::Satellite => parsed_metric_icon_cached(icon_kind, &SATELLITE_ICON_CACHE),
@@ -230,6 +236,9 @@ static RPM_ICON_CACHE: OnceLock<Option<ParsedSvgIcon>> = OnceLock::new();
 static THROTTLE_POSITION_ICON_CACHE: OnceLock<Option<ParsedSvgIcon>> = OnceLock::new();
 static BRAKE_POSITION_ICON_CACHE: OnceLock<Option<ParsedSvgIcon>> = OnceLock::new();
 static ENGINE_LOAD_ICON_CACHE: OnceLock<Option<ParsedSvgIcon>> = OnceLock::new();
+static FUEL_ICON_CACHE: OnceLock<Option<ParsedSvgIcon>> = OnceLock::new();
+static BATTERY_ICON_CACHE: OnceLock<Option<ParsedSvgIcon>> = OnceLock::new();
+static RANGE_ICON_CACHE: OnceLock<Option<ParsedSvgIcon>> = OnceLock::new();
 static LEAN_ANGLE_ICON_CACHE: OnceLock<Option<ParsedSvgIcon>> = OnceLock::new();
 static HOUSE_ICON_CACHE: OnceLock<Option<ParsedSvgIcon>> = OnceLock::new();
 static SATELLITE_ICON_CACHE: OnceLock<Option<ParsedSvgIcon>> = OnceLock::new();
@@ -378,6 +387,18 @@ fn metric_icon_svg_markup(icon_kind: MetricIconKind) -> &'static str {
         MetricIconKind::EngineLoad => include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/../../assets/widget-icons/widget-engine-load.svg"
+        )),
+        MetricIconKind::Fuel => include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../assets/widget-icons/widget-fuel.svg"
+        )),
+        MetricIconKind::Battery => include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../assets/widget-icons/widget-battery.svg"
+        )),
+        MetricIconKind::Range => include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../assets/widget-icons/widget-range.svg"
         )),
         MetricIconKind::LeanAngle => include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
@@ -566,6 +587,9 @@ mod tests {
             MetricKind::TotalAscent,
             MetricKind::Calories,
             MetricKind::EngineLoad,
+            MetricKind::FuelLevel,
+            MetricKind::BatteryVoltage,
+            MetricKind::EstimatedRange,
         ] {
             let icon = metric_icon_kind_for_value(metric).and_then(parsed_metric_icon);
             assert!(icon.is_some(), "shared icon should parse for {metric:?}");

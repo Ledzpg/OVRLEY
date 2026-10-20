@@ -73,8 +73,8 @@ export function useLinearGaugePreviewPresentation({ widget, activity, previewSec
     : null
   const metricType = widget.data.value
   const displayUnit = widget.data.display_unit
-  const minLabel = formatGaugeBoundaryLabel(metricType, layout.min + presentation.valueOffset, displayUnit)
-  const maxLabel = formatGaugeBoundaryLabel(metricType, layout.max + presentation.valueOffset, displayUnit)
+  const minLabel = formatGaugeBoundaryLabel(metricType, layout.min + presentation.valueOffset, displayUnit, widget.data.fuel_tank_capacity)
+  const maxLabel = formatGaugeBoundaryLabel(metricType, layout.max + presentation.valueOffset, displayUnit, widget.data.fuel_tank_capacity)
 
   return {
     maskId,
