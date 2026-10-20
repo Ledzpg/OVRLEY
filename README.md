@@ -11,6 +11,11 @@ This is a fork of [OVRLEY](https://github.com/spirokai/OVRLEY) by [spirokai](htt
 clusters, engine temperatures and map views. Everything OVRLEY does, this fork still does; the list below is only what
 was **added or changed**. It is not affiliated with, or endorsed by, the original project.
 
+> **Thank you, [spirokai](https://github.com/spirokai).** OVRLEY is an excellent program, and everything in this fork
+> stands on the solid, well-built foundation you created and released as free software. If you find this fork useful,
+> please also have a look at the [original project](https://github.com/spirokai/OVRLEY) and
+> [www.ovrley.cc](https://www.ovrley.cc).
+
 - Downloads: [Releases](https://github.com/Ledzpg/OVRLEY/releases) (Windows x64 installer, `OVRLEY-fork_by_ledzpg_<version>_x64-setup.exe`)
 - The original project's README, with its full feature list and documentation, is kept in
   [`docs/UPSTREAM_README.md`](docs/UPSTREAM_README.md)
