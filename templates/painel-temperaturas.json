@@ -1,0 +1,228 @@
+{
+  "format": "ovrley-template",
+  "version": 3,
+  "name": "painel-temperaturas",
+  "savedAt": "2026-10-20T12:00:00.000Z",
+  "config": {
+    "scene": {
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "updateRate": 1
+    },
+    "backdrops": [
+      {
+        "id": "widget-1",
+        "x": 42,
+        "y": 42,
+        "opacity": 1,
+        "display_type": "circle",
+        "fill_color": "#000000",
+        "fill_opacity": 0.28,
+        "border_thickness": 0,
+        "border_color": "#ffffff",
+        "border_opacity": 1,
+        "display_variants": {
+          "circle": {
+            "diameter": 264
+          }
+        }
+      },
+      {
+        "id": "widget-4",
+        "x": 310,
+        "y": 42,
+        "opacity": 1,
+        "display_type": "circle",
+        "fill_color": "#000000",
+        "fill_opacity": 0.28,
+        "border_thickness": 0,
+        "border_color": "#ffffff",
+        "border_opacity": 1,
+        "display_variants": {
+          "circle": {
+            "diameter": 264
+          }
+        }
+      }
+    ],
+    "rasters": [],
+    "labels": [
+      {
+        "id": "widget-3",
+        "text": "ÁGUA",
+        "x": 150,
+        "y": 314,
+        "font": "Rajdhani.ttf",
+        "font_size": 24,
+        "color": "#cfd3d8",
+        "opacity": 1,
+        "font_weight": 400,
+        "italic": false,
+        "letter_spacing": 0
+      },
+      {
+        "id": "widget-6",
+        "text": "ADMISSÃO",
+        "x": 394,
+        "y": 314,
+        "font": "Rajdhani.ttf",
+        "font_size": 24,
+        "color": "#cfd3d8",
+        "opacity": 1,
+        "font_weight": 400,
+        "italic": false,
+        "letter_spacing": 0
+      }
+    ],
+    "values": [
+      {
+        "id": "widget-2",
+        "value": "coolant_temperature",
+        "x": 48,
+        "y": 48,
+        "prefix": "",
+        "suffix": "",
+        "decimals": 0,
+        "display_type": "arc",
+        "unit_color": "#cfd3d8",
+        "show_icon": false,
+        "icon_size": 40,
+        "icon_offset_x": 0,
+        "icon_offset_y": 0,
+        "icon_color": "#ffd400",
+        "font": "Rajdhani.ttf",
+        "font_size": 34,
+        "color": "#ffffff",
+        "opacity": 1,
+        "show_units": true,
+        "display_unit": "celsius",
+        "display_variants": {
+          "arc": {
+            "width": 252,
+            "height": 252,
+            "rotation": 0,
+            "arc_angle": 270,
+            "track_fill_style": "fill",
+            "inner_widget_offset_x": 0,
+            "inner_widget_offset_y": -6,
+            "track_thickness": 7,
+            "track_corner_radius": 0,
+            "track_border_thickness": 0,
+            "track_border_color": "#ffffff",
+            "track_empty_color": "#ffffff",
+            "track_empty_opacity": 0.22,
+            "track_filled_color": "#4fd1ff",
+            "track_filled_opacity": 1,
+            "track_fill_flat": true,
+            "show_min_max_labels": false,
+            "min_max_label_font": "Rajdhani.ttf",
+            "min_max_label_font_size": 12,
+            "min_max_label_color": "#ffffff",
+            "scale_min": 40,
+            "scale_max": 120,
+            "redline_value": 105,
+            "redline_color": "#ff3b30",
+            "tick_major_interval": 20,
+            "tick_minor_count": 3,
+            "tick_position": "inside",
+            "tick_color": "#ffffff",
+            "tick_major_length": 12,
+            "tick_minor_length": 6,
+            "tick_thickness": 2,
+            "tick_offset": 8,
+            "tick_show_labels": true,
+            "tick_label_divisor": 1,
+            "tick_label_decimals": 0,
+            "tick_label_font_size": 20,
+            "tick_label_color": "#ffffff",
+            "tick_label_offset": 6
+          }
+        }
+      },
+      {
+        "id": "widget-5",
+        "value": "intake_air_temperature",
+        "x": 316,
+        "y": 48,
+        "prefix": "",
+        "suffix": "",
+        "decimals": 0,
+        "display_type": "arc",
+        "unit_color": "#cfd3d8",
+        "show_icon": false,
+        "icon_size": 40,
+        "icon_offset_x": 0,
+        "icon_offset_y": 0,
+        "icon_color": "#ffd400",
+        "font": "Rajdhani.ttf",
+        "font_size": 34,
+        "color": "#ffffff",
+        "opacity": 1,
+        "show_units": true,
+        "display_unit": "celsius",
+        "display_variants": {
+          "arc": {
+            "width": 252,
+            "height": 252,
+            "rotation": 0,
+            "arc_angle": 270,
+            "track_fill_style": "fill",
+            "inner_widget_offset_x": 0,
+            "inner_widget_offset_y": -6,
+            "track_thickness": 7,
+            "track_corner_radius": 0,
+            "track_border_thickness": 0,
+            "track_border_color": "#ffffff",
+            "track_empty_color": "#ffffff",
+            "track_empty_opacity": 0.22,
+            "track_filled_color": "#7dffb0",
+            "track_filled_opacity": 1,
+            "track_fill_flat": true,
+            "show_min_max_labels": false,
+            "min_max_label_font": "Rajdhani.ttf",
+            "min_max_label_font_size": 12,
+            "min_max_label_color": "#ffffff",
+            "scale_min": 0,
+            "scale_max": 80,
+            "redline_value": 60,
+            "redline_color": "#ff9f1a",
+            "tick_major_interval": 20,
+            "tick_minor_count": 3,
+            "tick_position": "inside",
+            "tick_color": "#ffffff",
+            "tick_major_length": 12,
+            "tick_minor_length": 6,
+            "tick_thickness": 2,
+            "tick_offset": 8,
+            "tick_show_labels": true,
+            "tick_label_divisor": 1,
+            "tick_label_decimals": 0,
+            "tick_label_font_size": 20,
+            "tick_label_color": "#ffffff",
+            "tick_label_offset": 6
+          }
+        }
+      }
+    ],
+    "plots": []
+  },
+  "settings": {
+    "globalDefaults": {
+      "border_color": "#000000",
+      "border_thickness": 0,
+      "shadow_color": "#000000",
+      "shadow_strength": 3,
+      "shadow_distance": 2,
+      "font_values": "Rajdhani.ttf",
+      "font_text": "Rajdhani.ttf",
+      "color_values": "#ffffff",
+      "color_text": "#ffffff",
+      "color_icons": "#ffd400",
+      "color_units": "#cfd3d8",
+      "font_size": 30,
+      "opacity": 1,
+      "scale": 1
+    }
+  }
+}

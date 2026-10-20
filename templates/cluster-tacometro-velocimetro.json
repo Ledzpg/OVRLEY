@@ -1,0 +1,221 @@
+{
+  "format": "ovrley-template",
+  "version": 3,
+  "name": "cluster-tacometro-velocimetro",
+  "savedAt": "2026-10-20T12:00:00.000Z",
+  "config": {
+    "scene": {
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "updateRate": 1
+    },
+    "backdrops": [
+      {
+        "id": "widget-1",
+        "x": 1438,
+        "y": 598,
+        "opacity": 1,
+        "display_type": "circle",
+        "fill_color": "#000000",
+        "fill_opacity": 0.28,
+        "border_thickness": 0,
+        "border_color": "#ffffff",
+        "border_opacity": 1,
+        "display_variants": {
+          "circle": {
+            "diameter": 464
+          }
+        }
+      },
+      {
+        "id": "widget-2",
+        "x": 1556,
+        "y": 744,
+        "opacity": 1,
+        "display_type": "rectangle",
+        "fill_color": "#ffd400",
+        "fill_opacity": 1,
+        "border_thickness": 0,
+        "border_color": "#ffffff",
+        "border_opacity": 1,
+        "display_variants": {
+          "rectangle": {
+            "width": 62,
+            "height": 78,
+            "corner_radius": 12,
+            "round_top_left": true,
+            "round_top_right": true,
+            "round_bottom_left": true,
+            "round_bottom_right": true
+          }
+        }
+      }
+    ],
+    "rasters": [],
+    "labels": [
+      {
+        "id": "widget-6",
+        "text": "KM/H",
+        "x": 1728,
+        "y": 862,
+        "font": "Rajdhani.ttf",
+        "font_size": 30,
+        "color": "#cfd3d8",
+        "opacity": 1,
+        "font_weight": 400,
+        "italic": false,
+        "letter_spacing": 0
+      }
+    ],
+    "values": [
+      {
+        "id": "widget-3",
+        "value": "rpm",
+        "x": 1450,
+        "y": 610,
+        "prefix": "",
+        "suffix": "",
+        "decimals": 0,
+        "display_type": "arc",
+        "unit_color": "#cfd3d8",
+        "show_icon": false,
+        "icon_size": 40,
+        "icon_offset_x": 0,
+        "icon_offset_y": 0,
+        "icon_color": "#ffd400",
+        "font": "Rajdhani.ttf",
+        "font_size": 34,
+        "color": "#ffffff",
+        "opacity": 1,
+        "show_units": true,
+        "display_unit": "rpm",
+        "display_variants": {
+          "arc": {
+            "width": 440,
+            "height": 440,
+            "rotation": 0,
+            "arc_angle": 270,
+            "track_fill_style": "fill",
+            "inner_widget_offset_x": 0,
+            "inner_widget_offset_y": 96,
+            "track_thickness": 10,
+            "track_corner_radius": 0,
+            "track_border_thickness": 0,
+            "track_border_color": "#ffffff",
+            "track_empty_color": "#ffffff",
+            "track_empty_opacity": 0.22,
+            "track_filled_color": "#ffffff",
+            "track_filled_opacity": 1,
+            "track_fill_flat": true,
+            "show_min_max_labels": false,
+            "min_max_label_font": "Rajdhani.ttf",
+            "min_max_label_font_size": 12,
+            "min_max_label_color": "#ffffff",
+            "scale_min": 0,
+            "scale_max": 11000,
+            "redline_value": 10000,
+            "redline_color": "#ff3b30",
+            "redline_fill_all": true,
+            "redline_blink_hz": 5,
+            "fill_zones": [
+              {
+                "start": 0,
+                "color": "#2bd9ff",
+                "end_color": "#47ff6b"
+              },
+              {
+                "start": 7000,
+                "color": "#47ff6b"
+              },
+              {
+                "start": 8000,
+                "color": "#ffd400",
+                "end_color": "#ff3b30"
+              }
+            ],
+            "tick_major_interval": 1000,
+            "tick_minor_count": 4,
+            "tick_position": "inside",
+            "tick_color": "#ffffff",
+            "tick_major_length": 16,
+            "tick_minor_length": 8,
+            "tick_thickness": 2,
+            "tick_offset": 10,
+            "tick_show_labels": true,
+            "tick_label_divisor": 1000,
+            "tick_label_decimals": 0,
+            "tick_label_font_size": 28,
+            "tick_label_color": "#ffffff",
+            "tick_label_offset": 8
+          }
+        }
+      },
+      {
+        "id": "widget-4",
+        "value": "gear_position",
+        "x": 1587,
+        "y": 752,
+        "prefix": "",
+        "suffix": "",
+        "decimals": 0,
+        "display_type": "text",
+        "content_alignment": "center",
+        "unit_color": "#cfd3d8",
+        "show_icon": false,
+        "icon_size": 40,
+        "icon_offset_x": 0,
+        "icon_offset_y": 0,
+        "icon_color": "#ffd400",
+        "font": "Rajdhani.ttf",
+        "font_size": 64,
+        "color": "#111111",
+        "opacity": 1,
+        "show_units": false,
+        "shadow_strength": 0,
+        "shadow_distance": 0
+      },
+      {
+        "id": "widget-5",
+        "value": "speed",
+        "x": 1808,
+        "y": 742,
+        "prefix": "",
+        "suffix": "",
+        "decimals": 0,
+        "display_type": "text",
+        "content_alignment": "right",
+        "unit_color": "#cfd3d8",
+        "show_icon": false,
+        "icon_size": 40,
+        "icon_offset_x": 0,
+        "icon_offset_y": 0,
+        "icon_color": "#ffd400",
+        "font": "Rajdhani.ttf",
+        "font_size": 112,
+        "color": "#ffffff",
+        "opacity": 1,
+        "show_units": false
+      }
+    ],
+    "plots": []
+  },
+  "settings": {
+    "globalDefaults": {
+      "border_color": "#000000",
+      "border_thickness": 0,
+      "shadow_color": "#000000",
+      "shadow_strength": 3,
+      "shadow_distance": 2,
+      "font_values": "Rajdhani.ttf",
+      "font_text": "Rajdhani.ttf",
+      "color_values": "#ffffff",
+      "color_text": "#ffffff",
+      "color_icons": "#ffd400",
+      "color_units": "#cfd3d8",
+      "font_size": 30,
+      "opacity": 1,
+      "scale": 1
+    }
+  }
+}
