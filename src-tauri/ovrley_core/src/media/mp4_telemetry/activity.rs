@@ -243,6 +243,8 @@ pub fn build_activity_columns(
         ground_contact_time: none(),
         left_right_balance: none(),
         core_temperature: none(),
+        coolant_temperature: none(),
+        intake_air_temperature: none(),
         air_pressure: none(),
         gear_position: vec![None; n],
         iso,

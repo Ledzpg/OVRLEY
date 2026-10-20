@@ -806,6 +806,32 @@ pub fn trim_activity(
         } else {
             Vec::new()
         },
+        coolant_temperature: if requirements.coolant_temperature {
+            trim_numeric_series(
+                elapsed,
+                &activity.coolant_temperature,
+                start,
+                end,
+                start_inner_index,
+                end_inner_index,
+                interpolation_strategy(crate::MetricKind::CoolantTemperature),
+            )
+        } else {
+            Vec::new()
+        },
+        intake_air_temperature: if requirements.intake_air_temperature {
+            trim_numeric_series(
+                elapsed,
+                &activity.intake_air_temperature,
+                start,
+                end,
+                start_inner_index,
+                end_inner_index,
+                interpolation_strategy(crate::MetricKind::IntakeAirTemperature),
+            )
+        } else {
+            Vec::new()
+        },
         gradient: if requirements.gradient {
             trim_numeric_series(
                 elapsed,

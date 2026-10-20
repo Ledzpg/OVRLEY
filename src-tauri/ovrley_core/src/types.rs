@@ -72,6 +72,10 @@ pub enum MetricKind {
     VerticalOscillation,
     #[serde(rename = "core_temperature")]
     CoreTemperature,
+    #[serde(rename = "coolant_temperature")]
+    CoolantTemperature,
+    #[serde(rename = "intake_air_temperature")]
+    IntakeAirTemperature,
     #[serde(rename = "heading")]
     Heading,
     #[serde(rename = "altitude")]

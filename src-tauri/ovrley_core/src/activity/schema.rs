@@ -216,6 +216,8 @@ pub struct ActivityColumns {
     pub ground_contact_time: NumericSeries,
     pub left_right_balance: NumericSeries,
     pub core_temperature: NumericSeries,
+    pub coolant_temperature: NumericSeries,
+    pub intake_air_temperature: NumericSeries,
     pub air_pressure: NumericSeries,
     pub calories: NumericSeries,
     pub gear_position: GearSeries,
@@ -352,6 +354,12 @@ pub struct RawSample {
     /// Core/body temperature in Celsius.
     #[serde(default)]
     pub core_temperature: Option<f64>,
+    /// Coolant temperature in Celsius.
+    #[serde(default)]
+    pub coolant_temperature: Option<f64>,
+    /// Intake air temperature in Celsius.
+    #[serde(default)]
+    pub intake_air_temperature: Option<f64>,
     /// Air pressure in bar.
     #[serde(default)]
     pub air_pressure: Option<f64>,
@@ -553,6 +561,12 @@ pub struct ParsedActivity {
     /// Core temperature in degrees Celsius.
     #[serde(default)]
     pub core_temperature: NumericSeries,
+    /// Coolant temperature in degrees Celsius.
+    #[serde(default)]
+    pub coolant_temperature: NumericSeries,
+    /// Intake air temperature in degrees Celsius.
+    #[serde(default)]
+    pub intake_air_temperature: NumericSeries,
     /// Road grade in percent.
     #[serde(default)]
     pub gradient: NumericSeries,
@@ -705,6 +719,10 @@ pub struct DenseSeriesReport {
     pub vertical_oscillation: Vec<Option<f64>>,
     /// Core temperature in degrees Celsius.
     pub core_temperature: Vec<Option<f64>>,
+    /// Coolant temperature in degrees Celsius.
+    pub coolant_temperature: Vec<Option<f64>>,
+    /// Intake air temperature in degrees Celsius.
+    pub intake_air_temperature: Vec<Option<f64>>,
     /// Heading in degrees (0–360).
     pub heading: Vec<Option<f64>>,
     /// Course latitude values.
@@ -757,6 +775,8 @@ impl DenseSeriesReport {
             MetricKind::VerticalRatio => Some(&self.vertical_ratio),
             MetricKind::VerticalOscillation => Some(&self.vertical_oscillation),
             MetricKind::CoreTemperature => Some(&self.core_temperature),
+            MetricKind::CoolantTemperature => Some(&self.coolant_temperature),
+            MetricKind::IntakeAirTemperature => Some(&self.intake_air_temperature),
             MetricKind::Heading => Some(&self.heading),
             MetricKind::Altitude => Some(preferred_elevation_series(
                 &self.barometric_altitude,
@@ -879,6 +899,10 @@ pub struct TrimmedActivity {
     pub vertical_oscillation: NumericSeries,
     /// Trimmed core temperature samples in Celsius.
     pub core_temperature: NumericSeries,
+    /// Trimmed coolant temperature samples in Celsius.
+    pub coolant_temperature: NumericSeries,
+    /// Trimmed intake air temperature samples in Celsius.
+    pub intake_air_temperature: NumericSeries,
     /// Trimmed gradient samples in percent.
     pub gradient: NumericSeries,
     /// Trimmed heading samples in degrees.

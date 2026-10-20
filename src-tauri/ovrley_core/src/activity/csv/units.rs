@@ -49,6 +49,10 @@ pub(super) enum Unit {
     NewtonMetres,
     /// Foot-pounds force.
     FootPounds,
+    /// Degrees Celsius.
+    Celsius,
+    /// Degrees Fahrenheit.
+    Fahrenheit,
     /// Unscaled numeric value.
     Raw,
 }
@@ -109,6 +113,8 @@ pub(super) fn parse_declared_unit(value: &str) -> DeclaredUnit {
         "ft-lb" | "ft-lbs" | "ft-lbf" | "ft·lbf" | "ft lb" | "ft lbs" | "ft lbf" | "lb-ft"
         | "lbs-ft" | "lb ft" | "lbs ft" | "lbf-ft" | "lbf ft" | "foot-pound" | "foot pound"
         | "foot pounds" => Unit::FootPounds,
+        "c" | "°c" | "℃" | "deg c" | "degc" | "celsius" => Unit::Celsius,
+        "f" | "°f" | "℉" | "deg f" | "degf" | "fahrenheit" => Unit::Fahrenheit,
         "#" | "raw" => Unit::Raw,
         _ => return DeclaredUnit::Unsupported(UnitDimension::Unknown),
     };
@@ -213,6 +219,9 @@ pub(super) fn compatible(metric: Metric, unit: Unit) -> bool {
             matches!(unit, Unit::Percent)
         }
         Metric::Torque => matches!(unit, Unit::NewtonMetres | Unit::FootPounds),
+        Metric::CoolantTemperature | Metric::IntakeAirTemperature => {
+            matches!(unit, Unit::Celsius | Unit::Fahrenheit)
+        }
         Metric::LeanAngle => matches!(unit, Unit::Degrees),
         Metric::GearPosition => matches!(unit, Unit::Raw),
         Metric::CompanionDate | Metric::GpsCoordinate | Metric::LapNumber => {
@@ -232,6 +241,7 @@ pub(super) fn convert(value: f64, unit: Unit) -> f64 {
         Unit::MetricHorsepower => value * 735.49875,
         Unit::MechanicalHorsepower => value * 745.699_871_582_270_2,
         Unit::FootPounds => value * 1.355_817_948_331_400_4,
+        Unit::Fahrenheit => (value - 32.0) * 5.0 / 9.0,
         Unit::Seconds
         | Unit::DecimalDegrees
         | Unit::MetresPerSecond
@@ -242,6 +252,7 @@ pub(super) fn convert(value: f64, unit: Unit) -> f64 {
         | Unit::RevolutionsPerMinute
         | Unit::Watts
         | Unit::NewtonMetres
+        | Unit::Celsius
         | Unit::Raw => value,
     }
 }
@@ -262,6 +273,7 @@ fn default_unit(metric: Metric) -> Unit {
         Metric::EnginePower => Unit::Watts,
         Metric::EngineLoad | Metric::ThrottlePosition | Metric::BrakePosition => Unit::Percent,
         Metric::Torque => Unit::NewtonMetres,
+        Metric::CoolantTemperature | Metric::IntakeAirTemperature => Unit::Celsius,
         Metric::LeanAngle => Unit::Degrees,
         Metric::GearPosition => Unit::Raw,
         Metric::CompanionDate | Metric::GpsCoordinate | Metric::LapNumber => Unit::Raw,

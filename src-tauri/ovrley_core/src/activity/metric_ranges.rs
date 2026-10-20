@@ -47,6 +47,8 @@ pub fn calculate_metric_ranges(activity: &ParsedActivity) -> HashMap<MetricKind,
         (VerticalRatio, &activity.vertical_ratio),
         (VerticalOscillation, &activity.vertical_oscillation),
         (CoreTemperature, &activity.core_temperature),
+        (CoolantTemperature, &activity.coolant_temperature),
+        (IntakeAirTemperature, &activity.intake_air_temperature),
         (Heading, &activity.heading),
         (
             Altitude,

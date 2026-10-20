@@ -66,6 +66,10 @@ enum Metric {
     EngineLoad,
     /// Engine torque in newton-metres.
     Torque,
+    /// Engine coolant temperature in degrees Celsius.
+    CoolantTemperature,
+    /// Intake air temperature in degrees Celsius.
+    IntakeAirTemperature,
     /// Throttle position as a percentage from zero to one hundred.
     ThrottlePosition,
     /// Brake position as a percentage from zero to one hundred.

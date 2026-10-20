@@ -405,6 +405,8 @@ fn build_activity_columns(sections: Sections, file_name: &str) -> CoreResult<Act
         ground_contact_time: empty(),
         left_right_balance: empty(),
         core_temperature: empty(),
+        coolant_temperature: empty(),
+        intake_air_temperature: empty(),
         air_pressure: empty(),
         gear_position: series(layout.gear_position, identity)
             .into_iter()

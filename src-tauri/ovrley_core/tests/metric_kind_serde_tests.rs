@@ -42,6 +42,8 @@ fn metric_kind_round_trip_all_variants() {
         (MetricKind::VerticalRatio, r#""vertical_ratio""#),
         (MetricKind::VerticalOscillation, r#""vertical_oscillation""#),
         (MetricKind::CoreTemperature, r#""core_temperature""#),
+        (MetricKind::CoolantTemperature, r#""coolant_temperature""#),
+        (MetricKind::IntakeAirTemperature, r#""intake_air_temperature""#),
         (MetricKind::Heading, r#""heading""#),
         (MetricKind::Altitude, r#""altitude""#),
         (MetricKind::Iso, r#""iso""#),

@@ -733,6 +733,20 @@ pub fn densify_activity(
                 requirements.core_temperature,
                 crate::MetricKind::CoreTemperature,
             ),
+            coolant_temperature: densify(
+                &trimmed.sample_elapsed_seconds,
+                &trimmed.coolant_temperature,
+                &frame_elapsed_seconds,
+                requirements.coolant_temperature,
+                crate::MetricKind::CoolantTemperature,
+            ),
+            intake_air_temperature: densify(
+                &trimmed.sample_elapsed_seconds,
+                &trimmed.intake_air_temperature,
+                &frame_elapsed_seconds,
+                requirements.intake_air_temperature,
+                crate::MetricKind::IntakeAirTemperature,
+            ),
             heading: if requirements.heading && !trimmed.heading.is_empty() {
                 densify_forward_fill_series(
                     &trimmed.sample_elapsed_seconds,

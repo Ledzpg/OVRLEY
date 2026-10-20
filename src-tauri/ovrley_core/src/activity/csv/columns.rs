@@ -272,6 +272,8 @@ pub(super) fn build_activity_columns(
     let (engine_power, _) = series(Metric::EnginePower);
     let (engine_load, _) = series(Metric::EngineLoad);
     let (torque, _) = series(Metric::Torque);
+    let (coolant_temperature, _) = series(Metric::CoolantTemperature);
+    let (intake_air_temperature, _) = series(Metric::IntakeAirTemperature);
     let (throttle_position, _) = series(Metric::ThrottlePosition);
     let (brake_position, _) = series(Metric::BrakePosition);
     let (source_lap_number, _) = series(Metric::LapNumber);
@@ -400,6 +402,8 @@ pub(super) fn build_activity_columns(
         ground_contact_time: empty(),
         left_right_balance: empty(),
         core_temperature: empty(),
+        coolant_temperature,
+        intake_air_temperature,
         air_pressure: empty(),
         iso: empty(),
         aperture: empty(),

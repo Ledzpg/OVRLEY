@@ -667,6 +667,8 @@ pub fn derive_activity_metric_series(
     insert_metric!("barometric_altitude", &null_series);
     insert_metric!("cadence", &null_series);
     insert_metric!("core_temperature", &null_series);
+    insert_metric!("coolant_temperature", &null_series);
+    insert_metric!("intake_air_temperature", &null_series);
     insert_metric!("engine_power", &null_series);
     insert_metric!("engine_load", &null_series);
     let derived_calories = derive_calories_from_power(&direct["power"], elapsed_series);
@@ -793,6 +795,8 @@ fn direct_metrics(
     collect!("cadence", cadence);
     collect!("calories", calories);
     collect!("core_temperature", core_temperature);
+    collect!("coolant_temperature", coolant_temperature);
+    collect!("intake_air_temperature", intake_air_temperature);
     direct.insert("distance", distance_series.clone());
     collect!("distance_to_home", distance_to_home);
     direct.insert("elevation", elevation_base_series.clone());

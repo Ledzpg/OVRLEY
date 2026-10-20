@@ -51,6 +51,8 @@ describe('standard metric widget catalog', () => {
       'vertical_ratio',
       'vertical_oscillation',
       'core_temperature',
+      'coolant_temperature',
+      'intake_air_temperature',
       'heading',
       'altitude',
       'iso',

@@ -1021,6 +1021,58 @@
       "category": "other"
     },
     {
+      "type": "coolant_temperature",
+      "current": true,
+      "nameKey": "widgets.types.coolant_temperature.name",
+      "shortNameKey": "widgets.types.coolant_temperature.shortName",
+      "defaultDisplayUnit": "celsius",
+      "supportedDisplayUnits": [
+        {
+          "value": "celsius",
+          "label": "°C"
+        },
+        {
+          "value": "fahrenheit",
+          "label": "°F"
+        }
+      ],
+      "showUnitsByDefault": true,
+      "formatter": "temperature",
+      "interpolation": "linear",
+      "unitsMode": "selectable",
+      "icon": {
+        "source": "shared",
+        "assetFile": "widget-temperature.svg"
+      },
+      "category": "motosports"
+    },
+    {
+      "type": "intake_air_temperature",
+      "current": true,
+      "nameKey": "widgets.types.intake_air_temperature.name",
+      "shortNameKey": "widgets.types.intake_air_temperature.shortName",
+      "defaultDisplayUnit": "celsius",
+      "supportedDisplayUnits": [
+        {
+          "value": "celsius",
+          "label": "°C"
+        },
+        {
+          "value": "fahrenheit",
+          "label": "°F"
+        }
+      ],
+      "showUnitsByDefault": true,
+      "formatter": "temperature",
+      "interpolation": "linear",
+      "unitsMode": "selectable",
+      "icon": {
+        "source": "shared",
+        "assetFile": "widget-temperature.svg"
+      },
+      "category": "motosports"
+    },
+    {
       "type": "heading",
       "current": true,
       "nameKey": "widgets.types.heading.name",

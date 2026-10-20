@@ -747,7 +747,10 @@ pub(crate) fn convert_standard_metric_value(
             "mps" => value,
             _ => value * 3.6,
         },
-        MetricKind::Temperature | MetricKind::CoreTemperature => {
+        MetricKind::Temperature
+        | MetricKind::CoreTemperature
+        | MetricKind::CoolantTemperature
+        | MetricKind::IntakeAirTemperature => {
             if display_unit == Some("fahrenheit") {
                 (value * 9.0 / 5.0) + 32.0
             } else {

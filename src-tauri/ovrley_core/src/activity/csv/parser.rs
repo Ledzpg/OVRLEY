@@ -313,6 +313,30 @@ fn parse_header(index: usize, value: &str) -> Option<HeaderColumn> {
             None,
         ),
         "torque" | "estimated torque" => (Metric::Torque, SourcePriority::Direct, None, None, None),
+        "coolant temperature"
+        | "coolant temp"
+        | "coolant temp c"
+        | "engine coolant temperature"
+        | "engine coolant temp"
+        | "ect" => (
+            Metric::CoolantTemperature,
+            SourcePriority::Direct,
+            None,
+            None,
+            None,
+        ),
+        "intake air temperature"
+        | "intake air temp"
+        | "intake air temp c"
+        | "intake temperature"
+        | "intake temp"
+        | "iat" => (
+            Metric::IntakeAirTemperature,
+            SourcePriority::Direct,
+            None,
+            None,
+            None,
+        ),
         "engine load" | "engine load absolute" | "absolute engine load" => (
             Metric::EngineLoad,
             SourcePriority::Direct,

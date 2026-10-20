@@ -570,3 +570,31 @@ describe('metric widget preview model standard metric units', () => {
     expect(arcModel).toBeNull()
   })
 })
+
+describe.each([
+  ['coolant_temperature', 92],
+  ['intake_air_temperature', 31],
+])('%s widget preview', (type, celsius) => {
+  const buildModel = (displayUnit, value) =>
+    buildMetricWidgetPreviewModel({
+      widget: {
+        category: 'values',
+        type,
+        data: { content_alignment: 'left', display_unit: displayUnit, show_units: true, show_icon: false },
+      },
+      activity: { trim_end_seconds: 20, sample_elapsed_seconds: [0], [type]: [value] },
+      previewSecond: 0,
+    })
+
+  test('formats celsius', () => {
+    const model = buildModel('celsius', celsius)
+    expect(model?.valueText).toBe(String(celsius))
+    expect(model?.unitText).toBe('°C')
+  })
+
+  test('formats fahrenheit', () => {
+    const model = buildModel('fahrenheit', celsius)
+    expect(model?.valueText).toBe(String(Math.round((celsius * 9) / 5 + 32)))
+    expect(model?.unitText).toBe('°F')
+  })
+})

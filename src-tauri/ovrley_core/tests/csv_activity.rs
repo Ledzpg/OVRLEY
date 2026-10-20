@@ -1687,3 +1687,87 @@ Time,Lap,Latitude,Longitude\n\
         }
     }
 }
+
+#[test]
+fn csv_coolant_and_intake_air_temperature_columns_are_imported_in_celsius() {
+    let csv = "Elapsed Time (s),Coolant Temperature (°C),Intake Air Temperature (°C)\n\
+0.0,60,25\n\
+1.0,61,26\n\
+2.0,62,27\n";
+
+    let activity = parse_csv_activity_reader(Cursor::new(csv), "temps.csv")
+        .unwrap()
+        .parsed_activity;
+
+    assert_eq!(
+        activity.coolant_temperature,
+        vec![Some(60.0), Some(61.0), Some(62.0)]
+    );
+    assert_eq!(
+        activity.intake_air_temperature,
+        vec![Some(25.0), Some(26.0), Some(27.0)]
+    );
+    assert!(activity.temperature.iter().all(Option::is_none));
+    assert!(activity.core_temperature.iter().all(Option::is_none));
+}
+
+#[test]
+fn csv_garagem_log_temperature_headers_are_recognized() {
+    let csv = "Elapsed Time (s),Speed_Kmh,Coolant_Temp_C,Intake_Air_Temp_C\n\
+0.0,0,60,25\n\
+1.0,10,61,26\n";
+
+    let activity = parse_csv_activity_reader(Cursor::new(csv), "garagem.csv")
+        .unwrap()
+        .parsed_activity;
+
+    assert_eq!(activity.coolant_temperature, vec![Some(60.0), Some(61.0)]);
+    assert_eq!(activity.intake_air_temperature, vec![Some(25.0), Some(26.0)]);
+}
+
+#[test]
+fn csv_fahrenheit_temperature_columns_are_converted_to_celsius() {
+    let csv = "Elapsed Time (s),Coolant Temp (°F),IAT (°F)\n\
+0.0,212,32\n\
+1.0,194,50\n";
+
+    let activity = parse_csv_activity_reader(Cursor::new(csv), "temps-f.csv")
+        .unwrap()
+        .parsed_activity;
+
+    assert_eq!(activity.coolant_temperature, vec![Some(100.0), Some(90.0)]);
+    assert_eq!(activity.intake_air_temperature, vec![Some(0.0), Some(10.0)]);
+}
+
+#[test]
+fn csv_implausible_temperature_values_are_discarded() {
+    let csv = "Elapsed Time (s),Coolant Temperature (°C)\n\
+0.0,-273\n\
+1.0,90\n\
+2.0,400\n";
+
+    let activity = parse_csv_activity_reader(Cursor::new(csv), "bad-temps.csv")
+        .unwrap()
+        .parsed_activity;
+
+    assert_eq!(activity.coolant_temperature, vec![None, Some(90.0), None]);
+}
+
+#[test]
+fn csv_garagem_ovrley_export_with_dedicated_temperature_columns_imports_all_metrics() {
+    let csv = "DateTime (UTC),Elapsed Time (s),Latitude,Longitude,Altitude (m),Speed (km/h),RPM (rpm),Gear,Throttle Position (%),Engine Load (%),Lateral Acceleration (g),Longitudinal Acceleration (g),Coolant Temperature (°C),Intake Air Temperature (°C),Heading (deg)\n\
+2026-10-18T11:24:07.363Z,0.000,-22.87968302,-42.31580039,10.6,0,1301,N,0,0,0.0,0.0,60,25,90.0\n\
+2026-10-18T11:24:07.463Z,0.100,-22.8796293,-42.3157413,15.4,36,4978,3,20,35,0.1,0.2,88,31,91.5\n";
+
+    let activity = parse_csv_activity_reader(Cursor::new(csv), "garagem_ovrley.csv")
+        .unwrap()
+        .parsed_activity;
+
+    assert_eq!(activity.coolant_temperature, vec![Some(60.0), Some(88.0)]);
+    assert_eq!(activity.intake_air_temperature, vec![Some(25.0), Some(31.0)]);
+    assert_eq!(activity.rpm, vec![Some(1301.0), Some(4978.0)]);
+    // Heading is smoothed on import, so only its range is stable.
+    assert_eq!(activity.heading[0], Some(90.0));
+    assert!((90.0..=91.5).contains(&activity.heading[1].unwrap()));
+    assert!(activity.torque.iter().all(Option::is_none));
+}

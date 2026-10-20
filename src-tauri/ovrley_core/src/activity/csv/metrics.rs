@@ -247,6 +247,11 @@ fn validate(metric: Metric, value: f64) -> Option<f64> {
         {
             None
         }
+        Metric::CoolantTemperature | Metric::IntakeAirTemperature
+            if !(-60.0..=300.0).contains(&value) =>
+        {
+            None
+        }
         Metric::Heading => Some(value.rem_euclid(360.0)),
         _ => Some(value),
     }

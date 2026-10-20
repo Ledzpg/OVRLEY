@@ -216,6 +216,8 @@ export function convertStandardMetricValue(type, value, displayUnit) {
       return displayUnit === 'mps' ? value : value * 3.6
     case 'temperature':
     case 'core_temperature':
+    case 'coolant_temperature':
+    case 'intake_air_temperature':
       return displayUnit === 'fahrenheit' ? (value * 9) / 5 + 32 : value
     case 'pace':
       return displayUnit === 'min_per_mi' ? value * 1.609344 : value
