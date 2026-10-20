@@ -257,8 +257,8 @@ export default function ArcDisplaySection({ widget, updateWidgetData, updateWidg
           editable
           label={t('widget-editor.verticalOffset', 'Vertical Offset')}
           value={arcData.inner_widget_offset_y}
-          min={-50}
-          max={50}
+          min={-150}
+          max={150}
           step={1}
           integerDisplay
           valueDisplay={`${arcData.inner_widget_offset_y}`}
