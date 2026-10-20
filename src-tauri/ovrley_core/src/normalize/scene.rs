@@ -144,6 +144,43 @@ pub struct ValidatedScenePresentation {
     pub overlay_filename: Option<String>,
 }
 
+impl ValidatedScenePresentation {
+    /// Effective shadow strength for a widget: its own override, else the scene value.
+    pub fn shadow_strength_for(&self, shadow: &ShadowOverride) -> f32 {
+        shadow.strength.unwrap_or(self.shadow_strength)
+    }
+
+    /// Effective shadow distance for a widget: its own override, else the scene value.
+    pub fn shadow_distance_for(&self, shadow: &ShadowOverride) -> f32 {
+        shadow.distance.unwrap_or(self.shadow_distance)
+    }
+}
+
+/// Optional per-widget shadow intensity and distance.
+///
+/// Absence is documented optional input: an unset field falls back to the
+/// scene-wide value. Present values are validated once at ingress.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct ShadowOverride {
+    pub strength: Option<f32>,
+    pub distance: Option<f32>,
+}
+
+/// Validates optional per-widget shadow fields. Present values must be finite and >= 0.
+pub(crate) fn validate_shadow_override(
+    strength: Option<f32>,
+    distance: Option<f32>,
+    path: &str,
+) -> CoreResult<ShadowOverride> {
+    let strength = strength
+        .map(|value| require_non_negative_f32(value, &format!("{path}.shadow_strength")))
+        .transpose()?;
+    let distance = distance
+        .map(|value| require_non_negative_f32(value, &format!("{path}.shadow_distance")))
+        .transpose()?;
+    Ok(ShadowOverride { strength, distance })
+}
+
 /// Validates scene config, rejecting missing or out-of-range fields.
 pub fn validate_scene_config(raw: SceneConfig) -> CoreResult<ValidatedSceneConfig> {
     let fps = require_positive_f64(raw.fps, "scene.fps")?;

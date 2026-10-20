@@ -1,5 +1,6 @@
 //! G-force friction-circle widget validation.
 
+use super::scene::{validate_shadow_override, ShadowOverride};
 use super::helpers::{
     require_bool, require_f32, require_hex_color, require_positive_f32, require_positive_u32,
     require_string, require_unit_opacity,
@@ -30,6 +31,8 @@ impl GForceAxis {
 
 #[derive(Clone, Debug)]
 pub struct ValidatedGForceWidget {
+    /// Optional per-widget shadow overrides (fall back to the scene).
+    pub shadow: ShadowOverride,
     pub x: f32,
     pub y: f32,
     pub width: u32,
@@ -132,6 +135,7 @@ pub fn validate_g_force(value: ValueConfig, index: usize) -> CoreResult<Validate
     }
 
     Ok(ValidatedGForceWidget {
+        shadow: validate_shadow_override(value.shadow_strength, value.shadow_distance, &format!("values[{index}]"))?,
         x: value.x,
         y: value.y,
         width,

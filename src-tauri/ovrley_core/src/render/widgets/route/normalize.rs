@@ -28,8 +28,8 @@ pub(crate) fn normalize_route_plot(
         remaining_line_shadow: shadow_with_screen_offset(
             normalize_shadow_style_validated(
                 &scene.presentation.shadow_color,
-                scene.presentation.shadow_strength,
-                scene.presentation.shadow_distance,
+                scene.presentation.shadow_strength_for(&validated.shadow),
+                scene.presentation.shadow_distance_for(&validated.shadow),
                 scale,
             ),
             validated.rotation,

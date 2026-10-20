@@ -38,8 +38,8 @@ pub(super) fn draw_static_layer(
     let shadow_filter = if border > 0.0 {
         normalize_shadow_style_validated(
             &scene.presentation.shadow_color,
-            scene.presentation.shadow_strength,
-            scene.presentation.shadow_distance,
+            scene.presentation.shadow_strength_for(&gauge.shadow),
+            scene.presentation.shadow_distance_for(&gauge.shadow),
             scale,
         )
         .and_then(|shadow| {

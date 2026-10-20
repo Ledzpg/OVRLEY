@@ -197,6 +197,7 @@ fn vertical_segment_geometry() -> WidgetGeometry {
 
 fn minimal_plot() -> NormalizedElevationPlot {
     NormalizedElevationPlot {
+        shadow: Default::default(),
         x: 0.0,
         y: 0.0,
         width: 200,

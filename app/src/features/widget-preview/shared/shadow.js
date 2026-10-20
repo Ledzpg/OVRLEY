@@ -21,3 +21,20 @@ export function getTextShadowParts(data) {
     strength: data.shadow_strength,
   }
 }
+
+/**
+ * Applies a widget's optional shadow overrides on top of the scene style.
+ *
+ * Unset widget values inherit the scene (global) shadow. Returns the original
+ * object when nothing is overridden so memoized previews keep a stable identity.
+ *
+ * @param {object} sceneStyle - Scene style with global shadow settings.
+ * @param {object|null|undefined} widgetData - Widget data that may carry shadow_strength / shadow_distance.
+ * @returns {object} Scene style to hand to the widget preview.
+ */
+export function resolveWidgetSceneStyle(sceneStyle, widgetData) {
+  const shadowStrength = widgetData?.shadow_strength ?? sceneStyle?.shadow_strength
+  const shadowDistance = widgetData?.shadow_distance ?? sceneStyle?.shadow_distance
+  if (!sceneStyle || (shadowStrength === sceneStyle.shadow_strength && shadowDistance === sceneStyle.shadow_distance)) return sceneStyle
+  return { ...sceneStyle, shadow_strength: shadowStrength, shadow_distance: shadowDistance }
+}

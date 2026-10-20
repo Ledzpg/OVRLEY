@@ -85,7 +85,7 @@ fn scene_border_color(scene: &ValidatedSceneConfig, opacity: f32) -> Option<Colo
 /// Resolves a text style from a validated label and scene config.
 ///
 /// All output-affecting fields are already explicit in the validated type.
-/// Shadow and border come from scene config (not part of the label contract).
+/// Border comes from scene config; shadow intensity/distance honor the widget override.
 pub fn validated_label_style(
     validated: &ValidatedLabel,
     scene: &ValidatedSceneConfig,
@@ -111,8 +111,8 @@ pub fn validated_label_style(
         color,
         opacity,
         shadow_color: scene_shadow_color(scene, opacity),
-        shadow_strength: scene.presentation.shadow_strength * scale,
-        shadow_distance: scene.presentation.shadow_distance * scale,
+        shadow_strength: scene.presentation.shadow_strength_for(&validated.shadow) * scale,
+        shadow_distance: scene.presentation.shadow_distance_for(&validated.shadow) * scale,
         border_color: scene_border_color(scene, opacity),
         border_thickness: scene.presentation.border_thickness * scale,
     }
@@ -147,8 +147,8 @@ pub fn validated_value_style(
         color,
         opacity,
         shadow_color: scene_shadow_color(scene, opacity),
-        shadow_strength: scene.presentation.shadow_strength * scale,
-        shadow_distance: scene.presentation.shadow_distance * scale,
+        shadow_strength: scene.presentation.shadow_strength_for(&validated.shadow) * scale,
+        shadow_distance: scene.presentation.shadow_distance_for(&validated.shadow) * scale,
         border_color: scene_border_color(scene, opacity),
         border_thickness: scene.presentation.border_thickness * scale,
     }
@@ -192,8 +192,8 @@ pub fn validated_lap_timer_style(
         color,
         opacity,
         shadow_color: scene_shadow_color(scene, opacity),
-        shadow_strength: scene.presentation.shadow_strength * scale,
-        shadow_distance: scene.presentation.shadow_distance * scale,
+        shadow_strength: scene.presentation.shadow_strength_for(&validated.shadow) * scale,
+        shadow_distance: scene.presentation.shadow_distance_for(&validated.shadow) * scale,
         border_color: scene_border_color(scene, opacity),
         border_thickness: scene.presentation.border_thickness * scale,
     }
@@ -247,8 +247,8 @@ pub fn validated_gradient_style(
         color,
         opacity,
         shadow_color: scene_shadow_color(scene, opacity),
-        shadow_strength: scene.presentation.shadow_strength * scale,
-        shadow_distance: scene.presentation.shadow_distance * scale,
+        shadow_strength: scene.presentation.shadow_strength_for(&validated.shadow) * scale,
+        shadow_distance: scene.presentation.shadow_distance_for(&validated.shadow) * scale,
         border_color: scene_border_color(scene, opacity),
         border_thickness: scene.presentation.border_thickness * scale,
     }

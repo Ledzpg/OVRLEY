@@ -199,8 +199,14 @@ fn elevation_label_style(
         } else {
             Some(parse_color(&scene.presentation.shadow_color, 1.0))
         },
-        shadow_strength: scene.presentation.shadow_strength * scene_scale,
-        shadow_distance: scene.presentation.shadow_distance * scene_scale,
+        shadow_strength: scene
+            .presentation
+            .shadow_strength_for(&elevation_cache.plot.shadow)
+            * scene_scale,
+        shadow_distance: scene
+            .presentation
+            .shadow_distance_for(&elevation_cache.plot.shadow)
+            * scene_scale,
         border_color: if scene.presentation.border_color.is_empty() {
             None
         } else {

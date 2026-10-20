@@ -53,8 +53,8 @@ pub fn prepare_heading_cache(
     // Resolve shadow style from scene defaults (shadow is not part of heading contract)
     let shadow = normalize_shadow_style_validated(
         &scene.presentation.shadow_color,
-        scene.presentation.shadow_strength,
-        scene.presentation.shadow_distance,
+        scene.presentation.shadow_strength_for(&heading.shadow),
+        scene.presentation.shadow_distance_for(&heading.shadow),
         scale,
     );
 

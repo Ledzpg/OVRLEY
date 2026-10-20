@@ -107,8 +107,8 @@ pub fn prepare_lean_angle_cache(
         let border_path = annular_sector_border_path(geometry, border_thickness);
         let shadow = normalize_shadow_style_validated(
             &scene.presentation.shadow_color,
-            scene.presentation.shadow_strength,
-            scene.presentation.shadow_distance,
+            scene.presentation.shadow_strength_for(&widget.shadow),
+            scene.presentation.shadow_distance_for(&widget.shadow),
             scale,
         );
         let track_shadow = if border_thickness > 0.0 {

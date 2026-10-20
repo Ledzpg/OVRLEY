@@ -765,6 +765,8 @@
     "timeFormat12hWithSeconds": "Time only (12h with seconds)",
     "timeFormat24h": "Time only (24h)",
     "timeFormat24hWithSeconds": "Time only (24h with seconds)",
+    "shadowDistance": "Shadow Distance",
+    "shadowStrength": "Shadow Strength",
     "transparency": "Transparency",
     "type": "Type",
     "typography": "Typography",

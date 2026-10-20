@@ -25,7 +25,8 @@
  * @returns {JSX.Element|null} Widget preview component.
  */
 
-import { createElement, memo } from 'react'
+import { createElement, memo, useMemo } from 'react'
+import { resolveWidgetSceneStyle } from './shared/shadow'
 import { OverlayTextWidget } from './widgets/text/TextPreview'
 import { OverlayMetricWidget } from './widgets/metric/MetricPreview'
 import { OverlayLapTimerWidget } from './widgets/lap-timer/LapTimerPreview'
@@ -69,10 +70,16 @@ function WidgetPreview({
   textPreviewModel,
   sceneFont,
   sceneFontSize,
-  sceneStyle,
+  sceneStyle: globalSceneStyle,
   valueFont,
   exportRange,
 }) {
+  const { shadow_strength: shadowStrength, shadow_distance: shadowDistance } = widget.data
+  const sceneStyle = useMemo(
+    () => resolveWidgetSceneStyle(globalSceneStyle, { shadow_strength: shadowStrength, shadow_distance: shadowDistance }),
+    [globalSceneStyle, shadowStrength, shadowDistance],
+  )
+
   if (widget.type === 'backdrop') {
     return <OverlayBackdropWidget widget={widget} globalOpacity={globalOpacity} globalScale={globalScale} />
   }

@@ -8,6 +8,7 @@
 //! Shadow, border, and other scene-level properties are NOT part of the
 //! value contract — they belong to the scene validation contract.
 
+use super::scene::{validate_shadow_override, ShadowOverride};
 use super::helpers::{require_bool, require_f32, require_str, require_string, rgba_from_hex};
 use super::raw::ValueConfig;
 use crate::error::{CoreError, CoreResult};
@@ -78,6 +79,8 @@ impl ValidatedValueFormatting {
 /// Every output-affecting field for the standard-metric text/value slice is explicit.
 #[derive(Clone, Debug)]
 pub struct ValidatedValueWidget {
+    /// Optional per-widget shadow overrides (fall back to the scene).
+    pub shadow: ShadowOverride,
     pub metric: MetricKind,
     pub x: f32,
     pub y: f32,
@@ -406,6 +409,7 @@ fn validate_value_widget_fields(
     }
 
     Ok(ValidatedValueWidget {
+        shadow: validate_shadow_override(value.shadow_strength, value.shadow_distance, &format!("values[{index}]"))?,
         metric: value.value,
         x: value.x,
         y: value.y,

@@ -1,5 +1,6 @@
 //! Lean-angle sector metric widget validation.
 
+use super::scene::{validate_shadow_override, ShadowOverride};
 use super::helpers::{require_bool, require_f32, require_str, require_string, rgba_from_hex};
 use super::raw::ValueConfig;
 use crate::error::{CoreError, CoreResult};
@@ -59,6 +60,8 @@ pub fn lean_angle_layout(diameter: f32, track_thickness: f32, font_size: f32) ->
 
 #[derive(Clone, Debug)]
 pub struct ValidatedLeanAngleWidget {
+    /// Optional per-widget shadow overrides (fall back to the scene).
+    pub shadow: ShadowOverride,
     pub x: f32,
     pub y: f32,
     pub diameter: f32,
@@ -182,6 +185,7 @@ pub fn validate_lean_angle(
     }
 
     Ok(ValidatedLeanAngleWidget {
+        shadow: validate_shadow_override(value.shadow_strength, value.shadow_distance, &format!("values[{index}]"))?,
         x: value.x,
         y: value.y,
         diameter,

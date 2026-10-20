@@ -49,8 +49,8 @@ pub fn prepare_linear_gauge_cache(
         let (min_value, max_value) = metric_range(dense_activity, gauge.metric);
         let shadow = normalize_shadow_style_validated(
             &scene.presentation.shadow_color,
-            scene.presentation.shadow_strength,
-            scene.presentation.shadow_distance,
+            scene.presentation.shadow_strength_for(&gauge.shadow),
+            scene.presentation.shadow_distance_for(&gauge.shadow),
             scale,
         );
         let track_padding =

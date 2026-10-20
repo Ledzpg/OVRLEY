@@ -5,6 +5,7 @@
 //! render-affecting defaults. The frontend must materialise all defaults
 //! before sending the config.
 
+use super::scene::{validate_shadow_override, ShadowOverride};
 use super::helpers::{
     normalize_marker_variant, require_f32, require_hex_color, require_opacity, require_positive_f32,
 };
@@ -13,6 +14,8 @@ use crate::normalize::raw::{find_plot_values, ElevationPlotConfig};
 
 #[derive(Clone, Debug)]
 pub struct ValidatedElevationPlot {
+    /// Optional per-widget shadow overrides (fall back to the scene).
+    pub shadow: ShadowOverride,
     pub x: f32,
     pub y: f32,
     pub width: u32,
@@ -202,6 +205,7 @@ pub fn validate_elevation_plot(
         .or_else(|| scene.font.clone());
 
     Ok(ValidatedElevationPlot {
+        shadow: validate_shadow_override(plot.shadow_strength, plot.shadow_distance, &format!("plots[{index}]"))?,
         x: plot.x,
         y: plot.y,
         width: plot.width,

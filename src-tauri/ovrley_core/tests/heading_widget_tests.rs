@@ -38,6 +38,7 @@ use std::collections::BTreeMap;
 
 fn default_heading() -> ValidatedHeading {
     ValidatedHeading {
+        shadow: Default::default(),
         x: 100.0,
         y: 200.0,
         width: 400,

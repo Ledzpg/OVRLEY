@@ -1,5 +1,6 @@
 //! Lap timer widget validation.
 
+use super::scene::{validate_shadow_override, ShadowOverride};
 use super::helpers::{require_bool, require_f32, require_string, rgba_from_hex};
 use super::raw::ValueConfig;
 use crate::error::{CoreError, CoreResult};
@@ -15,6 +16,8 @@ pub enum LapTimerMode {
 
 #[derive(Clone, Debug)]
 pub struct ValidatedLapTimer {
+    /// Optional per-widget shadow overrides (fall back to the scene).
+    pub shadow: ShadowOverride,
     pub x: f32,
     pub y: f32,
     pub font_name: String,
@@ -102,6 +105,7 @@ pub fn validate_lap_timer(value: ValueConfig, index: usize) -> CoreResult<Valida
     )?;
 
     Ok(ValidatedLapTimer {
+        shadow: validate_shadow_override(value.shadow_strength, value.shadow_distance, &format!("values[{index}]"))?,
         x: value.x,
         y: value.y,
         font_name,

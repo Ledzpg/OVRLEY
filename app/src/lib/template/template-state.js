@@ -41,6 +41,11 @@ function buildEffectiveSceneData(sceneData, globals) {
   }
 }
 
+function applyGlobalShadowDefaults(nextData, globals) {
+  if (nextData.shadow_strength === undefined) nextData.shadow_strength = globals?.shadow_strength
+  if (nextData.shadow_distance === undefined) nextData.shadow_distance = globals?.shadow_distance
+}
+
 function buildEffectiveLabelData(widgetData = {}, globals, previewOverrides = null) {
   const nextData = { ...widgetData }
   const font = widgetData.font || globals?.font_text
@@ -48,6 +53,7 @@ function buildEffectiveLabelData(widgetData = {}, globals, previewOverrides = nu
   if (!nextData.font_family) nextData.font_family = getFontFamilyName(font || nextData.font_family)
   if (!nextData.color) nextData.color = globals?.color_text || getThemeColor('ice')
   if (nextData.opacity === undefined) nextData.opacity = globals?.opacity
+  applyGlobalShadowDefaults(nextData, globals)
   return applyPreviewOverrides(nextData, previewOverrides)
 }
 
@@ -69,6 +75,7 @@ function buildEffectiveValueData(widgetData = {}, globals, previewOverrides = nu
   if (nextData.icon_color === undefined) nextData.icon_color = globals?.color_icons || getThemeColor('aqua')
   if (nextData.unit_color === undefined && resolved.value !== 'time') nextData.unit_color = globals?.color_units || '#ffffff'
   if (nextData.opacity === undefined) nextData.opacity = globals?.opacity
+  applyGlobalShadowDefaults(nextData, globals)
   return applyPreviewOverrides(nextData, previewOverrides)
 }
 
@@ -76,6 +83,7 @@ function buildEffectivePlotData(widgetData = {}, globals, previewOverrides = nul
   const nextData = { ...widgetData }
   if (!nextData.color) nextData.color = globals?.color_values || getThemeColor('ice')
   if (nextData.opacity === undefined) nextData.opacity = globals?.opacity
+  applyGlobalShadowDefaults(nextData, globals)
   if (nextData.value === 'elevation' && globals?.font_values) {
     nextData.point_label = {
       ...(nextData.point_label || {}),

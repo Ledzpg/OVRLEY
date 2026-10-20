@@ -5,6 +5,7 @@
 //! render-affecting defaults. The frontend must materialise all defaults
 //! before sending the config.
 
+use super::scene::{validate_shadow_override, ShadowOverride};
 use super::helpers::{
     require_f32, require_hex_color, require_non_negative_f32, require_percentage,
     require_positive_f32, require_positive_u32,
@@ -22,6 +23,8 @@ use crate::types::MetricKind;
 /// Missing or invalid fields are rejected by `validate_heading`.
 #[derive(Clone, Debug)]
 pub struct ValidatedHeading {
+    /// Optional per-widget shadow overrides (fall back to the scene).
+    pub shadow: ShadowOverride,
     pub x: f32,
     pub y: f32,
     pub width: u32,
@@ -157,10 +160,15 @@ pub fn validate_heading(
     let indicator_size = require_f32(hw.indicator_size, &p("indicator_size"))?;
     require_positive_f32(Some(indicator_size), &p("indicator_size"))?;
 
+    let shadow = validate_shadow_override(
+        value.shadow_strength,
+        value.shadow_distance,
+        &format!("values[{index}]"),
+    )?;
     let indicator_shadow = normalize_shadow_style_validated(
         &scene.shadow_color,
-        scene.shadow_strength,
-        scene.shadow_distance,
+        scene.shadow_strength_for(&shadow),
+        scene.shadow_distance_for(&shadow),
         1.0,
     );
 
@@ -168,6 +176,7 @@ pub fn validate_heading(
     let opacity = require_f32(hw.opacity, &p("opacity"))?;
 
     Ok(ValidatedHeading {
+        shadow,
         x,
         y,
         width,

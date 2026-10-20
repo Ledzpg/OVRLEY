@@ -546,6 +546,7 @@ pub(crate) struct NormalizedRoutePlot {
 /// Normalized elevation plot settings after defaults and scale are applied.
 #[derive(Clone, Debug)]
 pub(crate) struct NormalizedElevationPlot {
+    pub shadow: crate::normalize::ShadowOverride,
     pub(crate) x: f32,
     pub(crate) y: f32,
     pub(crate) width: u32,

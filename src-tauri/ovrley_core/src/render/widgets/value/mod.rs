@@ -372,6 +372,7 @@ mod tests {
         };
         let mut surface = create_surface(400, 200).unwrap();
         let mut validated = crate::normalize::ValidatedValueWidget {
+            shadow: Default::default(),
             metric: crate::MetricKind::Speed,
             x: 10.0,
             y: 20.0,

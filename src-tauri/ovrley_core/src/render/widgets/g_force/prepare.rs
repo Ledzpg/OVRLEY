@@ -86,8 +86,8 @@ pub fn prepare_g_force_cache(
         let center_y = height as f32 * 0.5;
         let shadow = normalize_shadow_style_validated(
             &scene.presentation.shadow_color,
-            scene.presentation.shadow_strength,
-            scene.presentation.shadow_distance,
+            scene.presentation.shadow_strength_for(&widget.shadow),
+            scene.presentation.shadow_distance_for(&widget.shadow),
             scale,
         );
         let padding = static_layer_padding(border_thickness, shadow.as_ref());

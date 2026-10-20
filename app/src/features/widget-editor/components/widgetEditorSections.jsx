@@ -25,6 +25,7 @@ import { useTranslation } from 'react-i18next'
 export function PositionSection({ widget, setNumericField, updateWidgetData, headerAction = null }) {
   const { t } = useTranslation()
   const opacity = Math.round(widget.data.opacity * 100)
+  const hasShadow = widget.category === 'labels' || widget.category === 'values' || widget.category === 'plots'
   const usesHorizontalAnchor =
     widget.category === 'values' && widget.data.display_type === 'text' && widget.type !== 'gradient' && widget.type !== 'lap_timer'
 
@@ -58,6 +59,30 @@ export function PositionSection({ widget, setNumericField, updateWidgetData, hea
         suffix="%"
         onSliderChange={(value) => updateWidgetData(widget.id, { opacity: value / 100 })}
       />
+      {hasShadow && (
+        <div className="grid grid-cols-2 gap-4">
+          <SliderField
+            editable
+            label={t('widget-editor.shadowStrength', 'Shadow Strength')}
+            value={widget.data.shadow_strength}
+            min={0}
+            max={20}
+            step={1}
+            valueDisplay={String(widget.data.shadow_strength)}
+            onSliderChange={(value) => updateWidgetData(widget.id, { shadow_strength: value })}
+          />
+          <SliderField
+            editable
+            label={t('widget-editor.shadowDistance', 'Shadow Distance')}
+            value={widget.data.shadow_distance}
+            min={0}
+            max={20}
+            step={1}
+            valueDisplay={String(widget.data.shadow_distance)}
+            onSliderChange={(value) => updateWidgetData(widget.id, { shadow_distance: value })}
+          />
+        </div>
+      )}
     </div>
   )
 }

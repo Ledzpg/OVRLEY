@@ -43,6 +43,7 @@ fn axis(value: &str) -> GForceAxis {
 
 fn widget(config: &FixtureConfig) -> ValidatedGForceWidget {
     ValidatedGForceWidget {
+        shadow: Default::default(),
         x: 0.0,
         y: 0.0,
         width: 220,

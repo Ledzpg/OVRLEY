@@ -8,6 +8,7 @@
 //! Shadow, border, and other scene-level properties are NOT part of the
 //! label contract — they belong to the scene validation contract.
 
+use super::scene::{validate_shadow_override, ShadowOverride};
 use super::helpers::rgba_from_hex;
 use super::raw::{LabelConfig, LabelTypography};
 use crate::error::{CoreError, CoreResult};
@@ -19,6 +20,8 @@ use crate::error::{CoreError, CoreResult};
 /// Every output-affecting field for a static text label is explicit.
 #[derive(Clone, Debug)]
 pub struct ValidatedLabel {
+    /// Optional per-widget shadow overrides (fall back to the scene).
+    pub shadow: ShadowOverride,
     pub text: String,
     pub x: f32,
     pub y: f32,
@@ -92,6 +95,7 @@ pub fn validate_label(label: &LabelConfig, index: usize) -> CoreResult<Validated
     let color = rgba_from_hex(color_hex, &p("color"), opacity)?;
 
     Ok(ValidatedLabel {
+        shadow: validate_shadow_override(label.shadow_strength, label.shadow_distance, &format!("labels[{index}]"))?,
         text,
         x: label.x,
         y: label.y,

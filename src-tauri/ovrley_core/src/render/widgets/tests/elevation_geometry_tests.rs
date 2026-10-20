@@ -20,6 +20,7 @@ use super::super::types::NormalizedElevationPlot;
 /// elapsed-fraction propagation, not rendering.
 fn minimal_plot() -> NormalizedElevationPlot {
     NormalizedElevationPlot {
+        shadow: Default::default(),
         x: 0.0,
         y: 0.0,
         width: 400,

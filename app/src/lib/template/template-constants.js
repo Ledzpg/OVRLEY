@@ -51,8 +51,14 @@ export const SCENE_PRESENTATION_KEYS = [...standardTemplateManifest.scenePresent
 /** Durable keys persisted on the scene config. */
 export const SCENE_DURABLE_KEYS = ['width', 'height', 'fps', 'updateRate']
 
+/**
+ * Optional per-widget shadow overrides. They have no manifest default on purpose:
+ * an unset value inherits the global shadow setting.
+ */
+export const WIDGET_SHADOW_KEYS = ['shadow_strength', 'shadow_distance']
+
 /** Keys preserved when normalizing a label widget. */
-export const LABEL_KEYS = [...Object.keys(TEXT_LABEL_DEFAULTS), 'id']
+export const LABEL_KEYS = [...Object.keys(TEXT_LABEL_DEFAULTS), 'id', ...WIDGET_SHADOW_KEYS]
 
 /** Canonical raster widget fields. */
 export const RASTER_KEYS = ['id', ...Object.keys(RASTER_DEFAULTS)]
@@ -72,16 +78,16 @@ export const BACKDROP_SHARED_KEYS = [
 ]
 
 /** Keys preserved when normalizing a metric value widget. */
-export const VALUE_SHARED_KEYS = [...Object.keys(TEXT_DEFAULTS), 'id', 'value', 'display_variants']
+export const VALUE_SHARED_KEYS = [...Object.keys(TEXT_DEFAULTS), 'id', 'value', 'display_variants', ...WIDGET_SHADOW_KEYS]
 
 /** Flat fields owned by the lap timer display contract. */
 export const LAP_TIMER_KEYS = [...Object.keys(DISPLAY_TYPE_DEFINITIONS.lap_timer.defaults), ...DISPLAY_TYPE_DEFINITIONS.lap_timer.configFields]
 
 /** Keys preserved when normalizing a course plot widget. */
-export const COURSE_PLOT_KEYS = [...Object.keys(COURSE_PLOT_DEFAULTS), 'id']
+export const COURSE_PLOT_KEYS = [...Object.keys(COURSE_PLOT_DEFAULTS), 'id', ...WIDGET_SHADOW_KEYS]
 
 /** Keys preserved when normalizing an elevation plot widget. */
-export const ELEVATION_PLOT_KEYS = [...Object.keys(ELEVATION_PLOT_DEFAULTS), 'id']
+export const ELEVATION_PLOT_KEYS = [...Object.keys(ELEVATION_PLOT_DEFAULTS), 'id', ...WIDGET_SHADOW_KEYS]
 
 /** Keys that are structural/identity and never belong in per-display variants. */
 const DISPLAY_VARIANT_EXCLUDED_KEYS = new Set(['id', 'value', 'display_variants', 'x', 'y', 'display_type'])

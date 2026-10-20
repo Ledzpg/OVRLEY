@@ -5,6 +5,7 @@
 //! render-affecting defaults. The frontend must materialise all defaults
 //! before sending the config.
 
+use super::scene::validate_shadow_override;
 use super::helpers::{require_bool, require_f32, require_str, require_string, rgba_from_hex};
 use super::raw::ValueConfig;
 use super::value::validate_content_alignment;
@@ -141,6 +142,7 @@ pub fn validate_time_value(value: ValueConfig, index: usize) -> CoreResult<Valid
 
     Ok(ValidatedTimeValue {
         base: ValidatedValueWidget {
+            shadow: validate_shadow_override(value.shadow_strength, value.shadow_distance, &format!("values[{index}]"))?,
             metric: MetricKind::Time,
             x: value.x,
             y: value.y,

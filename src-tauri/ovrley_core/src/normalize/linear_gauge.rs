@@ -4,6 +4,7 @@
 //! display type is `linear`. All gauge-specific fields (orientation,
 //! track styling, labels) are required and validated here.
 
+use super::scene::{validate_shadow_override, ShadowOverride};
 use super::helpers::{require_bool, require_f32, require_string};
 use super::raw::ValueConfig;
 use super::value::normalize_starting_altitude_m;
@@ -31,6 +32,8 @@ pub enum ValidatedLinearGaugeLabelPosition {
 /// Fully validated linear gauge widget configuration.
 #[derive(Clone, Debug)]
 pub struct ValidatedLinearGaugeWidget {
+    /// Optional per-widget shadow overrides (fall back to the scene).
+    pub shadow: ShadowOverride,
     pub metric: MetricKind,
     pub x: f32,
     pub y: f32,
@@ -196,6 +199,7 @@ pub fn validate_linear_gauge(
     )?;
 
     Ok(ValidatedLinearGaugeWidget {
+        shadow: validate_shadow_override(value.shadow_strength, value.shadow_distance, &format!("values[{index}]"))?,
         metric: value.value,
         x: value.x,
         y: value.y,

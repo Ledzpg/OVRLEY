@@ -574,6 +574,7 @@ mod tests {
 
     fn value_widget(alignment: ContentAlignment) -> ValidatedValueWidget {
         ValidatedValueWidget {
+            shadow: Default::default(),
             metric: MetricKind::Speed,
             x: 300.0,
             y: 0.0,
