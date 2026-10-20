@@ -3,6 +3,7 @@
  */
 
 import { useLayoutStore, useActivityStore } from '@/hooks/useAppStoreSelectors'
+import useStore from '@/store/useStore'
 import { useWidgetManager } from '@/features/widget-editor/hooks/useWidgetManager'
 import { WidgetButtonGrid } from './WidgetButtonGrid'
 
@@ -13,12 +14,22 @@ import { WidgetButtonGrid } from './WidgetButtonGrid'
 export function WidgetDrawerContent({ widgetLiveEdits }) {
   const { dismissLeftDrawerOverlay } = useLayoutStore()
   const { activitySummary } = useActivityStore()
-  const { addWidget } = useWidgetManager({ widgetLiveEdits })
+  const { addWidget, addWidgetGroup } = useWidgetManager({ widgetLiveEdits })
 
   const handleAddWidget = (request) => {
     addWidget(request)
     dismissLeftDrawerOverlay()
   }
 
-  return <WidgetButtonGrid onAddWidget={handleAddWidget} availableMetrics={activitySummary?.availableMetrics ?? []} />
+  const handleAddGroup = async (group) => {
+    try {
+      await addWidgetGroup(group.templateFile)
+      dismissLeftDrawerOverlay()
+    } catch (error) {
+      console.error('Failed to add widget group:', error)
+      useStore.getState().setErrorMessage(`Failed to add ${group.nameDefault}: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
+
+  return <WidgetButtonGrid onAddWidget={handleAddWidget} onAddGroup={handleAddGroup} availableMetrics={activitySummary?.availableMetrics ?? []} />
 }

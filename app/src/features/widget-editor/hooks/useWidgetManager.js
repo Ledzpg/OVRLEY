@@ -4,6 +4,8 @@
  */
 
 import { useMemo } from 'react'
+import * as backend from '@/api/backend'
+import { prepareTemplateFilePayload } from '@/features/template-manager/utils/templateSnapshot'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 import useStore from '@/store/useStore'
@@ -12,6 +14,7 @@ import { buildConfigWidgets, getWidgetTypeName, groupWidgetsForSidebar, withAlti
 import { isStandardMetricWidgetType } from '@/lib/widget/standard-metrics'
 import { RASTER_DEFAULTS } from '@/lib/widget/standard-widgets'
 import { clamp } from '@/lib/utils'
+import { appendWidgetGroup } from '../utils/widgetGroupConfig'
 import { createBackdropDefaults, createLabelDefaults, createMetricValueDefaults, createPlotDefaults, parseInteger } from '../utils/widgetUtils'
 import { applyWidgetDrafts } from '@/lib/widget/widget-draft'
 import { updateLiveWidgetDraft } from '@/features/overlay-editor/utils/widgetDomHelpers'
@@ -39,6 +42,7 @@ const CONTENT_ALIGNMENT_FACTORS = {
  *   commitWidgetSize: Function,
  *   setNumericField: Function,
  *   addWidget: Function,
+ *   addWidgetGroup: Function,
  *   deleteWidget: Function,
  *   resetWidget: Function,
  *   setSelectedWidgetId: Function,
@@ -173,6 +177,15 @@ export function useWidgetManager({ widgetLiveEdits }) {
     })
   }
 
+  // Add widget group — adds every widget of a bundled template together and selects the first one
+  const addWidgetGroup = async (templateFile) => {
+    const { templateState } = await prepareTemplateFilePayload(await backend.getTemplate(templateFile))
+    const state = useStore.getState()
+    const { config: nextConfig, addedIds } = appendWidgetGroup(state.config, templateState.config)
+    state.setConfig(nextConfig)
+    state.setSelectedWidgetId(addedIds[0])
+  }
+
   // Delete widget — removes the widget by id and updates config
   const deleteWidget = (id) => {
     setConfig(deleteWidgetInConfig(config, id))
@@ -220,6 +233,7 @@ export function useWidgetManager({ widgetLiveEdits }) {
     commitWidgetSize,
     setNumericField,
     addWidget,
+    addWidgetGroup,
     deleteWidget,
     resetWidget,
     setSelectedWidgetId,

@@ -839,5 +839,12 @@
     "units": "Units",
     "valueColor": "Value Color",
     "width": "Width"
+  },
+  "widget-drawer": {
+    "groupsHeading": "Sets",
+    "groupTachClusterShort": "Cluster",
+    "groupTachCluster": "Tachometer + speed + gear",
+    "groupTemperaturesShort": "Temps.",
+    "groupTemperatures": "Coolant + intake air temperatures"
   }
 }

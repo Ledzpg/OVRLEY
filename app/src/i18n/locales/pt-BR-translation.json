@@ -839,5 +839,12 @@
     "units": "Unidades",
     "valueColor": "Cor do valor",
     "width": "Largura"
+  },
+  "widget-drawer": {
+    "groupsHeading": "Conjuntos",
+    "groupTachClusterShort": "Cluster",
+    "groupTachCluster": "Tacômetro + velocímetro + marcha",
+    "groupTemperaturesShort": "Temps.",
+    "groupTemperatures": "Temperaturas do arrefecimento e da admissão"
   }
 }
