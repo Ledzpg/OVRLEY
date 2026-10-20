@@ -98,6 +98,10 @@ const DISPLAY_VARIANT_FRAME_KEYS_BY_TYPE = {
   lean_angle: ['rotation'],
 }
 
+/** Optional fixed scale and redline fields of gauge display variants (unset = automatic scale, no redline). */
+export const GAUGE_SCALE_KEYS = ['scale_min', 'scale_max', 'redline_value', 'redline_color']
+const GAUGE_SCALE_DISPLAY_TYPES = new Set(['linear', 'arc', 'corner'])
+
 export const DISPLAY_VARIANT_KEYS = Object.freeze(
   Object.fromEntries(
     Object.entries(DISPLAY_TYPE_DEFINITIONS)
@@ -108,6 +112,7 @@ export const DISPLAY_VARIANT_KEYS = Object.freeze(
           ...(DISPLAY_VARIANT_FRAME_KEYS_BY_TYPE[displayType] || DISPLAY_VARIANT_FRAME_KEYS),
           ...Object.keys(definition.defaults || {}).filter((key) => !DISPLAY_VARIANT_EXCLUDED_KEYS.has(key)),
           ...(definition.conditionalKeys || []),
+          ...(GAUGE_SCALE_DISPLAY_TYPES.has(displayType) ? GAUGE_SCALE_KEYS : []),
         ],
       ]),
   ),

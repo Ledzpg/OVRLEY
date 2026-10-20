@@ -70,16 +70,31 @@ function buildArcSegmentGeometry(trackGeometry, segments) {
   return geometries
 }
 
-function ArcGaugeTrack({ data, trackGeometry, barLayout, filledBarCount, fillReveal, opacity, shadow, maskPadding, widgetId }) {
+function ArcGaugeTrack({ data, trackGeometry, barLayout, filledBarCount, fillReveal, redline, opacity, shadow, maskPadding, widgetId }) {
   const segmented = barLayout != null
   const geometries = segmented ? buildArcSegmentGeometry(trackGeometry, barLayout.segments) : [trackGeometry]
   const maskId = `${data.display_type}-gauge-${widgetId}-border-mask`
   const fillClipId = `${data.display_type}-gauge-${widgetId}-fill-clip`
+  const normalZoneId = `${data.display_type}-gauge-${widgetId}-zone-normal`
+  const redlineZoneId = `${data.display_type}-gauge-${widgetId}-zone-redline`
+  const testIdPrefix = `${data.display_type}-gauge`
+  const emptyOpacity = data.track_empty_opacity * opacity
+  const filledOpacity = data.track_filled_opacity * opacity
 
   return (
     <>
-      {data.track_border_thickness > 0 || fillReveal ? (
+      {data.track_border_thickness > 0 || fillReveal || redline ? (
         <defs>
+          {redline && !segmented ? (
+            <>
+              <clipPath id={normalZoneId}>
+                <path d={redline.zones.normal} />
+              </clipPath>
+              <clipPath id={redlineZoneId}>
+                <path d={redline.zones.redline} />
+              </clipPath>
+            </>
+          ) : null}
           {data.track_border_thickness > 0 ? (
             <mask
               id={maskId}
@@ -112,30 +127,104 @@ function ArcGaugeTrack({ data, trackGeometry, barLayout, filledBarCount, fillRev
           </g>
         </g>
       ) : null}
-      <ArcSegmentPaths
-        geometries={geometries}
-        cornerRadius={data.track_corner_radius}
-        fill={data.track_empty_color}
-        fillOpacity={data.track_empty_opacity * opacity}
-        dataTestId={`${data.display_type}-gauge-${segmented ? 'bar-empty' : 'empty-track'}`}
-      />
-      {segmented ? (
+      {redline && segmented ? (
+        <>
+          <ArcSegmentPaths
+            geometries={geometries.slice(0, redline.barStart)}
+            cornerRadius={data.track_corner_radius}
+            fill={data.track_empty_color}
+            fillOpacity={emptyOpacity}
+            dataTestId={`${testIdPrefix}-bar-empty`}
+          />
+          <ArcSegmentPaths
+            geometries={geometries.slice(redline.barStart)}
+            cornerRadius={data.track_corner_radius}
+            fill={redline.color}
+            fillOpacity={emptyOpacity}
+            dataTestId={`${testIdPrefix}-bar-redline-empty`}
+          />
+        </>
+      ) : redline ? (
+        <>
+          <g clipPath={`url(#${normalZoneId})`}>
+            <ArcSegmentPaths
+              geometries={geometries}
+              cornerRadius={data.track_corner_radius}
+              fill={data.track_empty_color}
+              fillOpacity={emptyOpacity}
+              dataTestId={`${testIdPrefix}-empty-track`}
+            />
+          </g>
+          <g clipPath={`url(#${redlineZoneId})`}>
+            <ArcSegmentPaths
+              geometries={geometries}
+              cornerRadius={data.track_corner_radius}
+              fill={redline.color}
+              fillOpacity={emptyOpacity}
+              dataTestId={`${testIdPrefix}-redline-empty-track`}
+            />
+          </g>
+        </>
+      ) : (
         <ArcSegmentPaths
-          geometries={geometries.slice(0, filledBarCount)}
+          geometries={geometries}
           cornerRadius={data.track_corner_radius}
-          fill={data.track_filled_color}
-          fillOpacity={data.track_filled_opacity * opacity}
-          dataTestId={`${data.display_type}-gauge-bar-filled`}
+          fill={data.track_empty_color}
+          fillOpacity={emptyOpacity}
+          dataTestId={`${testIdPrefix}-${segmented ? 'bar-empty' : 'empty-track'}`}
         />
-      ) : fillReveal ? (
-        <g clipPath={`url(#${fillClipId})`}>
-          <ArcTrackPath
-            {...trackGeometry}
+      )}
+      {segmented ? (
+        <>
+          <ArcSegmentPaths
+            geometries={geometries.slice(0, redline ? Math.min(filledBarCount, redline.barStart) : filledBarCount)}
             cornerRadius={data.track_corner_radius}
             fill={data.track_filled_color}
-            fillOpacity={data.track_filled_opacity * opacity}
-            dataTestId={`${data.display_type}-gauge-filled-track`}
+            fillOpacity={filledOpacity}
+            dataTestId={`${testIdPrefix}-bar-filled`}
           />
+          {redline && filledBarCount > redline.barStart ? (
+            <ArcSegmentPaths
+              geometries={geometries.slice(redline.barStart, filledBarCount)}
+              cornerRadius={data.track_corner_radius}
+              fill={redline.color}
+              fillOpacity={filledOpacity}
+              dataTestId={`${testIdPrefix}-bar-redline-filled`}
+            />
+          ) : null}
+        </>
+      ) : fillReveal ? (
+        <g clipPath={`url(#${fillClipId})`}>
+          {redline?.fillPastRedline ? (
+            <>
+              <g clipPath={`url(#${normalZoneId})`}>
+                <ArcTrackPath
+                  {...trackGeometry}
+                  cornerRadius={data.track_corner_radius}
+                  fill={data.track_filled_color}
+                  fillOpacity={filledOpacity}
+                  dataTestId={`${testIdPrefix}-filled-track`}
+                />
+              </g>
+              <g clipPath={`url(#${redlineZoneId})`}>
+                <ArcTrackPath
+                  {...trackGeometry}
+                  cornerRadius={data.track_corner_radius}
+                  fill={redline.color}
+                  fillOpacity={filledOpacity}
+                  dataTestId={`${testIdPrefix}-redline-filled-track`}
+                />
+              </g>
+            </>
+          ) : (
+            <ArcTrackPath
+              {...trackGeometry}
+              cornerRadius={data.track_corner_radius}
+              fill={data.track_filled_color}
+              fillOpacity={filledOpacity}
+              dataTestId={`${testIdPrefix}-filled-track`}
+            />
+          )}
         </g>
       ) : null}
       {data.track_border_thickness > 0 ? (
@@ -168,6 +257,7 @@ export function OverlayArcGaugeWidget({ widget, activity, previewSecond, globalO
     fillReveal,
     barLayout,
     filledBarCount,
+    redline,
     minLabel,
     maxLabel,
     labels,
@@ -192,6 +282,7 @@ export function OverlayArcGaugeWidget({ widget, activity, previewSecond, globalO
         barLayout={barLayout}
         filledBarCount={filledBarCount}
         fillReveal={fillReveal}
+        redline={redline}
         opacity={opacity}
         shadow={trackShadow}
         maskPadding={maskPadding}

@@ -19,7 +19,9 @@ mod segment;
 
 use self::inner_widget::{inner_widget_layout, unit_font_size, DEFAULT_GAP_PX, LINE_HEIGHT};
 use self::layer::{draw_fill, draw_static_layer};
-use super::metric::{fill_percentage, format_gauge_label, metric_range, metric_values};
+use super::metric::{
+    fill_percentage, format_gauge_label, gauge_range, metric_values, resolve_redline,
+};
 use crate::activity::schema::DenseActivityReport;
 use crate::debug::RenderProfiler;
 use crate::error::CoreResult;
@@ -83,7 +85,8 @@ pub fn prepare_arc_gauge_cache(
                 track_border_thickness,
             ),
         };
-        let (min_value, max_value) = metric_range(dense_activity, gauge.metric);
+        let (min_value, max_value) = gauge_range(&gauge.scale, dense_activity, gauge.metric);
+        let redline = resolve_redline(&gauge.scale, min_value, max_value);
         let text_style = validated_value_style(&gauge.inner_value, scene, scale);
         let unit_parts = format_metric_presentation_parts(
             &gauge.inner_value,
@@ -154,6 +157,7 @@ pub fn prepare_arc_gauge_cache(
             unit_text.as_deref(),
             &text_style,
             altitude_offset_m,
+            redline.as_ref(),
         )?;
 
         Ok(ArcGaugeCache {
@@ -180,6 +184,7 @@ pub fn prepare_arc_gauge_cache(
             track_fill_flat: gauge.track_fill_flat,
             track_fill_style: gauge.track_fill_style,
             bar_geometry: crate::normalize::scale_bar_geometry(gauge.bar_geometry, scale),
+            redline,
             text_style,
             has_unit: unit_text.is_some(),
             unit_font_size: static_unit_font_size,

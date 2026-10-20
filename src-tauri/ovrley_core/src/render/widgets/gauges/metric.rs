@@ -6,6 +6,8 @@
 //! linear renderers.
 
 use crate::activity::schema::{DenseActivityReport, DenseSeriesReport};
+use crate::normalize::ValidatedGaugeScale;
+use crate::render::widgets::types::ResolvedRedline;
 use crate::render::format::convert_standard_metric_value;
 use crate::types::MetricKind;
 
@@ -36,6 +38,34 @@ pub(crate) fn metric_range(activity: &DenseActivityReport, metric: MetricKind) -
         .copied()
         .filter(|(min, max)| max > min)
         .unwrap_or((0.0, 100.0))
+}
+
+/// Resolves the gauge range: the configured fixed scale, else the observed range.
+pub(crate) fn gauge_range(
+    scale: &ValidatedGaugeScale,
+    activity: &DenseActivityReport,
+    metric: MetricKind,
+) -> (f64, f64) {
+    scale
+        .range
+        .unwrap_or_else(|| metric_range(activity, metric))
+}
+
+/// Places the configured redline on the resolved range.
+pub(crate) fn resolve_redline(
+    scale: &ValidatedGaugeScale,
+    min: f64,
+    max: f64,
+) -> Option<ResolvedRedline> {
+    scale.redline.as_ref().map(|redline| ResolvedRedline {
+        fraction: fill_percentage(redline.value, min, max),
+        color: redline.color.clone(),
+    })
+}
+
+/// Reports whether a discrete bar starts inside the redline zone.
+pub(crate) fn bar_is_redline(index: u32, count: u32, fraction: f32) -> bool {
+    count > 0 && index as f32 / count as f32 >= fraction
 }
 
 /// Selects the canonical dense telemetry series for a metric.

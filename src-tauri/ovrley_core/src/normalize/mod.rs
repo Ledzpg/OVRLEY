@@ -9,6 +9,7 @@ mod backdrop;
 mod bar_geometry;
 mod elevation;
 mod g_force;
+mod gauge_scale;
 mod gradient;
 mod heading;
 mod helpers;
@@ -51,6 +52,7 @@ pub(crate) use bar_geometry::{
 };
 pub use elevation::{validate_elevation_plot, validate_elevation_plots, ValidatedElevationPlot};
 pub use g_force::{validate_g_force, GForceAxis, ValidatedGForceWidget};
+pub use gauge_scale::{ValidatedGaugeScale, ValidatedRedline};
 pub use gradient::{validate_gradient_widget, ValidatedGradientWidget};
 pub use heading::{validate_heading, ValidatedHeading};
 pub use label::{validate_label, ValidatedLabel};

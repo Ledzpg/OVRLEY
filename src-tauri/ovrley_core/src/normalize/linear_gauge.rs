@@ -4,6 +4,7 @@
 //! display type is `linear`. All gauge-specific fields (orientation,
 //! track styling, labels) are required and validated here.
 
+use super::gauge_scale::{validate_gauge_scale, ValidatedGaugeScale};
 use super::scene::{validate_shadow_override, ShadowOverride};
 use super::helpers::{require_bool, require_f32, require_string};
 use super::raw::ValueConfig;
@@ -59,6 +60,8 @@ pub struct ValidatedLinearGaugeWidget {
     pub min_max_label_color: String,
     pub display_unit: Option<String>,
     pub starting_altitude_m: Option<f64>,
+    /// Optional fixed scale and redline.
+    pub scale: ValidatedGaugeScale,
 }
 
 /// Validates a raw value config as a linear gauge widget.
@@ -70,6 +73,7 @@ pub fn validate_linear_gauge(
     index: usize,
 ) -> CoreResult<ValidatedLinearGaugeWidget> {
     let p = |f: &str| format!("values[{index}].{f}");
+    let scale = validate_gauge_scale(&value, &p)?;
 
     if !is_standard_metric(value.value) {
         return Err(CoreError::Config(format!(
@@ -199,6 +203,7 @@ pub fn validate_linear_gauge(
     )?;
 
     Ok(ValidatedLinearGaugeWidget {
+        scale,
         shadow: validate_shadow_override(value.shadow_strength, value.shadow_distance, &format!("values[{index}]"))?,
         metric: value.value,
         x: value.x,

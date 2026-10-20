@@ -3,6 +3,7 @@
 import { getTranslatedTrackCapPath, getTranslatedTrackCapReveal } from '../../shared/trackPathGeometry'
 import { NUMERIC_PREVIEW_VERTICAL_METRICS_TEXT } from '@/features/overlay-editor/data/overlayEditorConstants'
 import { measurePreviewText } from '../../shared/textMeasurement'
+import { getFixedGaugeScale, getGaugeRedline } from '../../shared/gaugeRedline'
 
 const LINEAR_GAUGE_LABEL_GAP_PX = 8
 
@@ -112,13 +113,16 @@ export function getLinearGaugeLabelLayout({ data, labelFontFamily, minLabel, max
 }
 
 /**
- * Computes the min/max range from a series of values.
+ * Computes the gauge range: the configured fixed scale, else the min/max of a series of values.
  * Falls back to 0-100 if no finite values exist.
  *
  * @param {number[]} values - Array of numeric values.
+ * @param {object} [scale] - Widget data that may carry `scale_min` / `scale_max`.
  * @returns {{ min: number, max: number }} The value range.
  */
-export function getLinearGaugeRange(values) {
+export function getLinearGaugeRange(values, scale) {
+  const fixed = getFixedGaugeScale(scale)
+  if (fixed) return fixed
   const finiteValues = []
   for (const value of values) {
     if (typeof value === 'number' && Number.isFinite(value)) finiteValues.push(value)
@@ -140,16 +144,18 @@ export function getLinearGaugeRange(values) {
  * @param {number} params.height - Track height.
  * @param {string} [params.orientation='horizontal'] - Gauge orientation.
  * @param {number} [params.borderThickness=0] - Border inset.
- * @returns {{ min: number, max: number, fill: number, innerTrackRect: object, fillRect: object }}
+ * @param {object} [params.scale] - Widget data that may carry the fixed scale and redline.
+ * @returns {{ min: number, max: number, fill: number, redline: object|null, innerTrackRect: object, fillRect: object }}
  */
-export function getLinearGaugeLayout({ value, values, width, height, orientation = 'horizontal', borderThickness = 0 }) {
-  const range = getLinearGaugeRange(values)
+export function getLinearGaugeLayout({ value, values, width, height, orientation = 'horizontal', borderThickness = 0, scale }) {
+  const range = getLinearGaugeRange(values, scale)
   const hasValue = typeof value === 'number' && Number.isFinite(value)
   const fill = hasValue ? getFillPercentage(value, range.min, range.max) : 0.5
   const innerTrackRect = getLinearInsetRect({ width, height, borderThickness })
   return {
     ...range,
     fill,
+    redline: getGaugeRedline(scale, range),
     innerTrackRect,
     fillRect: getLinearFillRect({ ...innerTrackRect, fill, orientation }),
   }

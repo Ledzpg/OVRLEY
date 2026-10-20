@@ -49,6 +49,45 @@ pub fn bordered_bar_fill_rect(
     )
 }
 
+/// Splits a bordered track at the redline into `(normal, redline)` clip rects.
+///
+/// The boundary sits where a fill of `fraction` ends, so a fill drawn up to the
+/// redline meets the redline zone exactly. Both rects extend far past the track
+/// so they only constrain the axis the gauge fills along.
+pub fn redline_zone_rects(
+    x: f32,
+    y: f32,
+    width: f32,
+    height: f32,
+    fraction: f32,
+    orientation: ValidatedLinearGaugeOrientation,
+    border_thickness: f32,
+) -> (Rect, Rect) {
+    const REACH: f32 = 100_000.0;
+    let (fill_x, fill_y, fill_width, _) = bordered_bar_fill_rect(
+        x,
+        y,
+        width,
+        height,
+        fraction,
+        orientation,
+        border_thickness,
+    );
+    match orientation {
+        ValidatedLinearGaugeOrientation::Horizontal => {
+            let boundary = fill_x + fill_width;
+            (
+                Rect::from_ltrb(-REACH, -REACH, boundary, REACH),
+                Rect::from_ltrb(boundary, -REACH, REACH, REACH),
+            )
+        }
+        ValidatedLinearGaugeOrientation::Vertical => (
+            Rect::from_ltrb(-REACH, fill_y, REACH, REACH),
+            Rect::from_ltrb(-REACH, -REACH, REACH, fill_y),
+        ),
+    }
+}
+
 pub(super) fn segment_rect(
     index: u32,
     extent: f32,

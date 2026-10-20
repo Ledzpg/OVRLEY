@@ -389,6 +389,18 @@ pub struct ValueConfig {
     pub min_max_label_position: Option<String>,
     #[serde(default)]
     pub min_max_label_color: Option<String>,
+    /// Fixed gauge scale minimum in the metric's canonical unit.
+    #[serde(default)]
+    pub scale_min: Option<f64>,
+    /// Fixed gauge scale maximum in the metric's canonical unit.
+    #[serde(default)]
+    pub scale_max: Option<f64>,
+    /// Canonical-unit value where the redline zone starts.
+    #[serde(default)]
+    pub redline_value: Option<f64>,
+    /// Hex color of the redline zone.
+    #[serde(default)]
+    pub redline_color: Option<String>,
     #[serde(default)]
     pub diameter: Option<f32>,
     #[serde(default)]

@@ -12,6 +12,9 @@ use super::geometry::{arc_point, ArcGaugeGeometry};
 use crate::normalize::MAX_ARC_ANGLE_DEGREES;
 use skia_safe::{Path, PathBuilder, PathFillType, Point};
 
+/// Angular step used to approximate the edge of a redline zone wedge.
+const ZONE_WEDGE_STEP_DEGREES: f32 = 5.0;
+
 /// Geometry used to build the moving reveal clip for a continuous arc track.
 /// The immutable source track is the rounded annular sector from `segment`;
 /// angles here follow Skia's clockwise screen-space convention.
@@ -129,6 +132,43 @@ impl ArcTrackSpec {
             start_corner_radius: 0.0,
             end_corner_radius: revealed_end_corner_radius,
         }))
+    }
+
+    /// Splits the track at `fraction` into the normal zone and the redline zone.
+    ///
+    /// The boundary uses the same cap-aware span as [`Self::reveal_clip`], so a
+    /// fill revealed up to `fraction` ends exactly where the redline begins. Both
+    /// wedges are clip regions that extend far past the track's radius.
+    pub(crate) fn redline_zones(self, fraction: f32) -> (Path, Path) {
+        let sweep = self
+            .sweep_angle
+            .clamp(-MAX_ARC_ANGLE_DEGREES, MAX_ARC_ANGLE_DEGREES);
+        let magnitude = sweep.abs();
+        let direction = if sweep < 0.0 { -1.0 } else { 1.0 };
+        let full_circle = magnitude >= MAX_ARC_ANGLE_DEGREES - TRACK_PATH_EPSILON;
+        let half_thickness = self.thickness * 0.5;
+        let radius = self.geometry.radius;
+        let (start_cap, end_cap) = if full_circle {
+            (0.0, 0.0)
+        } else {
+            (
+                arc_cap_angle_degrees(radius, self.start_corner_radius.clamp(0.0, half_thickness)),
+                arc_cap_angle_degrees(radius, self.end_corner_radius.clamp(0.0, half_thickness)),
+            )
+        };
+        let total_span = magnitude + start_cap + end_cap;
+        let first = self.geometry.start_angle - direction * start_cap;
+        let boundary = first + direction * total_span * fraction.clamp(0.0, 1.0);
+        let last = first + direction * total_span;
+        let margin = if full_circle { 0.0 } else { 10.0 };
+        let reach = radius * 2.0 + self.thickness * 2.0 + 100.0;
+        let wedge = |from: f32, to: f32| {
+            zone_wedge_path(self.geometry.center_x, self.geometry.center_y, reach, from, to)
+        };
+        (
+            wedge(first - direction * margin, boundary),
+            wedge(boundary, last + direction * margin),
+        )
     }
 
     /// Builds a closed annular clip with independently rounded end caps.
@@ -268,6 +308,20 @@ impl ArcTrackSpec {
             cap,
         )
     }
+}
+
+/// Builds a pie-slice polygon from the center between two screen-space angles.
+fn zone_wedge_path(center_x: f32, center_y: f32, reach: f32, from: f32, to: f32) -> Path {
+    let span = to - from;
+    let steps = ((span.abs() / ZONE_WEDGE_STEP_DEGREES).ceil() as u32).max(1);
+    let mut path = PathBuilder::new_with_fill_type(PathFillType::Winding);
+    path.move_to(Point::new(center_x, center_y));
+    for step in 0..=steps {
+        let angle = from + span * step as f32 / steps as f32;
+        path.line_to(arc_point(center_x, center_y, reach, angle));
+    }
+    path.close();
+    path.detach()
 }
 
 fn arc_cap_angle_degrees(radius: f32, corner_radius: f32) -> f32 {

@@ -17,7 +17,7 @@ pub use geometry::{bar_fill_rect, bordered_bar_fill_rect};
 
 use self::labels::label_padding;
 use self::layer::{draw_continuous_fill, draw_segmented_fill, draw_static_layer};
-use super::metric::{fill_percentage, metric_range, metric_values};
+use super::metric::{fill_percentage, gauge_range, metric_values, resolve_redline};
 use crate::activity::schema::DenseActivityReport;
 use crate::debug::RenderProfiler;
 use crate::error::CoreResult;
@@ -46,7 +46,8 @@ pub fn prepare_linear_gauge_cache(
     prepare_profiler.measure("gauge.linear.prepare", || {
         let scaled_width = ((gauge.width as f32) * scale).round().max(1.0) as u32;
         let scaled_height = ((gauge.height as f32) * scale).round().max(1.0) as u32;
-        let (min_value, max_value) = metric_range(dense_activity, gauge.metric);
+        let (min_value, max_value) = gauge_range(&gauge.scale, dense_activity, gauge.metric);
+        let redline = resolve_redline(&gauge.scale, min_value, max_value);
         let shadow = normalize_shadow_style_validated(
             &scene.presentation.shadow_color,
             scene.presentation.shadow_strength_for(&gauge.shadow),
@@ -103,6 +104,7 @@ pub fn prepare_linear_gauge_cache(
             min_value,
             max_value,
             altitude_offset_m,
+            redline.as_ref(),
         )?;
 
         Ok(LinearGaugeCache {
@@ -122,6 +124,7 @@ pub fn prepare_linear_gauge_cache(
             track_fill_flat: gauge.track_fill_flat,
             track_fill_style: gauge.track_fill_style,
             bar_geometry: crate::normalize::scale_bar_geometry(gauge.bar_geometry, scale),
+            redline,
             frame_states,
         })
     })

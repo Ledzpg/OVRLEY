@@ -1,6 +1,7 @@
 /** Product-level layout for normalized arc and corner gauges. */
 
 import { ARC_MAX_ANGLE_DEGREES } from './trackPath'
+import { getFixedGaugeScale, getGaugeRedline } from '../../shared/gaugeRedline'
 
 export const ARC_LABEL_GAP_PX = 8
 export const CORNER_GAUGE_DEFAULT_FRAME_SIZE = 110
@@ -25,8 +26,13 @@ export function getArcRadius({ width, height, trackThickness, borderThickness })
   return Math.max(0, Math.min(width, height) * 0.5 - trackThickness * 0.5 - borderThickness)
 }
 
-/** Returns the metric range, ignoring the null gaps used by sparse activity series. */
-export function getArcGaugeRange(values) {
+/**
+ * Returns the gauge range: the configured fixed scale, else the metric range ignoring the null gaps
+ * used by sparse activity series.
+ */
+export function getArcGaugeRange(values, data) {
+  const fixed = getFixedGaugeScale(data)
+  if (fixed) return fixed
   const presentValues = values.filter((value) => value != null)
   if (presentValues.length === 0) return { min: 0, max: 100 }
   const min = Math.min(...presentValues)
@@ -76,7 +82,7 @@ export function getCornerGaugeLayout(data, value, values) {
 
 /** Builds shared arc-shaped geometry for regular and corner gauges. */
 function getArcShapedGaugeLayout(data, value, values, angles, variant = {}) {
-  const range = getArcGaugeRange(values)
+  const range = getArcGaugeRange(values, data)
   const fill = value === null ? 0.5 : getArcFillPercentage(value, range.min, range.max)
   const centerX = variant.centerX ?? data.width * 0.5
   const centerY = variant.centerY ?? data.height * 0.5
@@ -93,6 +99,7 @@ function getArcShapedGaugeLayout(data, value, values, angles, variant = {}) {
   return {
     ...range,
     ...angles,
+    redline: getGaugeRedline(data, range),
     fill,
     centerX,
     centerY,

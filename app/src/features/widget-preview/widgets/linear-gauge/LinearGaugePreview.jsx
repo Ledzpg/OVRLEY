@@ -33,6 +33,8 @@ function SegmentMaskRects({ segments }) {
 }
 
 function LinearGaugeTrack({ data, presentation, continuousFill }) {
+  const { redline } = presentation
+  const emptyLayer = data.track_border_thickness > 0 ? 'inner' : 'outer'
   return (
     <>
       {data.track_border_thickness > 0 ? (
@@ -66,23 +68,79 @@ function LinearGaugeTrack({ data, presentation, continuousFill }) {
           opacity={presentation.opacity}
         />
       ) : null}
-      <SegmentRects
-        segments={presentation.segments}
-        layer={data.track_border_thickness > 0 ? 'inner' : 'outer'}
-        fill={data.track_empty_color}
-        fillOpacity={data.track_empty_opacity}
-        opacity={presentation.opacity}
-        data-testid={presentation.segmented ? 'linear-gauge-bar-empty' : 'linear-gauge-empty-track'}
-      />
-      {presentation.segmented ? (
+      {redline && presentation.segmented ? (
+        <>
+          <SegmentRects
+            segments={presentation.segments.slice(0, redline.barStart)}
+            layer={emptyLayer}
+            fill={data.track_empty_color}
+            fillOpacity={data.track_empty_opacity}
+            opacity={presentation.opacity}
+            data-testid="linear-gauge-bar-empty"
+          />
+          <SegmentRects
+            segments={presentation.segments.slice(redline.barStart)}
+            layer={emptyLayer}
+            fill={redline.color}
+            fillOpacity={data.track_empty_opacity}
+            opacity={presentation.opacity}
+            data-testid="linear-gauge-bar-redline-empty"
+          />
+        </>
+      ) : redline ? (
+        <>
+          <g clipPath={`url(#${redline.normalZoneId})`}>
+            <SegmentRects
+              segments={presentation.segments}
+              layer={emptyLayer}
+              fill={data.track_empty_color}
+              fillOpacity={data.track_empty_opacity}
+              opacity={presentation.opacity}
+              data-testid="linear-gauge-empty-track"
+            />
+          </g>
+          <g clipPath={`url(#${redline.redlineZoneId})`}>
+            <SegmentRects
+              segments={presentation.segments}
+              layer={emptyLayer}
+              fill={redline.color}
+              fillOpacity={data.track_empty_opacity}
+              opacity={presentation.opacity}
+              data-testid="linear-gauge-redline-empty-track"
+            />
+          </g>
+        </>
+      ) : (
         <SegmentRects
-          segments={presentation.segments.slice(0, presentation.filledCount)}
-          layer="inner"
-          fill={data.track_filled_color}
-          fillOpacity={data.track_filled_opacity}
+          segments={presentation.segments}
+          layer={emptyLayer}
+          fill={data.track_empty_color}
+          fillOpacity={data.track_empty_opacity}
           opacity={presentation.opacity}
-          data-testid="linear-gauge-bar-filled"
+          data-testid={presentation.segmented ? 'linear-gauge-bar-empty' : 'linear-gauge-empty-track'}
         />
+      )}
+      {presentation.segmented ? (
+        <>
+          <SegmentRects
+            segments={presentation.segments.slice(0, redline ? Math.min(presentation.filledCount, redline.barStart) : presentation.filledCount)}
+            layer="inner"
+            fill={data.track_filled_color}
+            fillOpacity={data.track_filled_opacity}
+            opacity={presentation.opacity}
+            data-testid="linear-gauge-bar-filled"
+          />
+          {redline && presentation.filledCount > redline.barStart ? (
+            <SegmentRects
+              segments={presentation.segments.slice(redline.barStart, presentation.filledCount)}
+              layer="inner"
+              fill={redline.color}
+              fillOpacity={data.track_filled_opacity}
+              opacity={presentation.opacity}
+              data-testid="linear-gauge-bar-redline-filled"
+            />
+          ) : null}
+        </>
       ) : (
         continuousFill
       )}
@@ -92,7 +150,7 @@ function LinearGaugeTrack({ data, presentation, continuousFill }) {
 
 export function OverlayLinearGaugeWidget({ widget, activity, previewSecond, globalOpacity, globalScale, sceneStyle }) {
   const presentation = useLinearGaugePreviewPresentation({ widget, activity, previewSecond, globalOpacity, sceneStyle })
-  const filledTrack =
+  const renderFilledTrack = (fillColor) =>
     presentation.fillCornerRadius > 0 && widget.data.track_fill_flat ? (
       <rect
         x={presentation.layout.innerTrackRect.x}
@@ -102,7 +160,7 @@ export function OverlayLinearGaugeWidget({ widget, activity, previewSecond, glob
         rx={presentation.innerTrackCornerRadii.rx}
         ry={presentation.innerTrackCornerRadii.ry}
         clipPath={`url(#${presentation.flatFillClipId})`}
-        fill={widget.data.track_filled_color}
+        fill={fillColor}
         fillOpacity={widget.data.track_filled_opacity}
         opacity={presentation.opacity}
       />
@@ -110,7 +168,7 @@ export function OverlayLinearGaugeWidget({ widget, activity, previewSecond, glob
       <path
         d={presentation.translatedFillPath}
         clipPath={`url(#${presentation.innerTrackClipId})`}
-        fill={widget.data.track_filled_color}
+        fill={fillColor}
         fillOpacity={widget.data.track_filled_opacity}
         opacity={presentation.opacity}
       />
@@ -123,7 +181,7 @@ export function OverlayLinearGaugeWidget({ widget, activity, previewSecond, glob
         rx={presentation.fillCornerRadius}
         ry={presentation.fillCornerRadius}
         clipPath={`url(#${presentation.innerTrackClipId})`}
-        fill={widget.data.track_filled_color}
+        fill={fillColor}
         fillOpacity={widget.data.track_filled_opacity}
         opacity={presentation.opacity}
       />
@@ -133,10 +191,21 @@ export function OverlayLinearGaugeWidget({ widget, activity, previewSecond, glob
         y={presentation.layout.fillRect.y}
         width={presentation.layout.fillRect.width}
         height={presentation.layout.fillRect.height}
-        fill={widget.data.track_filled_color}
+        fill={fillColor}
         fillOpacity={widget.data.track_filled_opacity}
         opacity={presentation.opacity}
       />
+    )
+
+  const redline = presentation.redline
+  const filledTrack =
+    redline?.fillPastRedline && !presentation.segmented ? (
+      <>
+        <g clipPath={`url(#${redline.normalZoneId})`}>{renderFilledTrack(widget.data.track_filled_color)}</g>
+        <g clipPath={`url(#${redline.redlineZoneId})`}>{renderFilledTrack(redline.color)}</g>
+      </>
+    ) : (
+      renderFilledTrack(widget.data.track_filled_color)
     )
 
   return (
@@ -148,6 +217,16 @@ export function OverlayLinearGaugeWidget({ widget, activity, previewSecond, glob
       data-testid="linear-gauge-preview"
     >
       {presentation.trackShadow ? <PreviewSvgShadowBlurFilter id={presentation.shadowFilterId} shadow={presentation.trackShadow} /> : null}
+      {presentation.redline && !presentation.segmented ? (
+        <defs>
+          <clipPath id={presentation.redline.normalZoneId}>
+            <rect {...presentation.redline.zones.normal} />
+          </clipPath>
+          <clipPath id={presentation.redline.redlineZoneId}>
+            <rect {...presentation.redline.zones.redline} />
+          </clipPath>
+        </defs>
+      ) : null}
       {!presentation.segmented && presentation.fillCornerRadius > 0 ? (
         <defs>
           <clipPath id={presentation.flatFillClipId}>

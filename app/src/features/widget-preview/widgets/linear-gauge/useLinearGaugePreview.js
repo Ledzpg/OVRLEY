@@ -9,6 +9,7 @@ import {
   getLinearTranslatedFillPath,
 } from './geometry'
 import { getTextShadowParts } from '../../shared/shadow'
+import { getLinearRedlineZoneRects, getRedlineBarStart } from '../../shared/gaugeRedline'
 import { normalizeSvgShadowColor } from '../../shared/svgPreviewUtils'
 import { getPreviewFontFamily } from '../../shared/textMeasurement'
 import { formatGaugeBoundaryLabel } from '../../shared/gaugeLabelFormat'
@@ -27,6 +28,7 @@ export function useLinearGaugePreviewPresentation({ widget, activity, previewSec
     height: widget.data.height,
     orientation: widget.data.orientation,
     borderThickness: widget.data.track_border_thickness,
+    scale: widget.data,
   })
   const segmented = widget.data.track_fill_style === 'bars'
   const bars = segmented
@@ -46,6 +48,16 @@ export function useLinearGaugePreviewPresentation({ widget, activity, previewSec
           cornerRadius: fillCornerRadius,
         })
       : ''
+  const redline = layout.redline
+    ? {
+        ...layout.redline,
+        zones: getLinearRedlineZoneRects(layout.innerTrackRect, layout.redline.fraction, widget.data.orientation),
+        barStart: segmented ? getRedlineBarStart(layout.redline.fraction, bars.count) : null,
+        fillPastRedline: layout.fill > layout.redline.fraction,
+        normalZoneId: `${maskId}-zone-normal`,
+        redlineZoneId: `${maskId}-zone-redline`,
+      }
+    : null
   const metricType = widget.data.value
   const displayUnit = widget.data.display_unit
   const minLabel = formatGaugeBoundaryLabel(metricType, layout.min + presentation.valueOffset, displayUnit)
@@ -59,6 +71,7 @@ export function useLinearGaugePreviewPresentation({ widget, activity, previewSec
     segmented,
     segments,
     filledCount: segmented ? getBarFillCount(layout.fill, bars.count) : 0,
+    redline,
     opacity,
     trackShadow,
     shadowColor: trackShadow ? normalizeSvgShadowColor(trackShadow.color, opacity) : null,

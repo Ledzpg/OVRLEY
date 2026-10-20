@@ -4,6 +4,7 @@ import { getArcGaugeLayout, getArcLabelGap, getCornerGaugeLayout } from './geome
 import { getArcInnerWidgetLayout } from './arcGaugeInnerLayout'
 import { getArcFilledTrackRevealSpec, getArcPoint } from './trackPath'
 import { getArcBarSegments, getBarFillCount } from '../../shared/gaugeBarGeometry'
+import { getArcRedlineZonePaths, getRedlineBarStart } from '../../shared/gaugeRedline'
 import { buildArcGaugeInnerWidgetModel } from '../metric/model'
 import { getTextShadowParts } from '../../shared/shadow'
 import { getPreviewFontFamily, measureArcPreviewText } from '../../shared/textMeasurement'
@@ -77,6 +78,19 @@ export function useArcGaugePreviewPresentation({ widget, activity, previewSecond
           bar_gap: widget.data.bar_gap,
         })
       : null
+    const redline = layout.redline
+      ? {
+          ...layout.redline,
+          zones: getArcRedlineZonePaths({
+            ...trackGeometry,
+            startCornerRadius: widget.data.track_corner_radius,
+            endCornerRadius: fillEndCornerRadius,
+            fraction: layout.redline.fraction,
+          }),
+          barStart: barLayout ? getRedlineBarStart(layout.redline.fraction, barLayout.count) : null,
+          fillPastRedline: layout.fill > layout.redline.fraction,
+        }
+      : null
     const metricType = widget.data.value
     const displayUnit = widget.data.display_unit
     const minLabel = formatGaugeBoundaryLabel(metricType, layout.min + presentation.valueOffset, displayUnit)
@@ -91,6 +105,7 @@ export function useArcGaugePreviewPresentation({ widget, activity, previewSecond
       fillReveal,
       barLayout,
       filledBarCount: barLayout ? getBarFillCount(layout.fill, barLayout.count) : 0,
+      redline,
       minLabel,
       maxLabel,
       labels: widget.data.show_min_max_labels

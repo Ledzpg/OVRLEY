@@ -13,7 +13,8 @@ use crate::error::CoreResult;
 use crate::normalize::{ValidatedArcGaugeWidget, ValidatedSceneConfig};
 use crate::render::text::{parse_color, ResolvedTextStyle};
 use crate::render::widgets::common::normalize_shadow_style_validated;
-use crate::render::widgets::types::ArcGaugeCache;
+use crate::render::widgets::types::{ArcGaugeCache, ResolvedRedline};
+use super::super::metric::bar_is_redline;
 use crate::types::TrackFillStyle;
 use skia_safe::{image_filters, paint::Style, BlendMode, Canvas, ClipOp, Paint};
 use std::path::PathBuf;
@@ -31,6 +32,7 @@ pub(super) fn draw_static_layer(
     unit_text: Option<&str>,
     text_style: &ResolvedTextStyle,
     altitude_offset_m: f64,
+    redline: Option<&ResolvedRedline>,
 ) -> CoreResult<()> {
     let track_thickness = gauge.track_thickness * scale;
     let border_thickness = gauge.track_border_thickness * scale;
@@ -57,7 +59,18 @@ pub(super) fn draw_static_layer(
 
     match crate::normalize::scale_bar_geometry(gauge.bar_geometry, scale) {
         Some(bar_geometry) => {
-            for segment in segment_geometries(geometry, bar_geometry) {
+            for (index, segment) in segment_geometries(geometry, bar_geometry)
+                .into_iter()
+                .enumerate()
+            {
+                let empty_color = match redline {
+                    Some(redline)
+                        if bar_is_redline(index as u32, bar_geometry.count, redline.fraction) =>
+                    {
+                        redline.color.as_str()
+                    }
+                    _ => gauge.track_empty_color.as_str(),
+                };
                 draw_static_track(
                     canvas,
                     gauge,
@@ -67,6 +80,8 @@ pub(super) fn draw_static_layer(
                     scale,
                     text_style,
                     shadow_filter.as_ref(),
+                    empty_color,
+                    None,
                 );
             }
         }
@@ -79,6 +94,8 @@ pub(super) fn draw_static_layer(
             scale,
             text_style,
             shadow_filter.as_ref(),
+            gauge.track_empty_color.as_str(),
+            redline,
         ),
     }
 
@@ -112,6 +129,8 @@ fn draw_static_track(
     scale: f32,
     text_style: &ResolvedTextStyle,
     shadow_filter: Option<&skia_safe::ImageFilter>,
+    empty_color: &str,
+    zone_redline: Option<&ResolvedRedline>,
 ) {
     let inner_corner_radius = gauge.track_corner_radius * scale;
     let border_color = parse_color(&gauge.track_border_color, text_style.opacity);
@@ -143,33 +162,70 @@ fn draw_static_track(
             inner_cnr,
             &clear_track_paint(),
         );
-        draw_segment(
+        let end_corner = if gauge.track_fill_flat { 0.0 } else { inner_cnr };
+        let spec = ArcTrackSpec::full(inner_geo, inner_thickness, inner_cnr)
+            .with_end_corner_radius(end_corner);
+        paint_empty_track(
             canvas,
             inner_geo,
             inner_thickness,
             inner_cnr,
-            &track_paint(
-                parse_color(
-                    &gauge.track_empty_color,
-                    gauge.track_empty_opacity * text_style.opacity,
-                ),
-                None,
-            ),
+            gauge.track_empty_opacity * text_style.opacity,
+            empty_color,
+            zone_redline.map(|redline| (spec, redline)),
         );
     } else {
-        draw_segment(
+        let end_corner = if gauge.track_fill_flat {
+            0.0
+        } else {
+            inner_corner_radius
+        };
+        let spec = ArcTrackSpec::full(geometry, track_thickness, inner_corner_radius)
+            .with_end_corner_radius(end_corner);
+        paint_empty_track(
             canvas,
             geometry,
             track_thickness,
             inner_corner_radius,
-            &track_paint(
-                parse_color(
-                    &gauge.track_empty_color,
-                    gauge.track_empty_opacity * text_style.opacity,
-                ),
-                None,
-            ),
+            gauge.track_empty_opacity * text_style.opacity,
+            empty_color,
+            zone_redline.map(|redline| (spec, redline)),
         );
+    }
+}
+
+/// Paints the empty track, tinting the redline zone when one is configured.
+fn paint_empty_track(
+    canvas: &Canvas,
+    geometry: ArcGaugeGeometry,
+    thickness: f32,
+    corner_radius: f32,
+    opacity: f32,
+    empty_color: &str,
+    redline: Option<(ArcTrackSpec, &ResolvedRedline)>,
+) {
+    let Some((spec, redline)) = redline else {
+        draw_segment(
+            canvas,
+            geometry,
+            thickness,
+            corner_radius,
+            &track_paint(parse_color(empty_color, opacity), None),
+        );
+        return;
+    };
+    let (normal_zone, red_zone) = spec.redline_zones(redline.fraction);
+    for (zone, color) in [(&normal_zone, empty_color), (&red_zone, redline.color.as_str())] {
+        canvas.save();
+        canvas.clip_path(zone, ClipOp::Intersect, true);
+        draw_segment(
+            canvas,
+            geometry,
+            thickness,
+            corner_radius,
+            &track_paint(parse_color(color, opacity), None),
+        );
+        canvas.restore();
     }
 }
 
@@ -197,14 +253,27 @@ fn draw_segmented_fill(
         .expect("bars fill style must carry resolved bar geometry");
     let filled_count = super::super::metric::bar_fill_count(fill01, bars.count);
     let paint = fill_paint(cache);
+    let redline_paint = cache
+        .redline
+        .as_ref()
+        .map(|redline| fill_paint_with_color(cache, &redline.color));
     let inner_thickness = (cache.track_thickness - cache.track_border_thickness * 2.0).max(0.0);
     let inner_corner = (cache.track_corner_radius - cache.track_border_thickness).max(0.0);
-    for segment in segment_geometries(geometry, bars)
+    for (index, segment) in segment_geometries(geometry, bars)
         .into_iter()
+        .enumerate()
         .take(filled_count)
     {
         let inner_geo = inner_segment_geometry(segment, cache.track_border_thickness);
-        draw_segment(canvas, inner_geo, inner_thickness, inner_corner, &paint);
+        let paint = match (&cache.redline, &redline_paint) {
+            (Some(redline), Some(redline_paint))
+                if bar_is_redline(index as u32, bars.count, redline.fraction) =>
+            {
+                redline_paint
+            }
+            _ => &paint,
+        };
+        draw_segment(canvas, inner_geo, inner_thickness, inner_corner, paint);
     }
 }
 
@@ -232,24 +301,47 @@ fn draw_continuous_fill(
         return;
     };
 
-    canvas.save();
-    canvas.clip_path(&reveal_path, ClipOp::Intersect, true);
-    draw_segment(
-        canvas,
-        inner_geometry,
-        inner_thickness,
-        inner_corner,
-        &fill_paint(cache),
-    );
-    canvas.restore();
+    let split = cache
+        .redline
+        .as_ref()
+        .filter(|redline| fill01 > redline.fraction);
+    match split {
+        None => {
+            canvas.save();
+            canvas.clip_path(&reveal_path, ClipOp::Intersect, true);
+            draw_segment(
+                canvas,
+                inner_geometry,
+                inner_thickness,
+                inner_corner,
+                &fill_paint(cache),
+            );
+            canvas.restore();
+        }
+        Some(redline) => {
+            let (normal_zone, red_zone) = reveal_spec.redline_zones(redline.fraction);
+            let zones = [
+                (&normal_zone, fill_paint(cache)),
+                (&red_zone, fill_paint_with_color(cache, &redline.color)),
+            ];
+            for (zone, paint) in zones {
+                canvas.save();
+                canvas.clip_path(&reveal_path, ClipOp::Intersect, true);
+                canvas.clip_path(zone, ClipOp::Intersect, true);
+                draw_segment(canvas, inner_geometry, inner_thickness, inner_corner, &paint);
+                canvas.restore();
+            }
+        }
+    }
 }
 
 fn fill_paint(cache: &ArcGaugeCache) -> Paint {
+    fill_paint_with_color(cache, &cache.track_filled_color)
+}
+
+fn fill_paint_with_color(cache: &ArcGaugeCache, color: &str) -> Paint {
     track_paint(
-        parse_color(
-            &cache.track_filled_color,
-            cache.track_filled_opacity * cache.text_style.opacity,
-        ),
+        parse_color(color, cache.track_filled_opacity * cache.text_style.opacity),
         None,
     )
 }

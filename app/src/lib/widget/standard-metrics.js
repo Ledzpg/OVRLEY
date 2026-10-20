@@ -202,6 +202,17 @@ export function getStandardMetricUnitsMode(type) {
 }
 
 /**
+ * Returns the suggested fixed scale and redline for metrics whose gauges can set them
+ * (for example the tachometer), or null when the metric keeps the automatic range.
+ * Values are in the metric's canonical unit (rpm, °C).
+ * @param {string} type - metric type string
+ * @returns {{ min: number, max: number, redline: number } | null}
+ */
+export function getGaugeScaleDefaults(type) {
+  return getStandardMetricDefinition(type)?.gaugeScale ?? null
+}
+
+/**
  * Converts a canonical standard-metric value to a display unit.
  * @param {string} type
  * @param {number} value

@@ -4,6 +4,7 @@
 //! inside a circular stroked track. The validator keeps every visual input
 //! explicit and rejects out-of-range arc geometry before render preparation.
 
+use super::gauge_scale::{validate_gauge_scale, ValidatedGaugeScale};
 use super::helpers::{require_bool, require_f32, require_string};
 use super::raw::ValueConfig;
 use super::value::validate_arc_inner_value_widget;
@@ -58,6 +59,8 @@ pub struct ValidatedArcGaugeWidget {
     /// Shared text formatting and styling for the inner value/unit stack.
     /// `show_icon` is always false for this presentation.
     pub inner_value: ValidatedValueWidget,
+    /// Optional fixed scale and redline.
+    pub scale: ValidatedGaugeScale,
 }
 
 /// Validates a raw value config as an arc gauge.
@@ -261,6 +264,7 @@ fn validate_arc_shaped_gauge(
     let min_max_label_color =
         require_string(value.min_max_label_color.clone(), &p("min_max_label_color"))?;
 
+    let scale = validate_gauge_scale(&value, &p)?;
     let inner_value = validate_arc_inner_value_widget(value, index)?;
 
     Ok(ValidatedArcGaugeWidget {
@@ -291,5 +295,6 @@ fn validate_arc_shaped_gauge(
         min_max_label_font_size,
         min_max_label_color,
         inner_value,
+        scale,
     })
 }

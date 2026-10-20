@@ -14,6 +14,7 @@ import useDisplayVariantUpdater from '../../hooks/useDisplayVariantUpdater'
 import { FontSection, UnitsControlRow } from '../widgetEditorSections'
 import { ColorField, SelectField, SizeSlider, SliderField, ToggleField } from '../widgetFormControls'
 import { BarFillStyleDetails, BarFillStyleField } from './BarFillStyleControls'
+import GaugeScaleControls from './GaugeScaleControls'
 import { getArcGaugeLayout, getCornerGaugeLayout } from '@/features/widget-preview/widgets/arc-gauge/geometry'
 import { getArcBarGapMax, getArcTrackCornerRadiusMax, getSuggestedArcBarGeometry } from '@/features/widget-preview/shared/gaugeBarGeometry'
 import { buildMetricUnitUpdate } from '@/lib/widget/altitude'
@@ -296,6 +297,8 @@ export default function ArcDisplaySection({ widget, updateWidgetData, updateWidg
           options={supportsUnitSelection ? unitOptions : undefined}
         />
       ) : null}
+
+      <GaugeScaleControls widget={widget} data={arcData} update={updateArc} />
 
       <div className="space-y-4">
         <div className="flex w-full items-center gap-3">

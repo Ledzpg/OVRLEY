@@ -404,6 +404,15 @@ pub struct LeanAngleCache {
     pub value_offset_y: f32,
 }
 
+/// Redline zone resolved against a gauge's final scale.
+#[derive(Clone, Debug)]
+pub struct ResolvedRedline {
+    /// Position of the redline start along the track, from 0 (start) to 1 (end).
+    pub fraction: f32,
+    /// Hex color of the zone.
+    pub color: String,
+}
+
 /// Prepared linear gauge widget cache — holds the pre-rendered static track image
 /// and per-frame fill states for efficient frame-by-frame compositing.
 #[derive(Clone, Debug)]
@@ -424,6 +433,7 @@ pub struct LinearGaugeCache {
     pub track_fill_flat: bool,
     pub track_fill_style: TrackFillStyle,
     pub bar_geometry: Option<ResolvedBarGeometry>,
+    pub redline: Option<ResolvedRedline>,
     pub frame_states: Vec<LinearGaugeFrameState>,
 }
 
@@ -461,6 +471,7 @@ pub struct ArcGaugeCache {
     pub track_fill_flat: bool,
     pub track_fill_style: TrackFillStyle,
     pub bar_geometry: Option<ResolvedBarGeometry>,
+    pub redline: Option<ResolvedRedline>,
     pub text_style: crate::render::text::ResolvedTextStyle,
     pub has_unit: bool,
     pub unit_font_size: f32,

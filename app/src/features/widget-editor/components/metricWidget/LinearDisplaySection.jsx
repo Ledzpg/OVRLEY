@@ -1,5 +1,6 @@
 import { SectionHeading } from '@/components/ui/section-heading'
 import { ToggleField, SelectField, SizeSlider, SliderField, ColorField } from '../widgetFormControls'
+import GaugeScaleControls from './GaugeScaleControls'
 import useDisplayVariantUpdater from '../../hooks/useDisplayVariantUpdater'
 import { useMemo } from 'react'
 import { SlidersHorizontal, Tags } from 'lucide-react'
@@ -212,6 +213,8 @@ export default function LinearDisplaySection({ widget, updateWidgetData, updateW
           />
         </div>
       </div>
+
+      <GaugeScaleControls widget={widget} data={linearData} update={updateLinear} />
 
       <div className="space-y-4">
         <div className="flex flex-row items-center gap-3">

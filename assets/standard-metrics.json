@@ -649,6 +649,7 @@
         "source": "shared",
         "assetFile": "widget-temperature.svg"
       },
+      "gaugeScale": {"min": -10, "max": 50, "redline": 40},
       "category": "general"
     },
     {
@@ -1018,6 +1019,7 @@
         "name": "Thermometer",
         "assetFile": "widget-core-temperature.svg"
       },
+      "gaugeScale": {"min": 35, "max": 42, "redline": 38.5},
       "category": "other"
     },
     {
@@ -1044,6 +1046,7 @@
         "source": "shared",
         "assetFile": "widget-temperature.svg"
       },
+      "gaugeScale": {"min": 40, "max": 120, "redline": 105},
       "category": "motosports"
     },
     {
@@ -1070,6 +1073,7 @@
         "source": "shared",
         "assetFile": "widget-temperature.svg"
       },
+      "gaugeScale": {"min": 0, "max": 80, "redline": 60},
       "category": "motosports"
     },
     {
@@ -1282,6 +1286,7 @@
         "name": "CircleGauge",
         "assetFile": "widget-rpm.svg"
       },
+      "gaugeScale": {"min": 0, "max": 12000, "redline": 10000},
       "category": "motosports"
     },
     {

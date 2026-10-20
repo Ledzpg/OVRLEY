@@ -4,9 +4,9 @@
 //! cached image. Per-frame work is limited to compositing that image and
 //! painting the current continuous fill or set of complete bars.
 
-use super::super::metric::bar_fill_count;
+use super::super::metric::{bar_fill_count, bar_is_redline};
 use super::super::track_path::{translated_track_cap_path, translated_track_cap_reveal};
-use super::geometry::{bordered_bar_fill_rect, segment_rect, track_cap_frame};
+use super::geometry::{bordered_bar_fill_rect, redline_zone_rects, segment_rect, track_cap_frame};
 use super::labels::label_layout;
 use crate::error::CoreResult;
 use crate::normalize::{
@@ -14,7 +14,7 @@ use crate::normalize::{
 };
 use crate::render::text::{parse_color, resolve_font};
 use crate::render::widgets::common::normalize_shadow_style_validated;
-use crate::render::widgets::types::LinearGaugeCache;
+use crate::render::widgets::types::{LinearGaugeCache, ResolvedRedline};
 use skia_safe::{image_filters, BlendMode, Canvas, Paint, PathBuilder, PathFillType, RRect, Rect};
 use std::path::PathBuf;
 
@@ -30,6 +30,7 @@ pub(super) fn draw_static_layer(
     min_value: f64,
     max_value: f64,
     altitude_offset_m: f64,
+    redline: Option<&ResolvedRedline>,
 ) -> CoreResult<()> {
     let width_px = width as f32;
     let height_px = height as f32;
@@ -66,7 +67,22 @@ pub(super) fn draw_static_layer(
                 height_px,
                 gauge.orientation,
             );
-            draw_static_track(canvas, gauge, rect, radius, border, shadow_filter.as_ref());
+            let empty_color = match redline {
+                Some(redline) if bar_is_redline(index, bar_geometry.count, redline.fraction) => {
+                    redline.color.as_str()
+                }
+                _ => gauge.track_empty_color.as_str(),
+            };
+            draw_static_track(
+                canvas,
+                gauge,
+                rect,
+                radius,
+                border,
+                shadow_filter.as_ref(),
+                empty_color,
+                None,
+            );
         }
     } else {
         draw_static_track(
@@ -76,6 +92,8 @@ pub(super) fn draw_static_layer(
             radius,
             border,
             shadow_filter.as_ref(),
+            gauge.track_empty_color.as_str(),
+            redline,
         );
     }
 
@@ -109,6 +127,8 @@ fn draw_static_track(
     configured_radius: f32,
     border: f32,
     shadow_filter: Option<&skia_safe::ImageFilter>,
+    empty_color: &str,
+    zone_redline: Option<&ResolvedRedline>,
 ) {
     let radius = configured_radius
         .min(rect.width() * 0.5)
@@ -150,13 +170,31 @@ fn draw_static_track(
         canvas.draw_rrect(inner_rrect, &clear_paint);
     }
 
-    let mut empty_paint = Paint::default();
-    empty_paint.set_anti_alias(true);
-    empty_paint.set_color(parse_color(
-        &gauge.track_empty_color,
-        gauge.track_empty_opacity,
-    ));
-    canvas.draw_rrect(inner_rrect, &empty_paint);
+    let empty_paint = |color: &str| {
+        let mut paint = Paint::default();
+        paint.set_anti_alias(true);
+        paint.set_color(parse_color(color, gauge.track_empty_opacity));
+        paint
+    };
+    let Some(redline) = zone_redline else {
+        canvas.draw_rrect(inner_rrect, &empty_paint(empty_color));
+        return;
+    };
+    let (normal_zone, red_zone) = redline_zone_rects(
+        rect.left,
+        rect.top,
+        rect.width(),
+        rect.height(),
+        redline.fraction,
+        gauge.orientation,
+        border,
+    );
+    for (zone, color) in [(normal_zone, empty_color), (red_zone, redline.color.as_str())] {
+        canvas.save();
+        canvas.clip_rect(zone, skia_safe::ClipOp::Intersect, true);
+        canvas.draw_rrect(inner_rrect, &empty_paint(color));
+        canvas.restore();
+    }
 }
 
 /// Draws only complete bars whose discrete buckets are active at `fill01`.
@@ -166,8 +204,20 @@ pub(super) fn draw_segmented_fill(canvas: &Canvas, cache: &LinearGaugeCache, fil
         .expect("bars fill style must carry resolved bar geometry");
     let filled_count = bar_fill_count(fill01, bar_geometry.count);
     let paint = fill_paint(cache);
+    let redline_paint = cache
+        .redline
+        .as_ref()
+        .map(|redline| fill_paint_with_color(cache, &redline.color));
 
     for index in 0..filled_count as u32 {
+        let paint = match (&cache.redline, &redline_paint) {
+            (Some(redline), Some(redline_paint))
+                if bar_is_redline(index, bar_geometry.count, redline.fraction) =>
+            {
+                redline_paint
+            }
+            _ => &paint,
+        };
         let outer = segment_rect(
             index,
             bar_geometry.extent,
@@ -187,12 +237,49 @@ pub(super) fn draw_segmented_fill(canvas: &Canvas, cache: &LinearGaugeCache, fil
             .max(0.0)
             .min(inner.width() * 0.5)
             .min(inner.height() * 0.5);
-        canvas.draw_rrect(RRect::new_rect_xy(inner, radius, radius), &paint);
+        canvas.draw_rrect(RRect::new_rect_xy(inner, radius, radius), paint);
+    }
+}
+
+/// Reveals the continuous source track, painting the part past the redline in
+/// the redline color.
+pub(super) fn draw_continuous_fill(canvas: &Canvas, cache: &LinearGaugeCache, fill01: f32) {
+    let split = cache
+        .redline
+        .as_ref()
+        .filter(|redline| fill01 > redline.fraction);
+    let Some(redline) = split else {
+        draw_continuous_fill_with(canvas, cache, fill01, &fill_paint(cache));
+        return;
+    };
+    let (normal_zone, red_zone) = redline_zone_rects(
+        cache.x,
+        cache.y,
+        cache.width as f32,
+        cache.height as f32,
+        redline.fraction,
+        cache.orientation,
+        cache.track_border_thickness,
+    );
+    let zones = [
+        (normal_zone, fill_paint(cache)),
+        (red_zone, fill_paint_with_color(cache, &redline.color)),
+    ];
+    for (zone, paint) in zones {
+        canvas.save();
+        canvas.clip_rect(zone, skia_safe::ClipOp::Intersect, true);
+        draw_continuous_fill_with(canvas, cache, fill01, &paint);
+        canvas.restore();
     }
 }
 
 /// Reveals the continuous source track while preserving its configured caps.
-pub(super) fn draw_continuous_fill(canvas: &Canvas, cache: &LinearGaugeCache, fill01: f32) {
+fn draw_continuous_fill_with(
+    canvas: &Canvas,
+    cache: &LinearGaugeCache,
+    fill01: f32,
+    fill_paint: &Paint,
+) {
     let (x, y, width, height) = bordered_bar_fill_rect(
         cache.x,
         cache.y,
@@ -206,11 +293,10 @@ pub(super) fn draw_continuous_fill(canvas: &Canvas, cache: &LinearGaugeCache, fi
         return;
     }
 
-    let fill_paint = fill_paint(cache);
     let fill_rect = Rect::from_xywh(x, y, width, height);
     let radius = (cache.track_corner_radius - cache.track_border_thickness).max(0.0);
     if radius == 0.0 {
-        canvas.draw_rrect(RRect::new_rect_xy(fill_rect, radius, radius), &fill_paint);
+        canvas.draw_rrect(RRect::new_rect_xy(fill_rect, radius, radius), fill_paint);
         return;
     }
 
@@ -225,7 +311,7 @@ pub(super) fn draw_continuous_fill(canvas: &Canvas, cache: &LinearGaugeCache, fi
     canvas.save();
     if cache.track_fill_flat {
         canvas.clip_rect(fill_rect, skia_safe::ClipOp::Intersect, true);
-        canvas.draw_rrect(inner_rrect, &fill_paint);
+        canvas.draw_rrect(inner_rrect, fill_paint);
     } else {
         canvas.clip_rrect(inner_rrect, skia_safe::ClipOp::Intersect, true);
         let revealed_length = match cache.orientation {
@@ -235,20 +321,21 @@ pub(super) fn draw_continuous_fill(canvas: &Canvas, cache: &LinearGaugeCache, fi
         if let Some(cap) = translated_track_cap_reveal(revealed_length, radius) {
             let (frame, track_thickness) = track_cap_frame(inner_rect, radius, cache.orientation);
             let cap_path = translated_track_cap_path(frame, track_thickness, cap);
-            canvas.draw_path(&cap_path, &fill_paint);
+            canvas.draw_path(&cap_path, fill_paint);
         } else {
-            canvas.draw_rrect(RRect::new_rect_xy(fill_rect, radius, radius), &fill_paint);
+            canvas.draw_rrect(RRect::new_rect_xy(fill_rect, radius, radius), fill_paint);
         }
     }
     canvas.restore();
 }
 
 fn fill_paint(cache: &LinearGaugeCache) -> Paint {
+    fill_paint_with_color(cache, &cache.track_filled_color)
+}
+
+fn fill_paint_with_color(cache: &LinearGaugeCache, color: &str) -> Paint {
     let mut paint = Paint::default();
     paint.set_anti_alias(true);
-    paint.set_color(parse_color(
-        &cache.track_filled_color,
-        cache.track_filled_opacity,
-    ));
+    paint.set_color(parse_color(color, cache.track_filled_opacity));
     paint
 }
