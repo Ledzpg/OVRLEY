@@ -19,9 +19,14 @@ import { getWidgetOpacity } from '../../shared/textMeasurement'
 import { getTextShadowParts } from '../../shared/shadow'
 import { sanitizeSvgId } from '../../shared/svgPreviewUtils'
 import { PreviewMarkerLayers, PreviewPolylineShadow, PreviewSvgShadowBlurFilter } from '../../shared/PreviewSvgComponents'
+import { useTranslation } from 'react-i18next'
 import { useRoutePreview } from './useRoutePreview'
 
+const ATTRIBUTION_FONT_SIZE = 11
+const ATTRIBUTION_PADDING = 3
+
 export function OverlayRouteWidget({ widget, activity, previewSecond, globalOpacity, globalScale, sceneStyle, exportRange }) {
+  const { t } = useTranslation()
   const previewModel = useRoutePreview({ widget, activity, previewSecond, globalScale, exportRange })
 
   if (!previewModel) {
@@ -41,6 +46,9 @@ export function OverlayRouteWidget({ widget, activity, previewSecond, globalOpac
       style={{ opacity: getWidgetOpacity(widget.data, globalOpacity) }}
     >
       <PreviewSvgShadowBlurFilter id={shadowFilterId} shadow={shadow} />
+      {geometry.mapImage ? (
+        <image href={geometry.mapImage} x={0} y={0} width={widget.data.width} height={widget.data.height} preserveAspectRatio="none" />
+      ) : null}
       <g>
         <PreviewPolylineShadow
           points={geometry.remainingSvgPoints}
@@ -70,6 +78,26 @@ export function OverlayRouteWidget({ widget, activity, previewSecond, globalOpac
         />
       </g>
       <PreviewMarkerLayers layers={style.markerLayers} point={geometry.markerPoint} />
+      {geometry.mapImage ? <MapAttribution text={widget.data.map_attribution} width={widget.data.width} height={widget.data.height} /> : null}
+      {geometry.mapFailed ? (
+        <text x={8} y={widget.data.height - 8} fill="#ff6b6b" fontSize={12}>
+          {t('widget-editor.routeMapUnavailable', 'Map unavailable')}
+        </text>
+      ) : null}
     </svg>
+  )
+}
+
+/** Credit in the bottom-right corner, matching the one the renderer draws into the map. */
+function MapAttribution({ text, width, height }) {
+  const boxWidth = Math.min(width, text.length * ATTRIBUTION_FONT_SIZE * 0.55 + ATTRIBUTION_PADDING * 2)
+  const boxHeight = ATTRIBUTION_FONT_SIZE + ATTRIBUTION_PADDING * 2
+  return (
+    <g>
+      <rect x={width - boxWidth} y={height - boxHeight} width={boxWidth} height={boxHeight} fill="#ffffff" fillOpacity={0.75} />
+      <text x={width - boxWidth + ATTRIBUTION_PADDING} y={height - ATTRIBUTION_PADDING - 2} fill="#333333" fontSize={ATTRIBUTION_FONT_SIZE}>
+        {text}
+      </text>
+    </g>
   )
 }

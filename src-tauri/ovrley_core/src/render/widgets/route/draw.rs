@@ -30,7 +30,10 @@ pub(crate) fn draw_route_widget(
             route_cache.plot.x,
             route_cache.plot.y,
             0.0,
-            |canvas| draw_static_layer(canvas, route_cache.remaining_layer.as_ref()),
+            |canvas| {
+                draw_static_layer(canvas, route_cache.map_layer.as_ref());
+                draw_static_layer(canvas, route_cache.remaining_layer.as_ref());
+            },
         );
         with_widget_transform(
             canvas,

@@ -69,7 +69,7 @@ pub use linear_gauge::{
 };
 pub use raster::validate_template_rasters;
 pub use raster::{RasterGeometry, RasterSource, ValidatedRaster};
-pub use route::{validate_route_plot, validate_route_plots, ValidatedRoutePlot};
+pub use route::{validate_route_plot, validate_route_plots, ValidatedRouteMap, ValidatedRoutePlot, MAX_MAP_ZOOM_OFFSET};
 pub use scene::{
     validate_ffmpeg_config, validate_scene_config, ShadowOverride, ValidatedFfmpegConfig,
     ValidatedSceneConfig, ValidatedScenePresentation,

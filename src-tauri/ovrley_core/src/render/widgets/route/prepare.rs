@@ -12,6 +12,8 @@ use super::super::types::{
     NormalizedRoutePlot, RouteSample, RouteWidgetCache, StaticLayer, WidgetGeometry,
 };
 use super::curve::curve_route_samples;
+use super::fit::RouteFit;
+use super::map::{build_map_image, build_map_layer, mercator_degrees};
 use super::simplify::{downsample_route_samples, simplify_route_samples};
 use crate::activity::schema::{DenseActivityReport, ParsedActivity};
 use crate::activity::trim::trim_activity;
@@ -20,6 +22,7 @@ use crate::error::{CoreError, CoreResult};
 use crate::normalize::RenderDataRequirements;
 use crate::normalize::ValidatedRoutePlot;
 use crate::render::surface::create_surface;
+use std::path::PathBuf;
 use std::time::Instant;
 
 const ROUTE_CURVE_FLATNESS_PX: f64 = 0.35;
@@ -30,12 +33,14 @@ pub(crate) fn prepare_route_cache(
     dense_activity: &DenseActivityReport,
     validated: &ValidatedRoutePlot,
     scene: &crate::normalize::ValidatedSceneConfig,
+    font_dirs: &[PathBuf],
     prepare_profiler: &mut RenderProfiler,
 ) -> CoreResult<RouteWidgetCache> {
     let prepare_started = Instant::now();
     let show_full_activity = validated.show_full_activity;
     let plot = super::normalize::normalize_route_plot(validated, scene);
-    let route_samples = build_route_samples(activity, show_full_activity, scene)?;
+    let route_samples =
+        build_route_samples(activity, show_full_activity, validated.map.is_some(), scene)?;
     let geometry = prepare_profiler.measure("build_route_cache.geometry", || {
         build_route_geometry(&plot, validated, &route_samples)
     })?;
@@ -49,6 +54,14 @@ pub(crate) fn prepare_route_cache(
     let remaining_layer = prepare_profiler.measure("build_route_cache.layers", || {
         build_route_remaining_layer(&plot, &geometry)
     })?;
+    let map_layer = match &validated.map {
+        Some(map) => Some(prepare_profiler.measure("build_route_cache.map", || {
+            let (fit, output_scale) = route_map_fit(&plot, validated, &route_samples)?;
+            let image = build_map_image(map, &fit, output_scale, plot.width, plot.height)?;
+            build_map_layer(&plot, &image, &map.attribution, output_scale, font_dirs)
+        })?),
+        None => None,
+    };
     let frame_states = prepare_profiler.measure("build_route_cache.frame_states", || {
         super::frame_state::build_route_frame_states(
             activity,
@@ -69,7 +82,29 @@ pub(crate) fn prepare_route_cache(
         frame_states,
         marker_layers,
         remaining_layer,
+        map_layer,
     })
+}
+
+/// Route fit in unscaled widget space plus the factor that turns widget pixels into
+/// output pixels; the raster map is drawn through exactly this transform.
+pub(crate) fn route_map_fit(
+    plot: &NormalizedRoutePlot,
+    validated: &ValidatedRoutePlot,
+    route_samples: &[RouteSample],
+) -> CoreResult<(RouteFit, f64)> {
+    let projected = route_samples
+        .iter()
+        .map(|sample| sample.point)
+        .collect::<Vec<_>>();
+    let fit = RouteFit::new(
+        &projected,
+        validated.width as f64,
+        validated.height as f64,
+        route_geometry_inset_px_validated(validated) as f64,
+    )
+    .ok_or_else(|| CoreError::Render("Route map requires course points".into()))?;
+    Ok((fit, plot.width as f64 / validated.width.max(1) as f64))
 }
 
 /// Builds widget-space geometry for the route path.
@@ -90,13 +125,19 @@ pub(crate) fn build_route_geometry(
     // Match the editor preview: simplify in unscaled widget space, then map the
     // surviving points into the scaled render box for Skia drawing.
     let stroke_inset = route_geometry_inset_px_validated(validated);
-    let fitted = fit_points_to_widget_with_inset(
+    let fit = RouteFit::new(
         &projected,
         validated.width as f64,
         validated.height as f64,
         stroke_inset as f64,
-        true,
-    );
+    )
+    .ok_or_else(|| {
+        CoreError::Render("Route plot requires at least two valid course points".into())
+    })?;
+    let fitted = projected
+        .iter()
+        .map(|point| fit.apply(*point))
+        .collect::<Vec<_>>();
     let fitted_samples = route_samples
         .iter()
         .zip(fitted.iter())
@@ -153,37 +194,7 @@ fn build_route_remaining_layer(
         plot.remaining_line_width,
         plot.remaining_line_shadow.as_ref(),
     );
-    let padding = padding as f32;
-    let radians = plot.rotation.to_radians();
-    let (sin, cos) = radians.sin_cos();
-    let corners = [
-        (-padding, -padding),
-        (plot.width as f32 + padding, -padding),
-        (-padding, plot.height as f32 + padding),
-        (plot.width as f32 + padding, plot.height as f32 + padding),
-    ];
-    let min_x = corners
-        .iter()
-        .map(|(x, y)| x * cos - y * sin)
-        .fold(f32::INFINITY, f32::min)
-        .floor();
-    let max_x = corners
-        .iter()
-        .map(|(x, y)| x * cos - y * sin)
-        .fold(f32::NEG_INFINITY, f32::max)
-        .ceil();
-    let min_y = corners
-        .iter()
-        .map(|(x, y)| x * sin + y * cos)
-        .fold(f32::INFINITY, f32::min)
-        .floor();
-    let max_y = corners
-        .iter()
-        .map(|(x, y)| x * sin + y * cos)
-        .fold(f32::NEG_INFINITY, f32::max)
-        .ceil();
-    let layer_width = (max_x - min_x).max(1.0) as u32;
-    let layer_height = (max_y - min_y).max(1.0) as u32;
+    let (min_x, min_y, layer_width, layer_height) = rotated_layer_bounds(plot, padding as f32);
     let mut surface = create_surface(layer_width, layer_height)?;
     surface.canvas().clear(skia_safe::Color::TRANSPARENT);
     surface.canvas().save();
@@ -206,54 +217,36 @@ fn build_route_remaining_layer(
     }))
 }
 
+/// Bounds of a widget-sized layer (grown by `padding`) after rotating it with the widget:
+/// returns the top-left corner and the pixel size of the rotated bounding box.
+pub(super) fn rotated_layer_bounds(plot: &NormalizedRoutePlot, padding: f32) -> (f32, f32, u32, u32) {
+    let radians = plot.rotation.to_radians();
+    let (sin, cos) = radians.sin_cos();
+    let corners = [
+        (-padding, -padding),
+        (plot.width as f32 + padding, -padding),
+        (-padding, plot.height as f32 + padding),
+        (plot.width as f32 + padding, plot.height as f32 + padding),
+    ];
+    let xs = corners.map(|(x, y)| x * cos - y * sin);
+    let ys = corners.map(|(x, y)| x * sin + y * cos);
+    let min_x = xs.iter().copied().fold(f32::INFINITY, f32::min).floor();
+    let max_x = xs.iter().copied().fold(f32::NEG_INFINITY, f32::max).ceil();
+    let min_y = ys.iter().copied().fold(f32::INFINITY, f32::min).floor();
+    let max_y = ys.iter().copied().fold(f32::NEG_INFINITY, f32::max).ceil();
+    (
+        min_x,
+        min_y,
+        (max_x - min_x).max(1.0) as u32,
+        (max_y - min_y).max(1.0) as u32,
+    )
+}
+
 fn route_geometry_inset_px_validated(plot: &ValidatedRoutePlot) -> f32 {
     let line_inset = (plot.remaining_line_width.max(plot.completed_line_width) * 0.5).max(0.0);
     let marker_inset = plot.marker_size.max(plot.marker_variant_diameter * 0.5);
     let base_inset = marker_inset.max(line_inset) + 1.0;
     base_inset.min(plot.width.min(plot.height) as f32 * 0.45)
-}
-
-fn fit_points_to_widget_with_inset(
-    points: &[(f64, f64)],
-    width: f64,
-    height: f64,
-    inset_px: f64,
-    invert_y: bool,
-) -> Vec<(f64, f64)> {
-    if points.is_empty() {
-        return Vec::new();
-    }
-
-    let min_x = points.iter().map(|(x, _)| *x).fold(f64::INFINITY, f64::min);
-    let max_x = points
-        .iter()
-        .map(|(x, _)| *x)
-        .fold(f64::NEG_INFINITY, f64::max);
-    let min_y = points.iter().map(|(_, y)| *y).fold(f64::INFINITY, f64::min);
-    let max_y = points
-        .iter()
-        .map(|(_, y)| *y)
-        .fold(f64::NEG_INFINITY, f64::max);
-    let safe_inset = inset_px.max(0.0).min(width.min(height) * 0.45);
-    let inner_width = (width - safe_inset * 2.0).max(1.0);
-    let inner_height = (height - safe_inset * 2.0).max(1.0);
-    let span_x = (max_x - min_x).max(1e-6);
-    let span_y = (max_y - min_y).max(1e-6);
-    let scale = (inner_width / span_x).min(inner_height / span_y);
-    let offset_x = (width - span_x * scale) / 2.0;
-    let offset_y = (height - span_y * scale) / 2.0;
-
-    points
-        .iter()
-        .map(|(x, y)| {
-            let fitted_x = (x - min_x) * scale + offset_x;
-            let mut fitted_y = (y - min_y) * scale + offset_y;
-            if invert_y {
-                fitted_y = height - fitted_y;
-            }
-            (fitted_x, fitted_y)
-        })
-        .collect()
 }
 
 /// Selects full-activity or trimmed course samples for route geometry.
@@ -263,12 +256,14 @@ fn fit_points_to_widget_with_inset(
 pub(crate) fn build_route_samples(
     activity: &ParsedActivity,
     show_full_activity: bool,
+    mercator: bool,
     scene: &crate::normalize::ValidatedSceneConfig,
 ) -> CoreResult<Vec<RouteSample>> {
     if show_full_activity || !custom_export_range_active(scene) {
         return Ok(project_course_samples(
             &activity.sample_course_points,
             &activity.sample_distance_progress,
+            mercator,
         ));
     }
 
@@ -286,16 +281,19 @@ pub(crate) fn build_route_samples(
     Ok(project_course_samples_with_optional_progress(
         &trimmed.course,
         &trimmed.sample_distance_progress,
+        mercator,
     ))
 }
 
 /// Projects latitude/longitude samples into local 2D route samples.
 ///
-/// Uses an equirectangular approximation centered on mean latitude. This is
-/// sufficient for small activity routes and avoids a heavy projection crate.
+/// Uses an equirectangular approximation centered on mean latitude, which is
+/// sufficient for small activity routes and avoids a heavy projection crate. With a
+/// raster map behind the route, Web Mercator is used instead so the route matches the tiles.
 fn project_course_samples(
     course_points: &[(Option<f64>, Option<f64>)],
     progress_values: &[f64],
+    mercator: bool,
 ) -> Vec<RouteSample> {
     let valid_points = course_points
         .iter()
@@ -314,7 +312,11 @@ fn project_course_samples(
     valid_points
         .into_iter()
         .map(|(index, lat, lon)| RouteSample {
-            point: (lon * mean_latitude_radians.cos(), lat),
+            point: if mercator {
+                mercator_degrees(lat, lon)
+            } else {
+                (lon * mean_latitude_radians.cos(), lat)
+            },
             progress01: progress_values
                 .get(index)
                 .copied()
@@ -331,6 +333,7 @@ fn project_course_samples(
 fn project_course_samples_with_optional_progress(
     course_points: &[(Option<f64>, Option<f64>)],
     progress_values: &[Option<f64>],
+    mercator: bool,
 ) -> Vec<RouteSample> {
     let normalized_progress =
         normalize_optional_progress_window(progress_values).unwrap_or_else(|| {
@@ -345,5 +348,5 @@ fn project_course_samples_with_optional_progress(
                 .collect::<Vec<_>>()
         });
 
-    project_course_samples(course_points, &normalized_progress)
+    project_course_samples(course_points, &normalized_progress, mercator)
 }

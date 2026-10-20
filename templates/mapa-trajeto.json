@@ -1,0 +1,92 @@
+{
+  "format": "ovrley-template",
+  "version": 3,
+  "name": "mapa-trajeto",
+  "savedAt": "2026-10-20T12:00:00.000Z",
+  "config": {
+    "scene": {
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "updateRate": 1
+    },
+    "backdrops": [],
+    "rasters": [],
+    "labels": [],
+    "values": [
+      {
+        "id": "widget-2",
+        "value": "speed",
+        "x": 270,
+        "y": 1030,
+        "prefix": "",
+        "suffix": "",
+        "decimals": 0,
+        "display_type": "text",
+        "content_alignment": "center",
+        "unit_color": "#cfd3d8",
+        "show_icon": false,
+        "icon_size": 40,
+        "icon_offset_x": 0,
+        "icon_offset_y": 0,
+        "icon_color": "#ffd400",
+        "font": "Rajdhani.ttf",
+        "font_size": 44,
+        "color": "#ffffff",
+        "opacity": 1,
+        "show_units": false
+      }
+    ],
+    "plots": [
+      {
+        "id": "widget-1",
+        "value": "course",
+        "x": 60,
+        "y": 600,
+        "rotation": 0,
+        "opacity": 1,
+        "width": 420,
+        "height": 420,
+        "completed_line_width": 6,
+        "remaining_line_width": 5,
+        "completed_line_opacity": 100,
+        "remaining_line_opacity": 70,
+        "simplify_tolerance_px": 0.3,
+        "target_density": 1,
+        "show_full_activity": true,
+        "marker_variant": "halo",
+        "marker_variant_diameter": 36,
+        "marker_size": 8,
+        "marker_opacity": 100,
+        "completed_line_color": "#00b4d8",
+        "remaining_line_color": "#00b4d8",
+        "marker_color": "#ffd400",
+        "color": "#00b4d8",
+        "shadow_strength": 0,
+        "shadow_distance": 0,
+        "map_tile_url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "map_attribution": "© OpenStreetMap contributors",
+        "map_opacity": 100,
+        "map_zoom_offset": 0
+      }
+    ]
+  },
+  "settings": {
+    "globalDefaults": {
+      "border_color": "#000000",
+      "border_thickness": 0,
+      "shadow_color": "#000000",
+      "shadow_strength": 3,
+      "shadow_distance": 2,
+      "font_values": "Rajdhani.ttf",
+      "font_text": "Rajdhani.ttf",
+      "color_values": "#ffffff",
+      "color_text": "#ffffff",
+      "color_icons": "#ffd400",
+      "color_units": "#cfd3d8",
+      "font_size": 30,
+      "opacity": 1,
+      "scale": 1
+    }
+  }
+}

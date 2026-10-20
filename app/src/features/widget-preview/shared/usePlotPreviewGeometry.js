@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { hasTauriRuntime } from '@/api/backend'
+import { buildRouteMap, hasTauriRuntime } from '@/api/backend'
 import { resolveExportRangeWindow } from '@/features/overlay-editor/utils/exportRange'
 import { pointsToSvg, areaToSvg } from '@/lib/geometryUtils'
 import useStore from '@/store/useStore'
@@ -14,8 +14,13 @@ const ROUTE_GEOMETRY_FIELDS = [
   'marker_size',
   'marker_variant_diameter',
   'show_full_activity',
+  'map_tile_url',
+  'map_opacity',
+  'map_zoom_offset',
 ]
 const ELEVATION_GEOMETRY_FIELDS = ['width', 'height', 'y_scale', 'simplify_tolerance_px', 'target_density', 'show_full_activity']
+
+const NO_ROUTE_MAP = Object.freeze({ image: null, failed: false })
 
 function normalizePlotDimensions(plotData) {
   return { ...plotData, width: Math.round(plotData.width), height: Math.round(plotData.height) }
@@ -70,6 +75,7 @@ function buildPlotGeometryConfig({ config, globalDefaults, activity, exportWindo
  */
 export function usePlotPreviewGeometry({ activity, data, exportRange, style, plotType, buildGeometry, mockGeometryKey, includeArea = false }) {
   const [rustGeometry, setRustGeometry] = useState(null)
+  const [routeMap, setRouteMap] = useState(NO_ROUTE_MAP)
   const config = useStore((state) => state.config)
   const globalDefaults = useStore((state) => state.globalDefaults)
   const fallbackDurationSeconds = useStore((state) => state.fallbackDurationSeconds)
@@ -123,6 +129,28 @@ export function usePlotPreviewGeometry({ activity, data, exportRange, style, plo
     widgetUpdateRate,
   ])
 
+  // The raster map behind a route (course plots only): Rust downloads/caches the tiles and returns a PNG.
+  useEffect(() => {
+    const geometryConfig = plotType === 'course' ? buildPlotGeometryConfig(latestInputsRef.current) : null
+    if (!geometryConfig || geometryConfig.plots[0].map_tile_url == null) {
+      // Keep the same object when already empty so this effect cannot re-render in a loop.
+      setRouteMap(NO_ROUTE_MAP)
+      return undefined
+    }
+    let cancelled = false
+    buildRouteMap(geometryConfig, activity)
+      .then((image) => {
+        if (!cancelled) setRouteMap({ image, failed: false })
+      })
+      .catch((error) => {
+        console.error('Route map preview failed', error)
+        if (!cancelled) setRouteMap({ image: null, failed: true })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [activity, config?.scene?.end, config?.scene?.start, exportWindow, geometrySignature, plotType, style.globalScale, widgetUpdateRate])
+
   const points = useMemo(
     () =>
       rustGeometry
@@ -136,5 +164,5 @@ export function usePlotPreviewGeometry({ activity, data, exportRange, style, plo
     [plotHeight, plotWidth, includeArea, points],
   )
 
-  return { areaSvgPoints, exportWindow, fallbackDurationSeconds, points, remainingSvgPoints, rustGeometry }
+  return { areaSvgPoints, exportWindow, fallbackDurationSeconds, points, remainingSvgPoints, routeMap, rustGeometry }
 }

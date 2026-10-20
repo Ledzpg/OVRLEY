@@ -28,6 +28,7 @@
 pub mod video_server; // test seam
 
 mod map_tile_service;
+mod raster_tile_source;
 
 #[cfg(test)]
 mod video_server_tests;
@@ -110,6 +111,7 @@ pub fn run() {
             tauri_commands::backend_detect_codecs,
             tauri_commands::backend_build_elevation_geometry,
             tauri_commands::backend_build_route_geometry,
+            tauri_commands::backend_build_route_map,
             file_ops::default_template_save_path,
             file_ops::read_selected_file_bytes,
             file_ops::load_selected_raster,
@@ -153,6 +155,16 @@ pub fn run() {
             )?;
             app.state::<video_server::VideoServerHandle>()
                 .start_with_map_tile_service(map_tile_service)?;
+
+            // Raster tiles for the map behind the route widget (cached next to the vector tiles).
+            ovrley_core::raster_tiles::install_raster_tile_source(Arc::new(
+                raster_tile_source::HttpRasterTileSource::new(
+                    app.path()
+                        .app_cache_dir()
+                        .map_err(|error| error.to_string())?
+                        .join("raster-tiles"),
+                )?,
+            ));
 
             #[cfg(not(target_os = "macos"))]
             {

@@ -37,6 +37,8 @@ pub mod output;
 pub mod paths;
 /// Validation and oriented preview decoding for user-selected bitmap resources.
 pub mod raster;
+/// Raster map tile source boundary and `file://` tile packs.
+pub mod raster_tiles;
 /// Shared Ramer-Douglas-Peucker line simplification.
 pub mod rdp;
 /// Skia-based overlay rendering.

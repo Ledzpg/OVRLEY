@@ -123,6 +123,7 @@ pub fn prepare_render_assets(
             dense_activity,
             validated,
             &assets.scene,
+            &paths.font_dirs,
             prepare_profiler,
         )?);
     }

@@ -83,8 +83,11 @@ export const VALUE_SHARED_KEYS = [...Object.keys(TEXT_DEFAULTS), 'id', 'value', 
 /** Flat fields owned by the lap timer display contract. */
 export const LAP_TIMER_KEYS = [...Object.keys(DISPLAY_TYPE_DEFINITIONS.lap_timer.defaults), ...DISPLAY_TYPE_DEFINITIONS.lap_timer.configFields]
 
+/** Optional raster map behind a course plot (unset map_tile_url = no map; the others are then unset too). */
+export const COURSE_MAP_KEYS = ['map_tile_url', 'map_attribution', 'map_opacity', 'map_zoom_offset']
+
 /** Keys preserved when normalizing a course plot widget. */
-export const COURSE_PLOT_KEYS = [...Object.keys(COURSE_PLOT_DEFAULTS), 'id', ...WIDGET_SHADOW_KEYS]
+export const COURSE_PLOT_KEYS = [...Object.keys(COURSE_PLOT_DEFAULTS), 'id', ...WIDGET_SHADOW_KEYS, ...COURSE_MAP_KEYS]
 
 /** Keys preserved when normalizing an elevation plot widget. */
 export const ELEVATION_PLOT_KEYS = [...Object.keys(ELEVATION_PLOT_DEFAULTS), 'id', ...WIDGET_SHADOW_KEYS]

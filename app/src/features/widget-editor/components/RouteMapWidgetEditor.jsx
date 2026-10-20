@@ -7,6 +7,7 @@ import { useMemo } from 'react'
 import { SectionHeading } from '@/components/ui/section-heading'
 import { ColorField, SelectField, SizeSlider, SliderField, ToggleField } from './widgetFormControls'
 import { DimensionsSection } from './widgetEditorSections'
+import RouteMapBackgroundSection from './RouteMapBackgroundSection'
 import { getThemeColor } from '@/lib/theme'
 import { Label } from '@/components/ui/label'
 import { useTranslation } from 'react-i18next'
@@ -60,6 +61,8 @@ export default function RouteMapWidgetEditor({ widget, updateWidgetData, updateW
         onSliderChange={(rawValue) => updateWidgetSize(widget.id, { rotation: rawValue })}
         onSliderCommit={() => commitWidgetSize(widget.id)}
       />
+
+      <RouteMapBackgroundSection widget={widget} updateWidgetData={updateWidgetData} />
 
       <div className="space-y-4">
         <SectionHeading icon={Palette} title={t('widget-editor.lineStyling', 'Line Styling')} />

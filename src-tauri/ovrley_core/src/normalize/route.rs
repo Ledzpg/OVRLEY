@@ -36,6 +36,67 @@ pub struct ValidatedRoutePlot {
     pub marker_color: String,
     pub marker_opacity: f32,
     pub show_full_activity: bool,
+    /// Raster map drawn behind the route; `None` keeps the plain route plot.
+    pub map: Option<ValidatedRouteMap>,
+}
+
+/// Raster tile map settings of a route plot.
+#[derive(Clone, Debug)]
+pub struct ValidatedRouteMap {
+    /// Tile URL template with `{z}`, `{x}` and `{y}` (`https://` or `file://`).
+    pub tile_url: String,
+    /// Credit drawn in the corner of the map.
+    pub attribution: String,
+    pub opacity: f32,
+    /// Added to the zoom that matches the widget resolution (sharper when positive).
+    pub zoom_offset: i32,
+}
+
+/// Largest accepted zoom offset in either direction.
+pub const MAX_MAP_ZOOM_OFFSET: i32 = 2;
+
+fn validate_route_map(plot: &CoursePlotConfig, index: usize) -> CoreResult<Option<ValidatedRouteMap>> {
+    let p = |f: &str| format!("plots[{index}].{f}");
+    let Some(tile_url) = plot.map_tile_url.as_deref() else {
+        for (field, present) in [
+            ("map_attribution", plot.map_attribution.is_some()),
+            ("map_opacity", plot.map_opacity.is_some()),
+            ("map_zoom_offset", plot.map_zoom_offset.is_some()),
+        ] {
+            if present {
+                return Err(CoreError::Config(format!("{}: requires map_tile_url", p(field))));
+            }
+        }
+        return Ok(None);
+    };
+    if !(tile_url.starts_with("https://") || tile_url.starts_with("file://")) || !crate::raster_tiles::is_tile_template(tile_url) {
+        return Err(CoreError::Config(format!(
+            "{}: must be an https:// or file:// URL containing {{z}}, {{x}} and {{y}}",
+            p("map_tile_url")
+        )));
+    }
+    let attribution = plot
+        .map_attribution
+        .as_deref()
+        .map(str::trim)
+        .filter(|text| !text.is_empty())
+        .ok_or_else(|| CoreError::Config(format!("{}: required and must not be empty", p("map_attribution"))))?;
+    let zoom_offset = plot
+        .map_zoom_offset
+        .ok_or_else(|| CoreError::Config(format!("{}: required", p("map_zoom_offset"))))?;
+    if !(-MAX_MAP_ZOOM_OFFSET..=MAX_MAP_ZOOM_OFFSET).contains(&zoom_offset) {
+        return Err(CoreError::Config(format!(
+            "{}: must be between {} and {MAX_MAP_ZOOM_OFFSET}",
+            p("map_zoom_offset"),
+            -MAX_MAP_ZOOM_OFFSET
+        )));
+    }
+    Ok(Some(ValidatedRouteMap {
+        tile_url: tile_url.to_string(),
+        attribution: attribution.to_string(),
+        opacity: require_opacity(plot.map_opacity, &p("map_opacity"))?,
+        zoom_offset,
+    }))
 }
 
 pub fn validate_route_plots(plots: &serde_json::Value) -> CoreResult<Vec<ValidatedRoutePlot>> {
@@ -118,5 +179,6 @@ pub fn validate_route_plot(
         show_full_activity: plot
             .show_full_activity
             .ok_or_else(|| CoreError::Config(format!("{}: required", p("show_full_activity"))))?,
+        map: validate_route_map(plot, index)?,
     })
 }

@@ -24,10 +24,10 @@ import { usePlotPreviewGeometry } from '../../shared/usePlotPreviewGeometry'
  * @param {object} params.exportRange - Active export-range selection.
  * @param {number} params.previewSecond - Current preview timestamp in seconds.
  * @param {object} params.style - Style model returned by useRoutePreviewStyle.
- * @returns {object|null} Geometry model for the renderer, or null while loading.
+ * @returns {object|null} Geometry model for the renderer (with the raster map image when configured), or null while loading.
  */
 export function useRoutePreviewGeometry({ activity, data, exportRange, previewSecond, style }) {
-  const { exportWindow, fallbackDurationSeconds, points, remainingSvgPoints, rustGeometry } = usePlotPreviewGeometry({
+  const { exportWindow, fallbackDurationSeconds, points, remainingSvgPoints, routeMap, rustGeometry } = usePlotPreviewGeometry({
     activity,
     data,
     exportRange,
@@ -66,5 +66,7 @@ export function useRoutePreviewGeometry({ activity, data, exportRange, previewSe
     markerPoint,
     remainingSvgPoints,
     completedSvgPoints: pointsToSvg(completedPoints),
+    mapImage: routeMap.image,
+    mapFailed: routeMap.failed,
   }
 }

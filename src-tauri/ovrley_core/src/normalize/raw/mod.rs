@@ -746,6 +746,16 @@ pub struct CoursePlotConfig {
     pub marker_color: Option<String>,
     #[serde(default)]
     pub marker_opacity: Option<f32>,
+    /// Raster map background: tile URL template (absent = no map). The other `map_*` fields
+    /// are required when it is present and rejected when it is absent.
+    #[serde(default)]
+    pub map_tile_url: Option<String>,
+    #[serde(default)]
+    pub map_attribution: Option<String>,
+    #[serde(default)]
+    pub map_opacity: Option<f32>,
+    #[serde(default)]
+    pub map_zoom_offset: Option<i32>,
     #[serde(default)]
     pub shadow_color: Option<String>,
     #[serde(default)]

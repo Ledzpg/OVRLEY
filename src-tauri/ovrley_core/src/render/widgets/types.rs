@@ -286,6 +286,8 @@ pub(crate) struct RouteWidgetCache {
     pub(crate) frame_states: Vec<RouteFrameState>,
     pub(crate) marker_layers: Vec<MarkerLayer>,
     pub(crate) remaining_layer: Option<StaticLayer>,
+    /// Raster tile map drawn below the route when the plot configures one.
+    pub(crate) map_layer: Option<StaticLayer>,
 }
 
 /// Prepared heading widget cache.

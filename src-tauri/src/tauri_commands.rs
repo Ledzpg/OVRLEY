@@ -613,3 +613,28 @@ pub(crate) async fn backend_build_route_geometry(
         &parsed_activity_json,
     ))
 }
+
+/// Renders the raster map behind the route widget for the editor preview.
+///
+/// Returns a `data:image/png;base64,...` URL, or `null` when the widget has no map. Tile
+/// downloads block, so the work runs off the async runtime.
+#[tauri::command]
+pub(crate) async fn backend_build_route_map(
+    config_json: String,
+    parsed_activity_json: String,
+) -> Result<String, String> {
+    use base64::Engine;
+    let png = tauri::async_runtime::spawn_blocking(move || {
+        commands::route_geometry::build_route_map_png_command(&config_json, &parsed_activity_json)
+    })
+    .await
+    .map_err(|error| error.to_string())?;
+    call_and_serialize(png.map(|png| {
+        png.map(|bytes| {
+            format!(
+                "data:image/png;base64,{}",
+                base64::engine::general_purpose::STANDARD.encode(bytes)
+            )
+        })
+    }))
+}

@@ -7,6 +7,8 @@
 //!
 //! Module ownership:
 //! - `curve` — Catmull-Rom reconstruction and adaptive curve flattening.
+//! - `fit` — uniform fit of projected points into the widget box.
+//! - `map` — optional raster tile map drawn behind the route.
 //! - `normalize` — plot option normalization and default resolution.
 //! - `prepare` — sample building, geometry fitting, static-layer caching.
 //! - `frame_state` — per-frame marker position and polyline prefix computation.
@@ -15,7 +17,9 @@
 
 mod curve;
 mod draw;
+mod fit;
 mod frame_state;
+pub(crate) mod map;
 pub(crate) mod normalize;
 pub(crate) mod prepare;
 mod simplify;

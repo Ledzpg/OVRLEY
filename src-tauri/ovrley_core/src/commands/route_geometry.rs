@@ -56,6 +56,7 @@ pub fn build_route_geometry_command(
     let route_samples = crate::render::widgets::route::prepare::build_route_samples(
         &activity,
         show_full_activity,
+        course_plot.map.is_some(),
         &scene,
     )?;
 
@@ -82,4 +83,50 @@ pub fn build_route_geometry_command(
         widget_width: normalized.width,
         widget_height: normalized.height,
     })
+}
+
+/// Renders the raster map behind the first course plot as a PNG in unrotated plot space.
+///
+/// Returns `None` when the plot has no map configured. The image has the same pixel size
+/// as the geometry response (`widget_width` x `widget_height`) and no attribution, which
+/// the preview draws itself.
+pub fn build_route_map_png_command(
+    config_json: &str,
+    parsed_activity_json: &str,
+) -> CoreResult<Option<Vec<u8>>> {
+    let config = parse_config_json(config_json)?;
+    let scene = validate_scene_config(config.scene)?;
+    let course_plots = validate_route_plots(&config.plots)?;
+    let activity = parse_activity_json(parsed_activity_json)?;
+    let course_plot = course_plots
+        .first()
+        .ok_or_else(|| CoreError::Config("Config has no course_plot widget".into()))?;
+    let Some(map) = &course_plot.map else {
+        return Ok(None);
+    };
+
+    let route_samples = crate::render::widgets::route::prepare::build_route_samples(
+        &activity,
+        course_plot.show_full_activity,
+        true,
+        &scene,
+    )?;
+    let normalized =
+        crate::render::widgets::route::normalize::normalize_route_plot(course_plot, &scene);
+    let (fit, output_scale) = crate::render::widgets::route::prepare::route_map_fit(
+        &normalized,
+        course_plot,
+        &route_samples,
+    )?;
+    let image = crate::render::widgets::route::map::build_map_image(
+        map,
+        &fit,
+        output_scale,
+        normalized.width,
+        normalized.height,
+    )?;
+    let png = image
+        .encode(None, skia_safe::EncodedImageFormat::PNG, 100)
+        .ok_or_else(|| CoreError::Render("Failed to encode the route map PNG".into()))?;
+    Ok(Some(png.as_bytes().to_vec()))
 }

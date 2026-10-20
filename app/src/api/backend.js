@@ -680,6 +680,22 @@ export async function buildRouteGeometry(config, parsedActivity) {
 }
 
 /**
+ * Renders the raster map behind the route widget for the editor preview.
+ *
+ * @param {object} config - Config containing the route plot (as for `buildRouteGeometry`).
+ * @param {object} parsedActivity - Parsed activity payload.
+ * @returns {Promise<string|null>} PNG data URL in plot space, or null when the widget has no map.
+ */
+export async function buildRouteMap(config, parsedActivity) {
+  const safeConfig = safeJsonStringify(config)
+  const safeParsedActivity = safeJsonStringify(parsedActivity)
+  return apiCall('backend_build_route_map', {
+    configJson: safeConfig,
+    parsedActivityJson: safeParsedActivity,
+  })
+}
+
+/**
  * Extracts MP4 telemetry from a video file.
  *
  * @param {string} filePath - Absolute path to the video file.
