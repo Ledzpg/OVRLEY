@@ -14,12 +14,20 @@ if exist "%USERPROFILE%\.cargo\bin" set "PATH=%USERPROFILE%\.cargo\bin;%PATH%"
 
 rem tauri.conf.json asks for signed auto-update artifacts: sign them with the private key kept outside the repository.
 rem Keep a backup of this key; without it installed copies can no longer be updated.
+rem The key password is read from a file next to the key (never stored in the repository).
 set "TAURI_SIGNING_PRIVATE_KEY=%USERPROFILE%\.tauri\ovrley-luizleite.key"
+set "TAURI_SIGNING_PASSWORD_FILE=%USERPROFILE%\.tauri\ovrley-luizleite.password"
 if not exist "%TAURI_SIGNING_PRIVATE_KEY%" (
   echo Signing key not found: %TAURI_SIGNING_PRIVATE_KEY%
   pause
   exit /b 1
 )
+if not exist "%TAURI_SIGNING_PASSWORD_FILE%" (
+  echo Signing key password file not found: %TAURI_SIGNING_PASSWORD_FILE%
+  pause
+  exit /b 1
+)
+set /p TAURI_SIGNING_PRIVATE_KEY_PASSWORD=<"%TAURI_SIGNING_PASSWORD_FILE%"
 
 set "BUNDLE=nsis"
 if /i "%~1"=="msi" set "BUNDLE=msi"

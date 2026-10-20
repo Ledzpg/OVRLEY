@@ -488,9 +488,12 @@ O mapa total (`course` com mapa, seção 9) continua como estava. Todos os campo
   `https://github.com/ledzpg/OVRLEY/releases/latest/download/latest.json` (fork do usuário; antes: releases do
   desenvolvedor original). O código React (`useAppUpdate.js`) não mudou: só pergunta ao plugin se há versão nova.
 - **Assinatura**: par de chaves próprio. `pubkey` no `tauri.conf.json`; a chave **privada** fica em
-  `%USERPROFILE%\.tauri\ovrley-luizleite.key` (sem senha, fora do repositório). **Fazer backup**: sem ela as
-  cópias instaladas deixam de aceitar atualizações e precisam ser reinstaladas na mão.
-- **Identidade**: `identifier` = `io.github.ledzpg.ovrley` e `productName` = `com.ovrley.luizleite` (antes
+  `%USERPROFILE%\.tauri\ovrley-luizleite.key` e a senha dela em `ovrley-luizleite.password` (mesma pasta, fora do
+  repositório; o `build-installer.bat` lê a senha desse arquivo para `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`).
+  **Fazer backup dos dois**: sem eles as cópias instaladas deixam de aceitar atualizações e precisam ser
+  reinstaladas na mão. Uma chave gerada "sem senha" pelo `signer generate --ci` **não** assina ("Wrong password" ou
+  o build trava esperando senha), por isso a chave tem senha.
+- **Identidade**: `identifier` = `io.github.ledzpg.ovrley` e `productName` = `OVRLEY-fork_by_ledzpg` (o instalador sai como `OVRLEY-fork_by_ledzpg_<versão>_x64-setup.exe`; antes
   `com.ovrley.desktop` / `OVRLEY`). Configurações (`%APPDATA%\io.github.ledzpg.ovrley\ovrley-settings.json`) e cache
   de tiles passam a ser separados do oficial. Os **templates e projetos do usuário não mudam**: ficam em
   `Documentos\OVRLEY\templates` e `\projects` (caminho fixo no código), então a versão nova já os enxerga.
