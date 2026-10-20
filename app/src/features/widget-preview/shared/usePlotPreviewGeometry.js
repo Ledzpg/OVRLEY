@@ -39,7 +39,7 @@ function getPlotGeometrySignature(data, plotType) {
   )
 }
 
-function buildPlotGeometryConfig({ config, globalDefaults, activity, exportWindow, globalScale, plotData, widgetUpdateRate }) {
+export function buildPlotGeometryConfig({ config, globalDefaults, activity, exportWindow, globalScale, plotData, widgetUpdateRate }) {
   if (!config || !activity || !hasTauriRuntime()) return null
 
   const duration = activity.trim_end_seconds

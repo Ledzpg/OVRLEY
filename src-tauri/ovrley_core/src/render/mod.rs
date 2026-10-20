@@ -704,6 +704,11 @@ fn render_frame_to_surface(
         .iter()
         .filter_map(|cache| draw_route_widget(canvas, cache, frame_index, frame_profiler))
         .collect();
+    for cache in &prepared_assets.route_zoom_caches {
+        frame_profiler.measure("composite.route_zoom", || {
+            crate::render::widgets::route_zoom::draw_route_zoom_widget(canvas, cache, frame_index);
+        });
+    }
     let mut elevation_widgets = Vec::new();
     for cache in &prepared_assets.elevation_caches {
         if let Some(report) = draw_elevation_widget(

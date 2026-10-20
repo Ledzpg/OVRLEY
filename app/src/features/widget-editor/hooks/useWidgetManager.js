@@ -161,7 +161,7 @@ export function useWidgetManager({ widgetLiveEdits }) {
     } else if (isStandardMetricWidgetType(type) || ['gradient', 'time'].includes(type)) {
       category = 'values'
       data = createMetricValueDefaults(type, globalDefaults, { displayType, lapTimerMode })
-    } else if (['course', 'elevation'].includes(type)) {
+    } else if (['course', 'course_zoom', 'elevation'].includes(type)) {
       category = 'plots'
       data = createPlotDefaults(type, globalDefaults, {
         coursePoints: parsedActivity?.sample_course_points,
@@ -215,7 +215,7 @@ export function useWidgetManager({ widgetLiveEdits }) {
       return
     }
 
-    if (widget.type === 'course' || widget.type === 'elevation') {
+    if (widget.type === 'course' || widget.type === 'course_zoom' || widget.type === 'elevation') {
       commitReset(createPlotDefaults(widget.type, globalDefaults, { sceneFontSize: config.scene.font_size }))
       return
     }

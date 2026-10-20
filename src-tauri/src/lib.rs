@@ -112,6 +112,7 @@ pub fn run() {
             tauri_commands::backend_build_elevation_geometry,
             tauri_commands::backend_build_route_geometry,
             tauri_commands::backend_build_route_map,
+            tauri_commands::backend_build_route_zoom_frame,
             file_ops::default_template_save_path,
             file_ops::read_selected_file_bytes,
             file_ops::load_selected_raster,

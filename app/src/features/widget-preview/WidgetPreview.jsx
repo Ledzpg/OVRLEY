@@ -31,6 +31,7 @@ import { OverlayTextWidget } from './widgets/text/TextPreview'
 import { OverlayMetricWidget } from './widgets/metric/MetricPreview'
 import { OverlayLapTimerWidget } from './widgets/lap-timer/LapTimerPreview'
 import { OverlayRouteWidget } from './widgets/route/RoutePreview'
+import { OverlayRouteZoomWidget } from './widgets/route-zoom/RouteZoomPreview'
 import { OverlayElevationWidget } from './widgets/elevation/ElevationPreview'
 import { OverlayHeadingWidget } from './widgets/heading/HeadingPreview'
 import { OverlayLinearGaugeWidget } from './widgets/linear-gauge/LinearGaugePreview'
@@ -101,6 +102,19 @@ function WidgetPreview({
         globalOpacity={globalOpacity}
         globalScale={globalScale}
         sceneStyle={sceneStyle}
+        exportRange={exportRange}
+      />
+    )
+  }
+
+  if (widget.type === 'course_zoom') {
+    return (
+      <OverlayRouteZoomWidget
+        widget={widget}
+        activity={activity}
+        previewSecond={previewSecond}
+        globalOpacity={globalOpacity}
+        globalScale={globalScale}
         exportRange={exportRange}
       />
     )

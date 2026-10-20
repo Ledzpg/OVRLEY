@@ -90,6 +90,40 @@
           "color": "#ffffff"
         }
       },
+      "course_zoom": {
+        "type": "course_zoom",
+        "nameKey": "widgets.types.course_zoom.name",
+        "shortNameKey": "widgets.types.course_zoom.shortName",
+        "category": "general",
+        "icon": { "source": "custom", "assetFile": "widget-course-zoom.svg" },
+        "defaults": {
+          "value": "course_zoom",
+          "x": 100,
+          "y": 100,
+          "opacity": 1,
+          "width": 320,
+          "height": 320,
+          "zoom": 15,
+          "corner_radius": 12,
+          "rotate_with_heading": false,
+          "show_full_activity": true,
+          "map_tile_url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+          "map_attribution": "© OpenStreetMap contributors",
+          "map_opacity": 100,
+          "map_zoom_offset": 0,
+          "completed_line_width": 6,
+          "completed_line_color": "#00b4d8",
+          "completed_line_opacity": 100,
+          "remaining_line_width": 6,
+          "remaining_line_color": "#00b4d8",
+          "remaining_line_opacity": 45,
+          "marker_size": 34,
+          "marker_color": "#ffc400",
+          "marker_opacity": 100,
+          "marker_outline_color": "#ffffff",
+          "marker_outline_width": 2
+        }
+      },
       "elevation": {
         "type": "elevation",
         "nameKey": "widgets.types.elevation.name",

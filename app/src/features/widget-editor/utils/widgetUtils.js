@@ -18,6 +18,7 @@ import {
   LAP_TIMER_DEFAULTS,
   LAP_TIMER_MODES,
   COURSE_PLOT_DEFAULTS,
+  COURSE_ZOOM_PLOT_DEFAULTS,
   ELEVATION_PLOT_DEFAULTS,
 } from '@/lib/widget/standard-widgets'
 
@@ -244,6 +245,10 @@ export function createMetricValueDefaults(type, globalDefaults, selection = {}) 
  * @returns {object} Derived data structure for downstream use.
  */
 export function createPlotDefaults(type, globalDefaults, options = {}) {
+  if (type === 'course_zoom') {
+    return { ...COURSE_ZOOM_PLOT_DEFAULTS, opacity: globalDefaults?.opacity ?? 1 }
+  }
+
   if (type === 'course') {
     // Required because course widget aspect ratio determined by the course points, so we can't set them as static defaults like other plot types
     const courseDimensions = getCourseWidgetDimensions(options.coursePoints)

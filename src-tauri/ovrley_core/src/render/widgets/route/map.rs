@@ -107,8 +107,20 @@ fn choose_window(
 /// Downloads every tile of the window (a few at a time) and decodes it.
 fn load_tiles(map: &ValidatedRouteMap, window: &TileWindow) -> CoreResult<Vec<(u32, u32, Image)>> {
     let coordinates = (0..window.rows)
-        .flat_map(|row| (0..window.columns).map(move |column| (column, row)))
+        .flat_map(|row| (0..window.columns).map(move |column| (window.x0 + column, window.y0 + row)))
         .collect::<Vec<_>>();
+    Ok(load_tile_images(&map.tile_url, window.zoom, &coordinates)?
+        .into_iter()
+        .map(|((x, y), image)| (x - window.x0, y - window.y0, image))
+        .collect())
+}
+
+/// Downloads (a few at a time) and decodes the given tiles of one zoom level.
+pub(crate) fn load_tile_images(
+    template: &str,
+    zoom: u32,
+    coordinates: &[(u32, u32)],
+) -> CoreResult<Vec<((u32, u32), Image)>> {
     let chunk = coordinates.len().div_ceil(FETCH_WORKERS).max(1);
     let fetched = std::thread::scope(|scope| {
         coordinates
@@ -117,9 +129,9 @@ fn load_tiles(map: &ValidatedRouteMap, window: &TileWindow) -> CoreResult<Vec<(u
                 scope.spawn(move || {
                     group
                         .iter()
-                        .map(|&(column, row)| {
-                            let url = expand_tile_url(&map.tile_url, window.zoom, window.x0 + column, window.y0 + row);
-                            fetch_tile(&url).map(|bytes| (column, row, url, bytes))
+                        .map(|&(x, y)| {
+                            let url = expand_tile_url(template, zoom, x, y);
+                            fetch_tile(&url).map(|bytes| ((x, y), url, bytes))
                         })
                         .collect::<CoreResult<Vec<_>>>()
                 })
@@ -132,9 +144,9 @@ fn load_tiles(map: &ValidatedRouteMap, window: &TileWindow) -> CoreResult<Vec<(u
     fetched
         .into_iter()
         .flatten()
-        .map(|(column, row, url, bytes)| {
+        .map(|(coordinates, url, bytes)| {
             Image::from_encoded(Data::new_copy(&bytes))
-                .map(|image| (column, row, image))
+                .map(|image| (coordinates, image))
                 .ok_or_else(|| CoreError::Render(format!("map tile {url}: not a decodable image")))
         })
         .collect()
@@ -189,7 +201,7 @@ pub(crate) fn build_map_image(
     surface.canvas().draw_image_with_sampling_options(
         &mosaic,
         (0.0, 0.0),
-        SamplingOptions::new(FilterMode::Linear, MipmapMode::Linear),
+        map_sampling(),
         Some(&paint),
     );
     Ok(surface.image_snapshot())
@@ -211,7 +223,7 @@ pub(crate) fn build_map_layer(
     surface.canvas().translate((-min_x, -min_y));
     surface.canvas().rotate(plot.rotation, None);
     surface.canvas().draw_image(image, (0.0, 0.0), None);
-    draw_attribution(surface.canvas(), plot, attribution, output_scale as f32, font_dirs)?;
+    draw_attribution(surface.canvas(), plot.width, plot.height, attribution, output_scale as f32, font_dirs)?;
     surface.canvas().restore();
     Ok(StaticLayer {
         image: surface.image_snapshot(),
@@ -220,9 +232,30 @@ pub(crate) fn build_map_layer(
     })
 }
 
-fn draw_attribution(
+/// Sampling used when tiles are drawn scaled.
+pub(crate) fn map_sampling() -> SamplingOptions {
+    SamplingOptions::new(FilterMode::Linear, MipmapMode::Linear)
+}
+
+/// A transparent `width` x `height` image holding only the map credit in its bottom-right corner.
+pub(crate) fn build_map_attribution_layer(
+    width: u32,
+    height: u32,
+    attribution: &str,
+    output_scale: f32,
+    font_dirs: &[PathBuf],
+) -> CoreResult<Image> {
+    let mut surface = create_surface(width, height)?;
+    surface.canvas().clear(Color::TRANSPARENT);
+    draw_attribution(surface.canvas(), width, height, attribution, output_scale, font_dirs)?;
+    Ok(surface.image_snapshot())
+}
+
+/// Draws the map credit in the bottom-right corner of a `width` x `height` widget.
+pub(crate) fn draw_attribution(
     canvas: &skia_safe::Canvas,
-    plot: &NormalizedRoutePlot,
+    width: u32,
+    height: u32,
     attribution: &str,
     output_scale: f32,
     font_dirs: &[PathBuf],
@@ -231,10 +264,10 @@ fn draw_attribution(
     let padding = ATTRIBUTION_PADDING_PX * output_scale;
     let (text_width, _) = font.measure_str(attribution, None);
     let (_, metrics) = font.metrics();
-    let box_width = (text_width + padding * 2.0).min(plot.width as f32);
-    let box_height = (metrics.descent - metrics.ascent + padding * 2.0).min(plot.height as f32);
-    let left = plot.width as f32 - box_width;
-    let top = plot.height as f32 - box_height;
+    let box_width = (text_width + padding * 2.0).min(width as f32);
+    let box_height = (metrics.descent - metrics.ascent + padding * 2.0).min(height as f32);
+    let left = width as f32 - box_width;
+    let top = height as f32 - box_height;
 
     let mut background = Paint::default();
     background.set_anti_alias(true);

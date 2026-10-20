@@ -24,9 +24,10 @@ const PROVIDER_OPTIONS = [
  * @param {object} props - Component props.
  * @param {object} props.widget - Route widget being edited.
  * @param {Function} props.updateWidgetData - Merges a patch into the widget data.
+ * @param {boolean} [props.alwaysOn=false] - The map is part of the widget (close-up map): no on/off switch.
  * @returns {JSX.Element} Rendered component output.
  */
-export default function RouteMapBackgroundSection({ widget, updateWidgetData }) {
+export default function RouteMapBackgroundSection({ widget, updateWidgetData, alwaysOn = false }) {
   const { t } = useTranslation()
   const providerOptions = useMemo(() => translateOptions(PROVIDER_OPTIONS, t), [t])
   const data = widget.data
@@ -36,10 +37,12 @@ export default function RouteMapBackgroundSection({ widget, updateWidgetData }) 
   return (
     <div className="space-y-4">
       <SectionHeading icon={Globe} title={t('widget-editor.routeMapBackground', 'Map Background')} />
-      <div className="flex items-center justify-between gap-2 pl-1 pt-2 pb-2">
-        <Label className="p-0 text-[9px] text-muted-foreground uppercase font-bold">{t('widget-editor.routeMapEnabled', 'Show Map')}</Label>
-        <ToggleField checked={enabled} onCheckedChange={(checked) => apply({ enabled: checked })} />
-      </div>
+      {alwaysOn ? null : (
+        <div className="flex items-center justify-between gap-2 pl-1 pt-2 pb-2">
+          <Label className="p-0 text-[9px] text-muted-foreground uppercase font-bold">{t('widget-editor.routeMapEnabled', 'Show Map')}</Label>
+          <ToggleField checked={enabled} onCheckedChange={(checked) => apply({ enabled: checked })} />
+        </div>
+      )}
       {enabled ? (
         <>
           <SelectField

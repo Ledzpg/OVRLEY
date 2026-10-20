@@ -30,6 +30,9 @@ export const ELAPSED_TIME_ORIGINS = Object.freeze(standardWidgetsManifest.time.e
 /** Defaults for course plot widgets. */
 export const COURSE_PLOT_DEFAULTS = Object.freeze({ ...standardWidgetsManifest.plot.definitions.course.defaults })
 
+/** Defaults for close-up (follow) route map widgets. */
+export const COURSE_ZOOM_PLOT_DEFAULTS = Object.freeze({ ...standardWidgetsManifest.plot.definitions.course_zoom.defaults })
+
 /** Defaults for elevation plot widgets. */
 export const ELEVATION_PLOT_DEFAULTS = Object.freeze({ ...standardWidgetsManifest.plot.definitions.elevation.defaults })
 

@@ -5,6 +5,7 @@
 
 pub mod elevation_geometry;
 pub mod route_geometry;
+pub mod route_zoom;
 
 use crate::activity::finalize::FinalizeActivityResponse;
 use crate::activity::{build_dense_activity_report_validated, parse_activity_json};

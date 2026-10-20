@@ -16,6 +16,7 @@ import ElevationWidgetEditor from './ElevationWidgetEditor'
 import GradientWidgetEditor from './GradientWidgetEditor'
 import MetricWidgetEditor from './metricWidget/MetricWidgetEditor'
 import RouteMapWidgetEditor from './RouteMapWidgetEditor'
+import RouteZoomWidgetEditor from './RouteZoomWidgetEditor'
 import TextWidgetEditor from './TextWidgetEditor'
 import TimeWidgetEditor from './TimeWidgetEditor'
 import { useRef } from 'react'
@@ -37,6 +38,7 @@ const WIDGET_EDITOR_MAP = {
   time: TimeWidgetEditor,
   gradient: GradientWidgetEditor,
   course: RouteMapWidgetEditor,
+  course_zoom: RouteZoomWidgetEditor,
   elevation: ElevationWidgetEditor,
 }
 

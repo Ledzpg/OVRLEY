@@ -69,21 +69,28 @@ fn validate_route_map(plot: &CoursePlotConfig, index: usize) -> CoreResult<Optio
         }
         return Ok(None);
     };
+    validate_map_values(tile_url, plot.map_attribution.as_deref(), plot.map_opacity, plot.map_zoom_offset, &p).map(Some)
+}
+
+/// Validates the map fields shared by every plot that draws raster tiles.
+pub(crate) fn validate_map_values(
+    tile_url: &str,
+    attribution: Option<&str>,
+    opacity: Option<f32>,
+    zoom_offset: Option<i32>,
+    p: &dyn Fn(&str) -> String,
+) -> CoreResult<ValidatedRouteMap> {
     if !(tile_url.starts_with("https://") || tile_url.starts_with("file://")) || !crate::raster_tiles::is_tile_template(tile_url) {
         return Err(CoreError::Config(format!(
             "{}: must be an https:// or file:// URL containing {{z}}, {{x}} and {{y}}",
             p("map_tile_url")
         )));
     }
-    let attribution = plot
-        .map_attribution
-        .as_deref()
+    let attribution = attribution
         .map(str::trim)
         .filter(|text| !text.is_empty())
         .ok_or_else(|| CoreError::Config(format!("{}: required and must not be empty", p("map_attribution"))))?;
-    let zoom_offset = plot
-        .map_zoom_offset
-        .ok_or_else(|| CoreError::Config(format!("{}: required", p("map_zoom_offset"))))?;
+    let zoom_offset = zoom_offset.ok_or_else(|| CoreError::Config(format!("{}: required", p("map_zoom_offset"))))?;
     if !(-MAX_MAP_ZOOM_OFFSET..=MAX_MAP_ZOOM_OFFSET).contains(&zoom_offset) {
         return Err(CoreError::Config(format!(
             "{}: must be between {} and {MAX_MAP_ZOOM_OFFSET}",
@@ -91,12 +98,12 @@ fn validate_route_map(plot: &CoursePlotConfig, index: usize) -> CoreResult<Optio
             -MAX_MAP_ZOOM_OFFSET
         )));
     }
-    Ok(Some(ValidatedRouteMap {
+    Ok(ValidatedRouteMap {
         tile_url: tile_url.to_string(),
         attribution: attribution.to_string(),
-        opacity: require_opacity(plot.map_opacity, &p("map_opacity"))?,
+        opacity: require_opacity(opacity, &p("map_opacity"))?,
         zoom_offset,
-    }))
+    })
 }
 
 pub fn validate_route_plots(plots: &serde_json::Value) -> CoreResult<Vec<ValidatedRoutePlot>> {

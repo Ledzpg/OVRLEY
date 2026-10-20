@@ -791,6 +791,59 @@ pub struct CoursePlotConfig {
     pub extra: BTreeMap<String, Value>,
 }
 
+/// Close-up route map that follows the current position (`value: "course_zoom"`).
+///
+/// Every field is required: the frontend materializes the defaults.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CourseZoomPlotConfig {
+    pub x: f32,
+    pub y: f32,
+    pub width: u32,
+    pub height: u32,
+    #[serde(default)]
+    pub opacity: Option<f32>,
+    #[serde(default)]
+    pub zoom: Option<f32>,
+    #[serde(default)]
+    pub corner_radius: Option<f32>,
+    #[serde(default)]
+    pub rotate_with_heading: Option<bool>,
+    #[serde(default)]
+    pub show_full_activity: Option<bool>,
+    #[serde(default)]
+    pub map_tile_url: Option<String>,
+    #[serde(default)]
+    pub map_attribution: Option<String>,
+    #[serde(default)]
+    pub map_opacity: Option<f32>,
+    #[serde(default)]
+    pub map_zoom_offset: Option<i32>,
+    #[serde(default)]
+    pub completed_line_width: Option<f32>,
+    #[serde(default)]
+    pub completed_line_color: Option<String>,
+    #[serde(default)]
+    pub completed_line_opacity: Option<f32>,
+    #[serde(default)]
+    pub remaining_line_width: Option<f32>,
+    #[serde(default)]
+    pub remaining_line_color: Option<String>,
+    #[serde(default)]
+    pub remaining_line_opacity: Option<f32>,
+    #[serde(default)]
+    pub marker_size: Option<f32>,
+    #[serde(default)]
+    pub marker_color: Option<String>,
+    #[serde(default)]
+    pub marker_opacity: Option<f32>,
+    #[serde(default)]
+    pub marker_outline_color: Option<String>,
+    #[serde(default)]
+    pub marker_outline_width: Option<f32>,
+    #[serde(flatten)]
+    pub extra: BTreeMap<String, Value>,
+}
+
 /// Elevation profile plot configuration.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ElevationPlotConfig {

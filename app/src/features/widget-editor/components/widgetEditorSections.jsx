@@ -25,7 +25,8 @@ import { useTranslation } from 'react-i18next'
 export function PositionSection({ widget, setNumericField, updateWidgetData, headerAction = null }) {
   const { t } = useTranslation()
   const opacity = Math.round(widget.data.opacity * 100)
-  const hasShadow = widget.category === 'labels' || widget.category === 'values' || widget.category === 'plots'
+  // The close-up map has no shadowed element, so it takes no shadow settings.
+  const hasShadow = widget.type !== 'course_zoom' && (widget.category === 'labels' || widget.category === 'values' || widget.category === 'plots')
   const usesHorizontalAnchor =
     widget.category === 'values' && widget.data.display_type === 'text' && widget.type !== 'gradient' && widget.type !== 'lap_timer'
 

@@ -15,6 +15,7 @@ import {
   TEXT_LABEL_DEFAULTS,
   TEXT_DEFAULTS,
   COURSE_PLOT_DEFAULTS,
+  COURSE_ZOOM_PLOT_DEFAULTS,
   ELEVATION_PLOT_DEFAULTS,
   DISPLAY_TYPE_DEFINITIONS,
   BACKDROP_CIRCLE_DEFAULTS,
@@ -88,6 +89,9 @@ export const COURSE_MAP_KEYS = ['map_tile_url', 'map_attribution', 'map_opacity'
 
 /** Keys preserved when normalizing a course plot widget. */
 export const COURSE_PLOT_KEYS = [...Object.keys(COURSE_PLOT_DEFAULTS), 'id', ...WIDGET_SHADOW_KEYS, ...COURSE_MAP_KEYS]
+
+/** Keys preserved when normalizing a close-up route map widget. */
+export const COURSE_ZOOM_PLOT_KEYS = [...Object.keys(COURSE_ZOOM_PLOT_DEFAULTS), 'id']
 
 /** Keys preserved when normalizing an elevation plot widget. */
 export const ELEVATION_PLOT_KEYS = [...Object.keys(ELEVATION_PLOT_DEFAULTS), 'id', ...WIDGET_SHADOW_KEYS]

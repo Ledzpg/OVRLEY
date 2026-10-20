@@ -15,7 +15,7 @@
 //! O(layers) Skia draw calls with no heap allocation.
 
 use super::types::MarkerLayer;
-use skia_safe::{Canvas, Paint, Point};
+use skia_safe::{Canvas, Paint, Path, Point};
 
 const RING_STROKE_WIDTH: f32 = 1.5;
 
@@ -106,4 +106,45 @@ pub(crate) fn draw_marker(
             canvas.draw_circle(Point::new(x, y), layer.radius, &paint);
         }
     }
+}
+
+/// Draws an arrow marker (a kite with a notch at the back) pointing `heading` degrees clockwise
+/// from straight up, centered on `center`. `length` is the tip-to-tail size.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn draw_marker_path(
+    canvas: &Canvas,
+    center: Point,
+    heading: f32,
+    length: f32,
+    color: &str,
+    opacity: f32,
+    outline_color: &str,
+    outline_width: f32,
+) {
+    let tip = Point::new(0.0, -length * 0.55);
+    let outline = [
+        tip,
+        Point::new(length * 0.42, length * 0.45),
+        Point::new(0.0, length * 0.22),
+        Point::new(-length * 0.42, length * 0.45),
+    ];
+    let arrow = Path::polygon(&outline, true, None, None);
+
+    canvas.save();
+    canvas.translate(center);
+    canvas.rotate(heading, None);
+    let mut fill = Paint::default();
+    fill.set_anti_alias(true);
+    fill.set_color(crate::render::text::parse_color(color, opacity));
+    canvas.draw_path(&arrow, &fill);
+    if outline_width > 0.0 {
+        let mut stroke = Paint::default();
+        stroke.set_anti_alias(true);
+        stroke.set_style(skia_safe::paint::Style::Stroke);
+        stroke.set_stroke_width(outline_width);
+        stroke.set_stroke_join(skia_safe::PaintJoin::Round);
+        stroke.set_color(crate::render::text::parse_color(outline_color, opacity));
+        canvas.draw_path(&arrow, &stroke);
+    }
+    canvas.restore();
 }

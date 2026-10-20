@@ -26,6 +26,7 @@ import { ensureWidgetIdsInConfig } from '../widget/widget-config'
 import { initDisplayVariant } from '../widget/widget-resolver'
 import {
   COURSE_PLOT_KEYS,
+  COURSE_ZOOM_PLOT_KEYS,
   BACKDROP_SHARED_KEYS,
   BACKDROP_VARIANT_KEYS,
   DEFAULT_GLOBAL_DEFAULTS,
@@ -42,6 +43,7 @@ import {
   TYPE_DEFAULTS,
   TEXT_DEFAULTS,
   COURSE_PLOT_DEFAULTS,
+  COURSE_ZOOM_PLOT_DEFAULTS,
   ELEVATION_PLOT_DEFAULTS,
   GRADIENT_DEFAULTS,
   LAP_TIMER_DEFAULTS,
@@ -266,13 +268,12 @@ function normalizePointLabel(pointLabel, config, globalDefaults) {
 
 function normalizePlot(plot = {}, config, globalDefaults) {
   const type = plot.value
-  const plotBase = type === 'course' ? COURSE_PLOT_DEFAULTS : ELEVATION_PLOT_DEFAULTS
+  const plotBase = { course: COURSE_PLOT_DEFAULTS, course_zoom: COURSE_ZOOM_PLOT_DEFAULTS, elevation: ELEVATION_PLOT_DEFAULTS }[type]
   const withDefaults = { ...plotBase, ...plot }
   if (type === 'elevation') {
     withDefaults.point_label = normalizePointLabel(plot.point_label, config, globalDefaults)
   }
-  let keys = COURSE_PLOT_KEYS
-  if (type === 'elevation') keys = ELEVATION_PLOT_KEYS
+  const keys = { course: COURSE_PLOT_KEYS, course_zoom: COURSE_ZOOM_PLOT_KEYS, elevation: ELEVATION_PLOT_KEYS }[type]
   const pickedPlot = pickDefined(withDefaults, keys)
   return normalizeColorFields(pickedPlot)
 }

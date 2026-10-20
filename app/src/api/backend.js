@@ -680,6 +680,24 @@ export async function buildRouteGeometry(config, parsedActivity) {
 }
 
 /**
+ * Renders one frame of the close-up route map for the editor preview.
+ *
+ * @param {object} config - Config containing the close-up map plot (as for `buildRouteGeometry`).
+ * @param {object} parsedActivity - Parsed activity payload.
+ * @param {number} progress - Distance progress (0-1) of the frame, as the route preview marker uses.
+ * @returns {Promise<string>} PNG data URL the size of the widget.
+ */
+export async function buildRouteZoomFrame(config, parsedActivity, progress) {
+  const safeConfig = safeJsonStringify(config)
+  const safeParsedActivity = safeJsonStringify(parsedActivity)
+  return apiCall('backend_build_route_zoom_frame', {
+    configJson: safeConfig,
+    parsedActivityJson: safeParsedActivity,
+    progress,
+  })
+}
+
+/**
  * Renders the raster map behind the route widget for the editor preview.
  *
  * @param {object} config - Config containing the route plot (as for `buildRouteGeometry`).

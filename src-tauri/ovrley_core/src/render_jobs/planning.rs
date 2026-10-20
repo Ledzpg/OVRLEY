@@ -388,6 +388,7 @@ pub(crate) fn plan_batch_item(
         config.labels.clear();
         config.values.clear();
         config.course_plots.clear();
+        config.course_zoom_plots.clear();
         config.elevation_plots.clear();
     }
     let mode = match encoding.codec {

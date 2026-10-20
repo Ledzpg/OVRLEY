@@ -190,6 +190,7 @@ pub struct PreparedRenderAssets {
     pub(crate) labels: Vec<ValidatedLabel>,
     pub(crate) values: Vec<PreparedValue>,
     pub(crate) route_caches: Vec<RouteWidgetCache>,
+    pub(crate) route_zoom_caches: Vec<super::route_zoom::RouteZoomCache>,
     pub(crate) elevation_caches: Vec<ElevationWidgetCache>,
     pub(crate) base_rgba: Option<Vec<u8>>,
 }

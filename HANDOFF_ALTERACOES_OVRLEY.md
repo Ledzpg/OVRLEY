@@ -442,6 +442,46 @@ no menu (o mapa já é o widget "Map" com as opções de mapa). Testes: `WidgetG
 - Slider "Ajuste vertical" do rótulo do mostrador de arco (`ArcDisplaySection.jsx`): limite de ±50 para ±150 px
   (o cluster usa 96).
 
+## 12. Mapa aproximado (segue a posição atual)
+
+Widget novo **"Mapa aproximado"** (`value: "course_zoom"`, botão "Map+" no drawer): tiles raster centrados na posição
+atual num zoom fixo, a rota por cima (trecho percorrido e restante em estilos próprios) e uma **seta** no centro. O
+mapa pode ficar com o norte para cima (a seta aponta a direção) ou **girar** para a direção ir sempre para cima.
+O mapa total (`course` com mapa, seção 9) continua como estava. Todos os campos são obrigatórios; os padrões vêm de
+`assets/standard-widgets.json` (`plot.definitions.course_zoom`) e um teste Rust garante que passam na validação.
+
+| Campo | Significado |
+|---|---|
+| `zoom` | 8-20, passo livre: quanto chão aparece (maior = mais perto). Em px de saída: `256 * 2^zoom * escala / 360` por grau |
+| `map_zoom_offset` | -2..2, **detalhe**: baixa tiles de nível `zoom + offset` e os desenha reduzidos (mesma área, mais detalhe/rótulos menores) |
+| `map_tile_url`, `map_attribution`, `map_opacity` | iguais ao mapa total (https/file, crédito obrigatório) |
+| `rotate_with_heading` | gira o mapa com a direção; senão a seta gira |
+| `corner_radius` | cantos arredondados do recorte |
+| `completed_line_*`, `remaining_line_*` | largura, cor, opacidade das duas partes da rota |
+| `marker_size/color/opacity`, `marker_outline_color/width` | a seta (`draw_marker_path`) |
+| `show_full_activity` | como no mapa total (trecho exportado ou atividade inteira) |
+
+- **Rust** (`render/widgets/route_zoom/`): `geometry.rs` (projeção para pixels de tile, `view_scale`, posição por
+  progresso, direção pela tangente da rota numa janela de 40 px, suavizada no tempo, 0,35 s), `tiles.rs` (`TileStore`,
+  planejamento dos tiles de todos os quadros numa grade de meio tile), `prepare.rs` (cache e estado por quadro),
+  `draw.rs` (por quadro: tiles visíveis, trechos da rota perto da vista, seta, crédito). Coordenadas são desenhadas
+  **relativas ao centro** em f64 (pixels de tile absolutos passam de 100 milhões, mais do que f32 resolve). Config em
+  `normalize/route_zoom.rs`, `ValidatedRenderConfig.course_zoom_plots`, `PreparedRenderAssets.route_zoom_caches`.
+- **Download**: no render do vídeo todos os tiles dos quadros são baixados antes (cache em disco do shell Tauri);
+  **limite de 500 tiles** por mapa: acima disso o render falha com a mensagem "lower the map zoom or detail, or export
+  a shorter range" (política de uso do OSM, memória). Um trajeto longo em zoom alto estoura o limite.
+- **Prévia do editor**: comando `backend_build_route_zoom_frame` (config, atividade, progresso 0-1) devolve o quadro
+  inteiro desenhado pelo Rust como PNG, só com os tiles daquele quadro; `useRouteZoomPreview.js` escolhe o progresso
+  como o marcador do mapa total e espera 150 ms depois de cada mudança. Só funciona no app Tauri.
+- **Frontend**: `RouteZoomWidgetEditor.jsx` + `routeZoomUpdates.js` (zoom, cantos, linhas, seta); o bloco de mapa
+  reusa `RouteMapBackgroundSection` (`alwaysOn`) e `buildMapUpdate`. Sem controles de sombra nem rotação do widget.
+  `COURSE_ZOOM_PLOT_KEYS` em `template-constants.js`, ícone `assets/widget-icons/widget-course-zoom.svg`.
+- Conferido **visualmente** com tiles reais do OSM e o `ida_ovrley_temps.csv` (norte para cima e girando).
+- Testes: `tests/route_zoom_tests.rs` (13: posição, zoom/detalhe, seta, mapa girando, duas partes da rota, crédito,
+  validação estrita, caminho do vídeo, limite de tiles, falha de tile, padrões do editor), unitários de `geometry` e
+  `tiles`, e `routeZoom.test.jsx` (11). A seta não existia como marcador do mapa total (`single/ring/halo`): continua
+  só neste widget.
+
 ## Notas / achados fora de escopo
 
 - **Testes de frontend**: com o `igc-parser` compilado (ver "Ambiente"), a
@@ -464,6 +504,10 @@ no menu (o mapa já é o widget "Map" com as opções de mapa). Testes: `WidgetG
 ---
 
 ## Log de sessões
+
+### 2026-10-20 (continuação 7) — Claude Code (mapa aproximado)
+
+- Widget "Mapa aproximado" que segue a posição atual, com zoom, detalhe e seta. Seção 12.
 
 ### 2026-10-20 (continuação 6) — Claude Code (fontes, ajuste vertical, degradê da agulha)
 

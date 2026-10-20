@@ -31,6 +31,8 @@ pub mod metric_presentation;
 mod polyline;
 /// Route/course widget implementation.
 pub(crate) mod route;
+/// Close-up route map that follows the current position.
+pub(crate) mod route_zoom;
 /// Skia path and coordinate transform helpers.
 mod transform;
 /// Shared widget cache and report types.
@@ -113,6 +115,7 @@ pub fn prepare_render_assets(
         labels,
         values,
         route_caches: Vec::new(),
+        route_zoom_caches: Vec::new(),
         elevation_caches: Vec::new(),
         base_rgba: None,
     };
@@ -126,6 +129,19 @@ pub fn prepare_render_assets(
             &paths.font_dirs,
             prepare_profiler,
         )?);
+    }
+
+    for validated in &config.course_zoom_plots {
+        assets
+            .route_zoom_caches
+            .push(route_zoom::prepare_route_zoom_cache(
+                activity,
+                dense_activity,
+                validated,
+                &assets.scene,
+                &paths.font_dirs,
+                prepare_profiler,
+            )?);
     }
 
     for validated in &config.elevation_plots {

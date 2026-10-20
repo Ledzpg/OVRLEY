@@ -22,6 +22,7 @@ mod linear_gauge;
 mod raster;
 pub mod raw;
 mod route;
+mod route_zoom;
 mod scene;
 mod time;
 mod value;
@@ -71,6 +72,7 @@ pub use linear_gauge::{
 };
 pub use raster::validate_template_rasters;
 pub use raster::{RasterGeometry, RasterSource, ValidatedRaster};
+pub use route_zoom::{validate_route_zoom_plot, validate_route_zoom_plots, ValidatedRouteZoomPlot, MAX_ZOOM_VIEW, MIN_ZOOM_VIEW};
 pub use route::{validate_route_plot, validate_route_plots, ValidatedRouteMap, ValidatedRoutePlot, MAX_MAP_ZOOM_OFFSET};
 pub use scene::{
     validate_ffmpeg_config, validate_scene_config, ShadowOverride, ValidatedFfmpegConfig,
@@ -149,6 +151,7 @@ pub struct ValidatedRenderConfig<S = ValidatedSceneConfig> {
     pub labels: Vec<ValidatedLabel>,
     pub values: Vec<PreparedValue>,
     pub course_plots: Vec<ValidatedRoutePlot>,
+    pub course_zoom_plots: Vec<ValidatedRouteZoomPlot>,
     pub elevation_plots: Vec<ValidatedElevationPlot>,
 }
 
@@ -292,6 +295,7 @@ fn validate_render_contents(
         .collect::<CoreResult<Vec<_>>>()?;
 
     let course_plots = validate_route_plots(&raw.plots)?;
+    let course_zoom_plots = validate_route_zoom_plots(&raw.plots)?;
     let elevation_plots = validate_elevation_plots(&raw.plots, &scene)?;
 
     Ok(ValidatedRenderConfig {
@@ -301,6 +305,7 @@ fn validate_render_contents(
         labels,
         values,
         course_plots,
+        course_zoom_plots,
         elevation_plots,
     })
 }
@@ -314,6 +319,7 @@ impl<S> ValidatedRenderConfig<S> {
             labels: self.labels,
             values: self.values,
             course_plots: self.course_plots,
+            course_zoom_plots: self.course_zoom_plots,
             elevation_plots: self.elevation_plots,
         }
     }
@@ -435,7 +441,7 @@ impl ValidatedRenderConfig {
             }
         }
 
-        if !self.course_plots.is_empty() {
+        if !self.course_plots.is_empty() || !self.course_zoom_plots.is_empty() {
             requirements.distance_progress = true;
         }
 
