@@ -31,7 +31,7 @@ impl HttpRasterTileSource {
             .map_err(|error| format!("raster tile cache {}: {error}", cache_root.display()))?;
         // Public tile servers require an identifying User-Agent.
         let user_agent = format!(
-            "OVRLEY/{} (video overlay renderer; +https://github.com/spirokai/OVRLEY)",
+            "OVRLEY-luizleite/{} (video overlay renderer; +https://www.luizleite.eng.br/garagem/ovrley)",
             env!("CARGO_PKG_VERSION")
         );
         let client = Client::builder()

@@ -354,7 +354,7 @@ Contrato estrito: se `map_tile_url` existe, os outros três são obrigatórios; 
   `commands/route_geometry.rs::build_route_map_png_command` (PNG para o preview, sem o crédito). **Falha tile =
   falha o render** (mensagem com a URL), sem mapa parcial.
 - **Tauri (`src-tauri`)**: `raster_tile_source.rs` (`HttpRasterTileSource`: reqwest com User-Agent
-  `OVRLEY/<versão>`, cache em disco em `<app cache>/raster-tiles`, validade de 14 dias, usa o tile vencido se não
+  `OVRLEY-luizleite/<versão>`, cache em disco em `<app cache>/raster-tiles`, validade de 14 dias, usa o tile vencido se não
   conseguir atualizar, recusa resposta que não seja imagem), instalado em `lib.rs` no setup; comando
   `backend_build_route_map` devolve um data URL PNG (`null` se não há mapa).
 - **Frontend**: `COURSE_MAP_KEYS` em `template-constants.js`; `usePlotPreviewGeometry.js` busca a imagem
@@ -481,6 +481,34 @@ O mapa total (`course` com mapa, seção 9) continua como estava. Todos os campo
   validação estrita, caminho do vídeo, limite de tiles, falha de tile, padrões do editor), unitários de `geometry` e
   `tiles`, e `routeZoom.test.jsx` (11). A seta não existia como marcador do mapa total (`single/ring/halo`): continua
   só neste widget.
+
+## 13. Atualização própria (independente do OVRLEY oficial)
+
+- **Endereço**: `src-tauri/tauri.conf.json` → `plugins.updater.endpoints` aponta para
+  `https://github.com/ledzpg/OVRLEY/releases/latest/download/latest.json` (fork do usuário; antes: releases do
+  desenvolvedor original). O código React (`useAppUpdate.js`) não mudou: só pergunta ao plugin se há versão nova.
+- **Assinatura**: par de chaves próprio. `pubkey` no `tauri.conf.json`; a chave **privada** fica em
+  `%USERPROFILE%\.tauri\ovrley-luizleite.key` (sem senha, fora do repositório). **Fazer backup**: sem ela as
+  cópias instaladas deixam de aceitar atualizações e precisam ser reinstaladas na mão.
+- **Identidade**: `identifier` = `io.github.ledzpg.ovrley` e `productName` = `com.ovrley.luizleite` (antes
+  `com.ovrley.desktop` / `OVRLEY`). Configurações (`%APPDATA%\io.github.ledzpg.ovrley\ovrley-settings.json`) e cache
+  de tiles passam a ser separados do oficial. Os **templates e projetos do usuário não mudam**: ficam em
+  `Documentos\OVRLEY\templates` e `\projects` (caminho fixo no código), então a versão nova já os enxerga.
+- **User-Agent dos tiles**: `OVRLEY-luizleite/<versão> (+https://www.luizleite.eng.br/garagem/ovrley)` nos dois
+  clientes (`raster_tile_source.rs` e `map_tile_service.rs`), para que servidores públicos de tiles identifiquem
+  este app, e não o oficial.
+- **Publicar uma versão**: `build-installer.bat` (assina com a chave acima) e, no fim, roda
+  `scripts/prepare-update-site.mjs`, que cria `update-site/` com `latest.json` + instalador
+  (`<productName>_<versão>_x64-setup.exe`) e mostra o comando
+  `gh release create v<versão> update-site/latest.json "update-site/<instalador>" --title v<versão>`. A tag é
+  `v<versão>`. Notas da versão: variável `OVRLEY_NOTES` antes de rodar o `.bat`. Só Windows x64 é publicado. O fork
+  precisa ser **público** e o `gh` autenticado (`gh auth login`).
+- **Versão**: a partir daqui +0.0.1 a cada conjunto de commits, com
+  `node scripts/set-release-version.mjs X.Y.Z` (atualiza os 5 arquivos). Este conjunto: 0.1.1.
+- **Primeira instalação**: manual (a que hoje está instalada ainda usa a chave e o endereço do oficial). Para testar
+  o fluxo: instalar a 0.1.1, publicar a 0.1.2 e abrir o app.
+- Licença do projeto: GPL-3.0-or-later (`LICENSE.md`); o fork público cumpre a obrigação de oferecer o código.
+- Não testado de ponta a ponta (nenhum build/instalador foi gerado nem publicado).
 
 ## Notas / achados fora de escopo
 

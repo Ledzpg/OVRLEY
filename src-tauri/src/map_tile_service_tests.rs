@@ -110,7 +110,7 @@ fn fetches_persists_and_reuses_a_vector_tile() {
     assert!(requests[0].starts_with("GET /2/1/3.pbf\n"));
     let request_headers = requests[0].to_ascii_lowercase();
     assert!(request_headers.contains(&format!(
-        "user-agent: ovrley/{} (+https://www.ovrley.cc)",
+        "user-agent: ovrley-luizleite/{} (+https://www.luizleite.eng.br/garagem/ovrley)",
         env!("CARGO_PKG_VERSION")
     )));
     assert!(!request_headers.contains("cache-control:"));

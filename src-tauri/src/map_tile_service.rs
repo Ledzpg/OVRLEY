@@ -201,7 +201,7 @@ impl MapTileService {
         }
 
         let user_agent = format!(
-            "OVRLEY/{} (+https://www.ovrley.cc)",
+            "OVRLEY-luizleite/{} (+https://www.luizleite.eng.br/garagem/ovrley)",
             env!("CARGO_PKG_VERSION")
         );
         let client = Client::builder()

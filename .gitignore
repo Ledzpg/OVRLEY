@@ -65,3 +65,6 @@ tmp/
 THIRD_PARTY_NOTICES.txt
 INSTALL-macos.txt
 INSTALL-linux.txt
+
+# Local update site output (installer + latest.json to upload)
+update-site/
