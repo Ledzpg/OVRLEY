@@ -38,7 +38,7 @@ function arcCapAngle(radius, cornerRadius) {
   return cornerRadius > 0 ? (Math.atan2(cornerRadius, radius) * 180) / Math.PI : 0
 }
 
-function wedgePath(centerX, centerY, reach, from, to) {
+export function wedgePath(centerX, centerY, reach, from, to) {
   const steps = Math.max(1, Math.ceil(Math.abs(to - from) / ARC_ZONE_STEP_DEGREES))
   const commands = [`M ${centerX} ${centerY}`]
   for (let step = 0; step <= steps; step += 1) {
@@ -50,37 +50,46 @@ function wedgePath(centerX, centerY, reach, from, to) {
 }
 
 /**
- * Splits an arc track at the redline into clip paths for the normal and redline zones.
- * The boundary uses the same cap-aware span as the arc fill reveal.
- * @param {object} geometry - Track geometry plus cap radii and the redline `fraction`.
- * @returns {{ normal: string, redline: string }} SVG path data for each zone.
+ * Returns the cap-aware span of an arc track: the screen-space angles where the rounded track starts and ends
+ * (end caps included), its direction and whether it is a full circle. Mirrors the Rust fill reveal.
  */
-export function getArcRedlineZonePaths({
-  centerX,
-  centerY,
-  radius,
-  startAngle,
-  sweepAngle,
-  trackThickness,
-  startCornerRadius,
-  endCornerRadius,
-  fraction,
-}) {
+function getArcCapAwareSpan({ radius, startAngle, sweepAngle, trackThickness, startCornerRadius, endCornerRadius }) {
   const magnitude = Math.min(Math.abs(sweepAngle), ARC_MAX_ANGLE_DEGREES)
   const direction = sweepAngle < 0 ? -1 : 1
   const fullCircle = magnitude >= ARC_MAX_ANGLE_DEGREES - 1e-3
   const halfThickness = trackThickness * 0.5
   const startCap = fullCircle ? 0 : arcCapAngle(radius, Math.min(Math.max(startCornerRadius, 0), halfThickness))
   const endCap = fullCircle ? 0 : arcCapAngle(radius, Math.min(Math.max(endCornerRadius, 0), halfThickness))
-  const totalSpan = magnitude + startCap + endCap
   const first = startAngle - direction * startCap
-  const boundary = first + direction * totalSpan * Math.min(1, Math.max(0, fraction))
-  const last = first + direction * totalSpan
+  const last = first + direction * (magnitude + startCap + endCap)
+  return { first, last, direction, fullCircle }
+}
+
+/**
+ * Screen-space angle where a fill of `fraction` ends, so ticks and the redline line up with the filled track.
+ * @param {object} geometry - Track geometry plus cap radii.
+ * @param {number} fraction - Position along the track (0-1).
+ * @returns {number} Angle in degrees.
+ */
+export function getArcFractionAngle(geometry, fraction) {
+  const { first, last } = getArcCapAwareSpan(geometry)
+  return first + (last - first) * Math.min(1, Math.max(0, fraction))
+}
+
+/**
+ * Splits an arc track at the redline into clip paths for the normal and redline zones.
+ * The boundary uses the same cap-aware span as the arc fill reveal.
+ * @param {object} geometry - Track geometry plus cap radii and the redline `fraction`.
+ * @returns {{ normal: string, redline: string }} SVG path data for each zone.
+ */
+export function getArcRedlineZonePaths({ fraction, ...geometry }) {
+  const { first, last, direction, fullCircle } = getArcCapAwareSpan(geometry)
+  const boundary = getArcFractionAngle(geometry, fraction)
   const margin = fullCircle ? 0 : 10
-  const reach = radius * 2 + trackThickness * 2 + 100
+  const reach = geometry.radius * 2 + geometry.trackThickness * 2 + 100
   return {
-    normal: wedgePath(centerX, centerY, reach, first - direction * margin, boundary),
-    redline: wedgePath(centerX, centerY, reach, boundary, last + direction * margin),
+    normal: wedgePath(geometry.centerX, geometry.centerY, reach, first - direction * margin, boundary),
+    redline: wedgePath(geometry.centerX, geometry.centerY, reach, boundary, last + direction * margin),
   }
 }
 

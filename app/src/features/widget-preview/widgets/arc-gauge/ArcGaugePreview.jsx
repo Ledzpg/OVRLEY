@@ -3,6 +3,7 @@
 import { getArcFilledTrackPath, getArcRoundedSegmentPath } from './trackPath'
 import { useArcGaugePreviewPresentation } from './useArcGaugePreview'
 import { PreviewSvgShadowBlurFilter, PreviewSvgText } from '../../shared/PreviewSvgComponents'
+import { getStopColorAt } from '../../shared/gaugeZones'
 
 /**
  * Renders a filled arc track path.
@@ -70,13 +71,81 @@ function buildArcSegmentGeometry(trackGeometry, segments) {
   return geometries
 }
 
-function ArcGaugeTrack({ data, trackGeometry, barLayout, filledBarCount, fillReveal, redline, opacity, shadow, maskPadding, widgetId }) {
+/** Bars of a segmented arc fill, each in its band color, the redline color past the redline, or red on overrun. */
+function ArcBarFill({ geometries, data, redline, overrun, fillStops, filledBarCount, filledOpacity, testIdPrefix }) {
+  const bars = []
+  for (let index = 0; index < filledBarCount; index += 1) {
+    const inRedline = overrun != null || (redline != null && index >= redline.barStart)
+    let color = data.track_filled_color
+    if (overrun) color = overrun.color
+    else if (inRedline) color = redline.color
+    else if (fillStops) color = getStopColorAt(fillStops, (index + 0.5) / geometries.length)
+    bars.push(
+      <ArcSegmentPaths
+        key={index}
+        geometries={[geometries[index]]}
+        cornerRadius={data.track_corner_radius}
+        fill={color}
+        fillOpacity={filledOpacity}
+        dataTestId={`${testIdPrefix}-${inRedline ? 'bar-redline-filled' : 'bar-filled'}`}
+      />,
+    )
+  }
+  return bars
+}
+
+/** Continuous arc fill: band gradient, redline split, or the full redline fill on overrun. */
+function ArcContinuousFill({ data, trackGeometry, redline, overrun, zoneWedges, ids, filledOpacity, testIdPrefix }) {
+  const solid = (color, testId) => (
+    <ArcTrackPath {...trackGeometry} cornerRadius={data.track_corner_radius} fill={color} fillOpacity={filledOpacity} dataTestId={testId} />
+  )
+  const normal = zoneWedges ? (
+    <g clipPath={`url(#${ids.trackShapeId})`} data-testid={`${testIdPrefix}-zone-fill`}>
+      {zoneWedges.map((wedge, index) => (
+        <path key={index} d={wedge.d} fill={wedge.color} fillOpacity={filledOpacity} />
+      ))}
+    </g>
+  ) : (
+    solid(data.track_filled_color, `${testIdPrefix}-filled-track`)
+  )
+  return (
+    <g clipPath={`url(#${ids.fillClipId})`}>
+      {overrun ? (
+        solid(overrun.color, `${testIdPrefix}-overrun-fill`)
+      ) : redline?.fillPastRedline ? (
+        <>
+          <g clipPath={`url(#${ids.normalZoneId})`}>{normal}</g>
+          <g clipPath={`url(#${ids.redlineZoneId})`}>{solid(redline.color, `${testIdPrefix}-redline-filled-track`)}</g>
+        </>
+      ) : (
+        normal
+      )}
+    </g>
+  )
+}
+
+function ArcGaugeTrack({
+  data,
+  trackGeometry,
+  barLayout,
+  filledBarCount,
+  fillReveal,
+  redline,
+  fillStops,
+  zoneWedges,
+  overrun,
+  opacity,
+  shadow,
+  maskPadding,
+  widgetId,
+}) {
   const segmented = barLayout != null
   const geometries = segmented ? buildArcSegmentGeometry(trackGeometry, barLayout.segments) : [trackGeometry]
   const maskId = `${data.display_type}-gauge-${widgetId}-border-mask`
   const fillClipId = `${data.display_type}-gauge-${widgetId}-fill-clip`
   const normalZoneId = `${data.display_type}-gauge-${widgetId}-zone-normal`
   const redlineZoneId = `${data.display_type}-gauge-${widgetId}-zone-redline`
+  const trackShapeId = `${data.display_type}-gauge-${widgetId}-track-shape`
   const testIdPrefix = `${data.display_type}-gauge`
   const emptyOpacity = data.track_empty_opacity * opacity
   const filledOpacity = data.track_filled_opacity * opacity
@@ -85,6 +154,15 @@ function ArcGaugeTrack({ data, trackGeometry, barLayout, filledBarCount, fillRev
     <>
       {data.track_border_thickness > 0 || fillReveal || redline ? (
         <defs>
+          {zoneWedges ? (
+            <clipPath id={trackShapeId}>
+              <path
+                d={getArcRoundedSegmentPath({ ...trackGeometry, cornerRadius: data.track_corner_radius })}
+                fillRule="evenodd"
+                clipRule="evenodd"
+              />
+            </clipPath>
+          ) : null}
           {redline && !segmented ? (
             <>
               <clipPath id={normalZoneId}>
@@ -175,57 +253,27 @@ function ArcGaugeTrack({ data, trackGeometry, barLayout, filledBarCount, fillRev
         />
       )}
       {segmented ? (
-        <>
-          <ArcSegmentPaths
-            geometries={geometries.slice(0, redline ? Math.min(filledBarCount, redline.barStart) : filledBarCount)}
-            cornerRadius={data.track_corner_radius}
-            fill={data.track_filled_color}
-            fillOpacity={filledOpacity}
-            dataTestId={`${testIdPrefix}-bar-filled`}
-          />
-          {redline && filledBarCount > redline.barStart ? (
-            <ArcSegmentPaths
-              geometries={geometries.slice(redline.barStart, filledBarCount)}
-              cornerRadius={data.track_corner_radius}
-              fill={redline.color}
-              fillOpacity={filledOpacity}
-              dataTestId={`${testIdPrefix}-bar-redline-filled`}
-            />
-          ) : null}
-        </>
+        <ArcBarFill
+          geometries={geometries}
+          data={data}
+          redline={redline}
+          overrun={overrun}
+          fillStops={fillStops}
+          filledBarCount={filledBarCount}
+          filledOpacity={filledOpacity}
+          testIdPrefix={testIdPrefix}
+        />
       ) : fillReveal ? (
-        <g clipPath={`url(#${fillClipId})`}>
-          {redline?.fillPastRedline ? (
-            <>
-              <g clipPath={`url(#${normalZoneId})`}>
-                <ArcTrackPath
-                  {...trackGeometry}
-                  cornerRadius={data.track_corner_radius}
-                  fill={data.track_filled_color}
-                  fillOpacity={filledOpacity}
-                  dataTestId={`${testIdPrefix}-filled-track`}
-                />
-              </g>
-              <g clipPath={`url(#${redlineZoneId})`}>
-                <ArcTrackPath
-                  {...trackGeometry}
-                  cornerRadius={data.track_corner_radius}
-                  fill={redline.color}
-                  fillOpacity={filledOpacity}
-                  dataTestId={`${testIdPrefix}-redline-filled-track`}
-                />
-              </g>
-            </>
-          ) : (
-            <ArcTrackPath
-              {...trackGeometry}
-              cornerRadius={data.track_corner_radius}
-              fill={data.track_filled_color}
-              fillOpacity={filledOpacity}
-              dataTestId={`${testIdPrefix}-filled-track`}
-            />
-          )}
-        </g>
+        <ArcContinuousFill
+          data={data}
+          trackGeometry={trackGeometry}
+          redline={redline}
+          overrun={overrun}
+          zoneWedges={zoneWedges}
+          ids={{ fillClipId, normalZoneId, redlineZoneId, trackShapeId }}
+          filledOpacity={filledOpacity}
+          testIdPrefix={testIdPrefix}
+        />
       ) : null}
       {data.track_border_thickness > 0 ? (
         <g mask={`url(#${maskId})`}>
@@ -258,6 +306,10 @@ export function OverlayArcGaugeWidget({ widget, activity, previewSecond, globalO
     barLayout,
     filledBarCount,
     redline,
+    fillStops,
+    zoneWedges,
+    overrun,
+    ticks,
     minLabel,
     maxLabel,
     labels,
@@ -283,11 +335,43 @@ export function OverlayArcGaugeWidget({ widget, activity, previewSecond, globalO
         filledBarCount={filledBarCount}
         fillReveal={fillReveal}
         redline={redline}
+        fillStops={fillStops}
+        zoneWedges={zoneWedges}
+        overrun={overrun}
         opacity={opacity}
         shadow={trackShadow}
         maskPadding={maskPadding}
         widgetId={widget.id}
       />
+      {ticks ? (
+        <g data-testid={`${widget.data.display_type}-gauge-ticks`}>
+          {ticks.lines.map((line, index) => (
+            <line
+              key={index}
+              x1={line.x1}
+              y1={line.y1}
+              x2={line.x2}
+              y2={line.y2}
+              stroke={line.color}
+              strokeWidth={widget.data.tick_thickness}
+              strokeOpacity={opacity}
+              data-testid={line.major ? 'arc-gauge-tick-major' : 'arc-gauge-tick-minor'}
+            />
+          ))}
+          {ticks.labels.map((label, index) => (
+            <PreviewSvgText
+              key={index}
+              text={label.text}
+              x={label.x}
+              baseline={label.baseline}
+              color={label.color}
+              fontFamily={labelFontFamily}
+              fontSize={widget.data.tick_label_font_size}
+              opacity={opacity}
+            />
+          ))}
+        </g>
+      ) : null}
       {widget.data.show_min_max_labels ? (
         <>
           <PreviewSvgText

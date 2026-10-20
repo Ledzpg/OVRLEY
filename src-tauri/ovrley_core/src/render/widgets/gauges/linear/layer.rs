@@ -4,7 +4,7 @@
 //! cached image. Per-frame work is limited to compositing that image and
 //! painting the current continuous fill or set of complete bars.
 
-use super::super::metric::{bar_fill_count, bar_is_redline};
+use super::super::metric::{bar_fill_count, bar_is_redline, stop_color_at};
 use super::super::track_path::{translated_track_cap_path, translated_track_cap_reveal};
 use super::geometry::{bordered_bar_fill_rect, redline_zone_rects, segment_rect, track_cap_frame};
 use super::labels::label_layout;
@@ -198,7 +198,12 @@ fn draw_static_track(
 }
 
 /// Draws only complete bars whose discrete buckets are active at `fill01`.
-pub(super) fn draw_segmented_fill(canvas: &Canvas, cache: &LinearGaugeCache, fill01: f32) {
+pub(super) fn draw_segmented_fill(
+    canvas: &Canvas,
+    cache: &LinearGaugeCache,
+    fill01: f32,
+    overrun: bool,
+) {
     let bar_geometry = cache
         .bar_geometry
         .expect("bars fill style must carry resolved bar geometry");
@@ -210,13 +215,22 @@ pub(super) fn draw_segmented_fill(canvas: &Canvas, cache: &LinearGaugeCache, fil
         .map(|redline| fill_paint_with_color(cache, &redline.color));
 
     for index in 0..filled_count as u32 {
+        let zone_paint;
         let paint = match (&cache.redline, &redline_paint) {
+            (Some(_), Some(redline_paint)) if overrun => redline_paint,
             (Some(redline), Some(redline_paint))
                 if bar_is_redline(index, bar_geometry.count, redline.fraction) =>
             {
                 redline_paint
             }
-            _ => &paint,
+            _ => match &cache.fill_stops {
+                Some(stops) => {
+                    let color = stop_color_at(stops, (index as f32 + 0.5) / bar_geometry.count as f32);
+                    zone_paint = solid_paint(color);
+                    &zone_paint
+                }
+                None => &paint,
+            },
         };
         let outer = segment_rect(
             index,
@@ -243,13 +257,22 @@ pub(super) fn draw_segmented_fill(canvas: &Canvas, cache: &LinearGaugeCache, fil
 
 /// Reveals the continuous source track, painting the part past the redline in
 /// the redline color.
-pub(super) fn draw_continuous_fill(canvas: &Canvas, cache: &LinearGaugeCache, fill01: f32) {
+pub(super) fn draw_continuous_fill(
+    canvas: &Canvas,
+    cache: &LinearGaugeCache,
+    fill01: f32,
+    overrun: bool,
+) {
+    if let Some(redline) = cache.redline.as_ref().filter(|_| overrun) {
+        draw_continuous_fill_with(canvas, cache, 1.0, &fill_paint_with_color(cache, &redline.color));
+        return;
+    }
     let split = cache
         .redline
         .as_ref()
         .filter(|redline| fill01 > redline.fraction);
     let Some(redline) = split else {
-        draw_continuous_fill_with(canvas, cache, fill01, &fill_paint(cache));
+        draw_continuous_fill_with(canvas, cache, fill01, &zone_fill_paint(cache));
         return;
     };
     let (normal_zone, red_zone) = redline_zone_rects(
@@ -262,7 +285,7 @@ pub(super) fn draw_continuous_fill(canvas: &Canvas, cache: &LinearGaugeCache, fi
         cache.track_border_thickness,
     );
     let zones = [
-        (normal_zone, fill_paint(cache)),
+        (normal_zone, zone_fill_paint(cache)),
         (red_zone, fill_paint_with_color(cache, &redline.color)),
     ];
     for (zone, paint) in zones {
@@ -327,6 +350,59 @@ fn draw_continuous_fill_with(
         }
     }
     canvas.restore();
+}
+
+fn solid_paint(color: skia_safe::Color) -> Paint {
+    let mut paint = Paint::default();
+    paint.set_anti_alias(true);
+    paint.set_color(color);
+    paint
+}
+
+/// Paint for the normal (below the redline) fill: a linear gradient along the track when the
+/// gauge has color bands, otherwise the single configured fill color.
+fn zone_fill_paint(cache: &LinearGaugeCache) -> Paint {
+    let Some(stops) = cache.fill_stops.as_ref() else {
+        return fill_paint(cache);
+    };
+    let inset = cache.track_border_thickness;
+    let (inner_x, inner_y) = (cache.x + inset, cache.y + inset);
+    let inner_width = (cache.width as f32 - inset * 2.0).max(0.0);
+    let inner_height = (cache.height as f32 - inset * 2.0).max(0.0);
+    // Horizontal gauges fill left to right, vertical ones bottom to top.
+    let points = match cache.orientation {
+        ValidatedLinearGaugeOrientation::Horizontal => (
+            (inner_x, inner_y),
+            (inner_x + inner_width, inner_y),
+        ),
+        ValidatedLinearGaugeOrientation::Vertical => (
+            (inner_x, inner_y + inner_height),
+            (inner_x, inner_y),
+        ),
+    };
+    let colors: Vec<skia_safe::Color4f> = stops
+        .iter()
+        .map(|stop| skia_safe::Color4f::from(stop.color))
+        .collect();
+    let positions: Vec<f32> = stops.iter().map(|stop| stop.fraction).collect();
+    let gradient = skia_safe::gradient::Gradient::new(
+        skia_safe::gradient::Colors::new(
+            &colors,
+            Some(positions.as_slice()),
+            skia_safe::TileMode::Clamp,
+            None,
+        ),
+        skia_safe::gradient::Interpolation::default(),
+    );
+    let shader = skia_safe::gradient::shaders::linear_gradient(points, &gradient, None);
+    match shader {
+        Some(shader) => {
+            let mut paint = solid_paint(skia_safe::Color::WHITE);
+            paint.set_shader(shader);
+            paint
+        }
+        None => fill_paint(cache),
+    }
 }
 
 fn fill_paint(cache: &LinearGaugeCache) -> Paint {

@@ -16,11 +16,13 @@ mod inner_widget;
 mod layer;
 mod path;
 mod segment;
+mod ticks;
 
 use self::inner_widget::{inner_widget_layout, unit_font_size, DEFAULT_GAP_PX, LINE_HEIGHT};
 use self::layer::{draw_fill, draw_static_layer};
 use super::metric::{
-    fill_percentage, format_gauge_label, gauge_range, metric_values, resolve_redline,
+    fill_percentage, fill_stops, format_gauge_label, gauge_range, metric_values, redline_overrun,
+    resolve_redline,
 };
 use crate::activity::schema::DenseActivityReport;
 use crate::debug::RenderProfiler;
@@ -88,6 +90,12 @@ pub fn prepare_arc_gauge_cache(
         let (min_value, max_value) = gauge_range(&gauge.scale, dense_activity, gauge.metric);
         let redline = resolve_redline(&gauge.scale, min_value, max_value);
         let text_style = validated_value_style(&gauge.inner_value, scene, scale);
+        let fill_stops = fill_stops(
+            &gauge.scale,
+            min_value,
+            max_value,
+            gauge.track_filled_opacity * text_style.opacity,
+        );
         let unit_parts = format_metric_presentation_parts(
             &gauge.inner_value,
             dense_activity,
@@ -110,9 +118,17 @@ pub fn prepare_arc_gauge_cache(
                     altitude_offset_m,
                 )
                 .expect("validated arc gauge metric must have a formatter");
+                let frame_seconds = dense_activity
+                    .frame_elapsed_seconds
+                    .get(frame_index)
+                    .copied()
+                    .unwrap_or(0.0);
+                let (overrun, blink_on) = redline_overrun(redline.as_ref(), value, frame_seconds);
                 ArcGaugeFrameState {
                     fill01: fill_percentage(value, min_value, max_value),
                     value_text: parts.standard_text().0.to_string(),
+                    overrun,
+                    blink_on,
                 }
             })
             .collect::<Vec<_>>();
@@ -185,6 +201,7 @@ pub fn prepare_arc_gauge_cache(
             track_fill_style: gauge.track_fill_style,
             bar_geometry: crate::normalize::scale_bar_geometry(gauge.bar_geometry, scale),
             redline,
+            fill_stops,
             text_style,
             has_unit: unit_text.is_some(),
             unit_font_size: static_unit_font_size,
@@ -225,8 +242,15 @@ pub fn draw_arc_gauge_widget(
             start_angle: cache.start_angle,
             sweep_angle: cache.sweep_angle,
         };
-        if state.fill01 > 0.0 && geometry.radius > 0.0 {
-            draw_fill(canvas, cache, geometry, state.fill01);
+        if geometry.radius > 0.0 {
+            if state.overrun {
+                // At the redline the whole track fills (and may blink) in the redline color.
+                if state.blink_on {
+                    draw_fill(canvas, cache, geometry, 1.0, true);
+                }
+            } else if state.fill01 > 0.0 {
+                draw_fill(canvas, cache, geometry, state.fill01, false);
+            }
         }
 
         let inner_layout = inner_widget_layout(
@@ -356,7 +380,10 @@ fn arc_static_layer_padding(
             .ceil() as u32
         })
         .unwrap_or(0);
-    track_padding.max(labels_padding).max(unit_padding)
+    track_padding
+        .max(labels_padding)
+        .max(unit_padding)
+        .max(ticks::ticks_padding(gauge, scale))
 }
 
 fn arc_label_angles(geometry: ArcGaugeGeometry) -> (f32, f32) {

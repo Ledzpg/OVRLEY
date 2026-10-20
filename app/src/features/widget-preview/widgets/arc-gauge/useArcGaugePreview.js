@@ -5,6 +5,8 @@ import { getArcInnerWidgetLayout } from './arcGaugeInnerLayout'
 import { getArcFilledTrackRevealSpec, getArcPoint } from './trackPath'
 import { getArcBarSegments, getBarFillCount } from '../../shared/gaugeBarGeometry'
 import { getArcRedlineZonePaths, getRedlineBarStart } from '../../shared/gaugeRedline'
+import { getArcTickLayout, hasGaugeTicks } from '../../shared/gaugeTicks'
+import { getArcZoneWedges, getFillStops, isRedlineBlinkOn, isRedlineOverrun } from '../../shared/gaugeZones'
 import { buildArcGaugeInnerWidgetModel } from '../metric/model'
 import { getTextShadowParts } from '../../shared/shadow'
 import { getPreviewFontFamily, measureArcPreviewText } from '../../shared/textMeasurement'
@@ -61,14 +63,20 @@ export function useArcGaugePreviewPresentation({ widget, activity, previewSecond
     const opacity = widget.data.opacity * globalOpacity
     const segmented = widget.data.track_fill_style === 'bars'
     const fillEndCornerRadius = widget.data.track_fill_flat ? 0 : widget.data.track_corner_radius
-    const fillReveal = segmented
-      ? null
-      : getArcFilledTrackRevealSpec({
-          ...trackGeometry,
-          startCornerRadius: widget.data.track_corner_radius,
-          endCornerRadius: fillEndCornerRadius,
-          fill: layout.fill,
-        })
+    const fillStops = getFillStops(widget.data.fill_zones, { min: layout.min, max: layout.max }, widget.data.redline_value)
+    // At the redline the whole track fills (and may blink) in the redline color.
+    const overrunning = isRedlineOverrun(widget.data, presentation.rawValue)
+    const showFill = !overrunning || isRedlineBlinkOn(widget.data.redline_blink_hz, previewSecond)
+    const fillFraction = overrunning ? 1 : layout.fill
+    const fillReveal =
+      segmented || !showFill
+        ? null
+        : getArcFilledTrackRevealSpec({
+            ...trackGeometry,
+            startCornerRadius: widget.data.track_corner_radius,
+            endCornerRadius: fillEndCornerRadius,
+            fill: fillFraction,
+          })
     const barLayout = segmented
       ? getArcBarSegments({
           ...trackGeometry,
@@ -88,8 +96,23 @@ export function useArcGaugePreviewPresentation({ widget, activity, previewSecond
             fraction: layout.redline.fraction,
           }),
           barStart: barLayout ? getRedlineBarStart(layout.redline.fraction, barLayout.count) : null,
-          fillPastRedline: layout.fill > layout.redline.fraction,
+          fillPastRedline: !overrunning && layout.fill > layout.redline.fraction,
         }
+      : null
+    const zoneWedges =
+      fillStops && !segmented && fillReveal
+        ? getArcZoneWedges({ ...trackGeometry, startCornerRadius: widget.data.track_corner_radius, endCornerRadius: fillEndCornerRadius }, fillStops)
+        : null
+    const overrun = overrunning && layout.redline ? { color: layout.redline.color } : null
+    const ticks = hasGaugeTicks(widget.data)
+      ? getArcTickLayout({
+          data: widget.data,
+          trackGeometry,
+          range: { min: layout.min, max: layout.max },
+          redline: layout.redline,
+          segmented,
+          measureText: (text, fontSize) => measureArcPreviewText(text, fontSize, labelFontFamily),
+        })
       : null
     const metricType = widget.data.value
     const displayUnit = widget.data.display_unit
@@ -104,8 +127,12 @@ export function useArcGaugePreviewPresentation({ widget, activity, previewSecond
       opacity,
       fillReveal,
       barLayout,
-      filledBarCount: barLayout ? getBarFillCount(layout.fill, barLayout.count) : 0,
+      filledBarCount: barLayout && showFill ? getBarFillCount(fillFraction, barLayout.count) : 0,
       redline,
+      fillStops,
+      zoneWedges,
+      overrun,
+      ticks,
       minLabel,
       maxLabel,
       labels: widget.data.show_min_max_labels

@@ -14,7 +14,7 @@ use crate::normalize::{ValidatedArcGaugeWidget, ValidatedSceneConfig};
 use crate::render::text::{parse_color, ResolvedTextStyle};
 use crate::render::widgets::common::normalize_shadow_style_validated;
 use crate::render::widgets::types::{ArcGaugeCache, ResolvedRedline};
-use super::super::metric::bar_is_redline;
+use super::super::metric::{bar_is_redline, stop_color_at};
 use crate::types::TrackFillStyle;
 use skia_safe::{image_filters, paint::Style, BlendMode, Canvas, ClipOp, Paint};
 use std::path::PathBuf;
@@ -110,6 +110,32 @@ pub(super) fn draw_static_layer(
             max_value,
             text_style,
             altitude_offset_m,
+        )?;
+    }
+    if gauge.ticks.is_some() {
+        let (spec_geometry, spec_thickness, spec_corner) = if border_thickness > 0.0 {
+            let inner = inner_segment_geometry(geometry, border_thickness);
+            (
+                inner,
+                (track_thickness - border_thickness * 2.0).max(0.0),
+                (gauge.track_corner_radius * scale - border_thickness).max(0.0),
+            )
+        } else {
+            (geometry, track_thickness, gauge.track_corner_radius * scale)
+        };
+        let end_corner = if gauge.track_fill_flat { 0.0 } else { spec_corner };
+        let spec = ArcTrackSpec::full(spec_geometry, spec_thickness, spec_corner)
+            .with_end_corner_radius(end_corner);
+        super::ticks::draw_ticks(
+            canvas,
+            gauge,
+            geometry,
+            spec,
+            scale,
+            font_dirs,
+            (min_value, max_value),
+            redline,
+            text_style,
         )?;
     }
     if let Some(unit_text) = unit_text {
@@ -230,15 +256,18 @@ fn paint_empty_track(
 }
 
 /// Dispatches the current fill to the continuous or segmented painting model.
+///
+/// `overrun` paints the track completely in the redline color (the value reached the redline).
 pub(super) fn draw_fill(
     canvas: &Canvas,
     cache: &ArcGaugeCache,
     geometry: ArcGaugeGeometry,
     fill01: f32,
+    overrun: bool,
 ) {
     match cache.track_fill_style {
-        TrackFillStyle::Bars => draw_segmented_fill(canvas, cache, geometry, fill01),
-        TrackFillStyle::Fill => draw_continuous_fill(canvas, cache, geometry, fill01),
+        TrackFillStyle::Bars => draw_segmented_fill(canvas, cache, geometry, fill01, overrun),
+        TrackFillStyle::Fill => draw_continuous_fill(canvas, cache, geometry, fill01, overrun),
     }
 }
 
@@ -247,11 +276,20 @@ fn draw_segmented_fill(
     cache: &ArcGaugeCache,
     geometry: ArcGaugeGeometry,
     fill01: f32,
+    overrun: bool,
 ) {
     let bars = cache
         .bar_geometry
         .expect("bars fill style must carry resolved bar geometry");
     let filled_count = super::super::metric::bar_fill_count(fill01, bars.count);
+    let overrun_paint = overrun
+        .then(|| {
+            cache
+                .redline
+                .as_ref()
+                .map(|redline| fill_paint_with_color(cache, &redline.color))
+        })
+        .flatten();
     let paint = fill_paint(cache);
     let redline_paint = cache
         .redline
@@ -265,13 +303,22 @@ fn draw_segmented_fill(
         .take(filled_count)
     {
         let inner_geo = inner_segment_geometry(segment, cache.track_border_thickness);
+        let zone_paint;
         let paint = match (&cache.redline, &redline_paint) {
+            _ if overrun_paint.is_some() => overrun_paint.as_ref().expect("checked above"),
             (Some(redline), Some(redline_paint))
                 if bar_is_redline(index as u32, bars.count, redline.fraction) =>
             {
                 redline_paint
             }
-            _ => &paint,
+            _ => match &cache.fill_stops {
+                Some(stops) => {
+                    let color = stop_color_at(stops, (index as f32 + 0.5) / bars.count as f32);
+                    zone_paint = track_paint(color, None);
+                    &zone_paint
+                }
+                None => &paint,
+            },
         };
         draw_segment(canvas, inner_geo, inner_thickness, inner_corner, paint);
     }
@@ -282,6 +329,7 @@ fn draw_continuous_fill(
     cache: &ArcGaugeCache,
     geometry: ArcGaugeGeometry,
     fill01: f32,
+    overrun: bool,
 ) {
     let bt = cache.track_border_thickness;
     let inner_thickness = (cache.track_thickness - bt * 2.0).max(0.0);
@@ -301,6 +349,20 @@ fn draw_continuous_fill(
         return;
     };
 
+    if let Some(redline) = cache.redline.as_ref().filter(|_| overrun) {
+        canvas.save();
+        canvas.clip_path(&reveal_path, ClipOp::Intersect, true);
+        draw_segment(
+            canvas,
+            inner_geometry,
+            inner_thickness,
+            inner_corner,
+            &fill_paint_with_color(cache, &redline.color),
+        );
+        canvas.restore();
+        return;
+    }
+    let normal_paint = zone_fill_paint(cache, &reveal_spec);
     let split = cache
         .redline
         .as_ref()
@@ -314,14 +376,14 @@ fn draw_continuous_fill(
                 inner_geometry,
                 inner_thickness,
                 inner_corner,
-                &fill_paint(cache),
+                &normal_paint,
             );
             canvas.restore();
         }
         Some(redline) => {
             let (normal_zone, red_zone) = reveal_spec.redline_zones(redline.fraction);
             let zones = [
-                (&normal_zone, fill_paint(cache)),
+                (&normal_zone, normal_paint),
                 (&red_zone, fill_paint_with_color(cache, &redline.color)),
             ];
             for (zone, paint) in zones {
@@ -332,6 +394,51 @@ fn draw_continuous_fill(
                 canvas.restore();
             }
         }
+    }
+}
+
+/// Paint for the normal (below the redline) fill: a sweep gradient along the track when the
+/// gauge has color bands, otherwise the single configured fill color.
+fn zone_fill_paint(cache: &ArcGaugeCache, spec: &ArcTrackSpec) -> Paint {
+    let Some(stops) = cache.fill_stops.as_ref() else {
+        return fill_paint(cache);
+    };
+    let (start, end) = (spec.angle_at(0.0), spec.angle_at(1.0));
+    // A sweep gradient needs an increasing angle range; mirror the stops for counter-clockwise tracks.
+    let reversed = end < start;
+    let ordered: Vec<(f32, skia_safe::Color)> = if reversed {
+        stops
+            .iter()
+            .rev()
+            .map(|stop| (1.0 - stop.fraction, stop.color))
+            .collect()
+    } else {
+        stops.iter().map(|stop| (stop.fraction, stop.color)).collect()
+    };
+    let colors: Vec<skia_safe::Color4f> = ordered
+        .iter()
+        .map(|(_, color)| skia_safe::Color4f::from(*color))
+        .collect();
+    let positions: Vec<f32> = ordered.iter().map(|(position, _)| *position).collect();
+    let angles = if reversed { (end, start) } else { (start, end) };
+    let center = (spec.geometry.center_x, spec.geometry.center_y);
+    let gradient = skia_safe::gradient::Gradient::new(
+        skia_safe::gradient::Colors::new(
+            &colors,
+            Some(positions.as_slice()),
+            skia_safe::TileMode::Clamp,
+            None,
+        ),
+        skia_safe::gradient::Interpolation::default(),
+    );
+    let shader = skia_safe::gradient::shaders::sweep_gradient(center, angles, &gradient, None);
+    let mut paint = track_paint(skia_safe::Color::WHITE, None);
+    match shader {
+        Some(shader) => {
+            paint.set_shader(shader);
+            paint
+        }
+        None => fill_paint(cache),
     }
 }
 

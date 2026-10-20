@@ -10,6 +10,7 @@
 
 import { PreviewSvgShadowBlurFilter, PreviewSvgText } from '../../shared/PreviewSvgComponents'
 import { useLinearGaugePreviewPresentation } from './useLinearGaugePreview'
+import { getStopColorAt } from '../../shared/gaugeZones'
 
 function SegmentRects({ segments, layer, ...props }) {
   const rects = []
@@ -30,6 +31,31 @@ function SegmentMaskRects({ segments }) {
     )
   }
   return rects
+}
+
+/** Bars of a segmented linear fill, each in its band color, the redline color past the redline, or red on overrun. */
+function LinearBarFill({ data, presentation }) {
+  const { redline, overrun, fillStops, filledCount, segments } = presentation
+  const bars = []
+  for (let index = 0; index < filledCount; index += 1) {
+    const inRedline = overrun != null || (redline != null && index >= redline.barStart)
+    let color = data.track_filled_color
+    if (overrun) color = overrun.color
+    else if (inRedline) color = redline.color
+    else if (fillStops) color = getStopColorAt(fillStops, (index + 0.5) / segments.length)
+    bars.push(
+      <SegmentRects
+        key={index}
+        segments={[segments[index]]}
+        layer="inner"
+        fill={color}
+        fillOpacity={data.track_filled_opacity}
+        opacity={presentation.opacity}
+        data-testid={inRedline ? 'linear-gauge-bar-redline-filled' : 'linear-gauge-bar-filled'}
+      />,
+    )
+  }
+  return bars
 }
 
 function LinearGaugeTrack({ data, presentation, continuousFill }) {
@@ -120,30 +146,7 @@ function LinearGaugeTrack({ data, presentation, continuousFill }) {
           data-testid={presentation.segmented ? 'linear-gauge-bar-empty' : 'linear-gauge-empty-track'}
         />
       )}
-      {presentation.segmented ? (
-        <>
-          <SegmentRects
-            segments={presentation.segments.slice(0, redline ? Math.min(presentation.filledCount, redline.barStart) : presentation.filledCount)}
-            layer="inner"
-            fill={data.track_filled_color}
-            fillOpacity={data.track_filled_opacity}
-            opacity={presentation.opacity}
-            data-testid="linear-gauge-bar-filled"
-          />
-          {redline && presentation.filledCount > redline.barStart ? (
-            <SegmentRects
-              segments={presentation.segments.slice(redline.barStart, presentation.filledCount)}
-              layer="inner"
-              fill={redline.color}
-              fillOpacity={data.track_filled_opacity}
-              opacity={presentation.opacity}
-              data-testid="linear-gauge-bar-redline-filled"
-            />
-          ) : null}
-        </>
-      ) : (
-        continuousFill
-      )}
+      {presentation.segmented ? <LinearBarFill data={data} presentation={presentation} /> : continuousFill}
     </>
   )
 }
@@ -198,15 +201,17 @@ export function OverlayLinearGaugeWidget({ widget, activity, previewSecond, glob
     )
 
   const redline = presentation.redline
-  const filledTrack =
-    redline?.fillPastRedline && !presentation.segmented ? (
-      <>
-        <g clipPath={`url(#${redline.normalZoneId})`}>{renderFilledTrack(widget.data.track_filled_color)}</g>
-        <g clipPath={`url(#${redline.redlineZoneId})`}>{renderFilledTrack(redline.color)}</g>
-      </>
-    ) : (
-      renderFilledTrack(widget.data.track_filled_color)
-    )
+  const normalFill = presentation.fillStops ? `url(#${presentation.gradientId})` : widget.data.track_filled_color
+  const filledTrack = !presentation.showFill ? null : presentation.overrun ? (
+    renderFilledTrack(presentation.overrun.color)
+  ) : redline?.fillPastRedline && !presentation.segmented ? (
+    <>
+      <g clipPath={`url(#${redline.normalZoneId})`}>{renderFilledTrack(normalFill)}</g>
+      <g clipPath={`url(#${redline.redlineZoneId})`}>{renderFilledTrack(redline.color)}</g>
+    </>
+  ) : (
+    renderFilledTrack(normalFill)
+  )
 
   return (
     <svg
@@ -217,6 +222,30 @@ export function OverlayLinearGaugeWidget({ widget, activity, previewSecond, glob
       data-testid="linear-gauge-preview"
     >
       {presentation.trackShadow ? <PreviewSvgShadowBlurFilter id={presentation.shadowFilterId} shadow={presentation.trackShadow} /> : null}
+      {presentation.fillStops && !presentation.segmented ? (
+        <defs>
+          <linearGradient
+            id={presentation.gradientId}
+            gradientUnits="userSpaceOnUse"
+            x1={presentation.layout.innerTrackRect.x}
+            y1={
+              widget.data.orientation === 'vertical'
+                ? presentation.layout.innerTrackRect.y + presentation.layout.innerTrackRect.height
+                : presentation.layout.innerTrackRect.y
+            }
+            x2={
+              widget.data.orientation === 'vertical'
+                ? presentation.layout.innerTrackRect.x
+                : presentation.layout.innerTrackRect.x + presentation.layout.innerTrackRect.width
+            }
+            y2={presentation.layout.innerTrackRect.y}
+          >
+            {presentation.fillStops.map((stop, index) => (
+              <stop key={index} offset={stop.fraction} stopColor={stop.color} />
+            ))}
+          </linearGradient>
+        </defs>
+      ) : null}
       {presentation.redline && !presentation.segmented ? (
         <defs>
           <clipPath id={presentation.redline.normalZoneId}>

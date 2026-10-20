@@ -133,6 +133,18 @@ pub struct ScenePresentationConfig {
     pub extra: BTreeMap<String, Value>,
 }
 
+/// One color band of a gauge fill, starting at `start` (canonical unit).
+///
+/// With `end_color` the band is a gradient from `color` to `end_color` over its length
+/// (up to the start of the next band); without it the band is a solid color.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct FillZoneConfig {
+    pub start: f64,
+    pub color: String,
+    #[serde(default)]
+    pub end_color: Option<String>,
+}
+
 /// Static text label drawn onto the cached base layer.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct LabelConfig {
@@ -401,6 +413,44 @@ pub struct ValueConfig {
     /// Hex color of the redline zone.
     #[serde(default)]
     pub redline_color: Option<String>,
+    /// When the value reaches the redline, fill the whole track in the redline color.
+    #[serde(default)]
+    pub redline_fill_all: Option<bool>,
+    /// Blink rate (flashes per second) of the full redline fill; absent = steady.
+    #[serde(default)]
+    pub redline_blink_hz: Option<f64>,
+    /// Ordered color bands (solid or gradient) that color the fill along the scale.
+    #[serde(default)]
+    pub fill_zones: Option<Vec<FillZoneConfig>>,
+    /// Distance between major dial ticks (canonical unit); setting it turns ticks on.
+    #[serde(default)]
+    pub tick_major_interval: Option<f64>,
+    #[serde(default)]
+    pub tick_minor_count: Option<u32>,
+    #[serde(default)]
+    pub tick_position: Option<String>,
+    #[serde(default)]
+    pub tick_color: Option<String>,
+    #[serde(default)]
+    pub tick_major_length: Option<f32>,
+    #[serde(default)]
+    pub tick_minor_length: Option<f32>,
+    #[serde(default)]
+    pub tick_thickness: Option<f32>,
+    #[serde(default)]
+    pub tick_offset: Option<f32>,
+    #[serde(default)]
+    pub tick_show_labels: Option<bool>,
+    #[serde(default)]
+    pub tick_label_divisor: Option<f64>,
+    #[serde(default)]
+    pub tick_label_decimals: Option<u32>,
+    #[serde(default)]
+    pub tick_label_font_size: Option<f32>,
+    #[serde(default)]
+    pub tick_label_color: Option<String>,
+    #[serde(default)]
+    pub tick_label_offset: Option<f32>,
     #[serde(default)]
     pub diameter: Option<f32>,
     #[serde(default)]

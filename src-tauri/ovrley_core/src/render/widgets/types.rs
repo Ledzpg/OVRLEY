@@ -411,6 +411,20 @@ pub struct ResolvedRedline {
     pub fraction: f32,
     /// Hex color of the zone.
     pub color: String,
+    /// Canonical-unit value at which the redline starts.
+    pub value: f64,
+    /// Fill the whole track while the value is at or past the redline.
+    pub fill_all: bool,
+    /// Blink rate of that full fill, in flashes per second.
+    pub blink_hz: Option<f64>,
+}
+
+/// One color stop of a gauge fill along its track, with the gauge opacity already applied.
+#[derive(Clone, Copy, Debug)]
+pub struct FillStop {
+    /// Position along the track from 0 (start) to 1 (end); strictly increasing across stops.
+    pub fraction: f32,
+    pub color: skia_safe::Color,
 }
 
 /// Prepared linear gauge widget cache — holds the pre-rendered static track image
@@ -434,6 +448,7 @@ pub struct LinearGaugeCache {
     pub track_fill_style: TrackFillStyle,
     pub bar_geometry: Option<ResolvedBarGeometry>,
     pub redline: Option<ResolvedRedline>,
+    pub fill_stops: Option<Vec<FillStop>>,
     pub frame_states: Vec<LinearGaugeFrameState>,
 }
 
@@ -441,6 +456,10 @@ pub struct LinearGaugeCache {
 #[derive(Clone, Copy, Debug)]
 pub struct LinearGaugeFrameState {
     pub fill01: f32,
+    /// The value is at or past the redline of a gauge that fills completely there.
+    pub overrun: bool,
+    /// Visible phase of the blinking overrun fill.
+    pub blink_on: bool,
 }
 
 /// Prepared arc gauge cache. The empty track, border, labels, and unit text
@@ -472,6 +491,7 @@ pub struct ArcGaugeCache {
     pub track_fill_style: TrackFillStyle,
     pub bar_geometry: Option<ResolvedBarGeometry>,
     pub redline: Option<ResolvedRedline>,
+    pub fill_stops: Option<Vec<FillStop>>,
     pub text_style: crate::render::text::ResolvedTextStyle,
     pub has_unit: bool,
     pub unit_font_size: f32,
@@ -488,6 +508,10 @@ pub struct ArcGaugeCache {
 pub struct ArcGaugeFrameState {
     pub fill01: f32,
     pub value_text: String,
+    /// The value is at or past the redline of a gauge that fills completely there.
+    pub overrun: bool,
+    /// Visible phase of the blinking overrun fill.
+    pub blink_on: bool,
 }
 
 /// Prepared elevation widget cache.

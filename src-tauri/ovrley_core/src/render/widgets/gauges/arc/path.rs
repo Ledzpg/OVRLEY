@@ -140,6 +140,24 @@ impl ArcTrackSpec {
     /// fill revealed up to `fraction` ends exactly where the redline begins. Both
     /// wedges are clip regions that extend far past the track's radius.
     pub(crate) fn redline_zones(self, fraction: f32) -> (Path, Path) {
+        let (first, last, direction, full_circle) = self.cap_aware_span();
+        let boundary = self.angle_at(fraction);
+        let radius = self.geometry.radius;
+        let margin = if full_circle { 0.0 } else { 10.0 };
+        let reach = radius * 2.0 + self.thickness * 2.0 + 100.0;
+        let wedge = |from: f32, to: f32| {
+            zone_wedge_path(self.geometry.center_x, self.geometry.center_y, reach, from, to)
+        };
+        (
+            wedge(first - direction * margin, boundary),
+            wedge(boundary, last + direction * margin),
+        )
+    }
+
+    /// Screen-space angles `(first, last)` covered by the cap-aware track, its direction and
+    /// whether it is a full circle. `first` and `last` include the rounded end caps, exactly as
+    /// [`Self::reveal_clip`] measures a fill.
+    fn cap_aware_span(self) -> (f32, f32, f32, bool) {
         let sweep = self
             .sweep_angle
             .clamp(-MAX_ARC_ANGLE_DEGREES, MAX_ARC_ANGLE_DEGREES);
@@ -156,19 +174,16 @@ impl ArcTrackSpec {
                 arc_cap_angle_degrees(radius, self.end_corner_radius.clamp(0.0, half_thickness)),
             )
         };
-        let total_span = magnitude + start_cap + end_cap;
         let first = self.geometry.start_angle - direction * start_cap;
-        let boundary = first + direction * total_span * fraction.clamp(0.0, 1.0);
-        let last = first + direction * total_span;
-        let margin = if full_circle { 0.0 } else { 10.0 };
-        let reach = radius * 2.0 + self.thickness * 2.0 + 100.0;
-        let wedge = |from: f32, to: f32| {
-            zone_wedge_path(self.geometry.center_x, self.geometry.center_y, reach, from, to)
-        };
-        (
-            wedge(first - direction * margin, boundary),
-            wedge(boundary, last + direction * margin),
-        )
+        let last = first + direction * (magnitude + start_cap + end_cap);
+        (first, last, direction, full_circle)
+    }
+
+    /// Screen-space angle where a fill of `fraction` ends, using the same cap-aware span as the
+    /// fill reveal so ticks and the redline line up with the filled track.
+    pub(crate) fn angle_at(self, fraction: f32) -> f32 {
+        let (first, last, _, _) = self.cap_aware_span();
+        first + (last - first) * fraction.clamp(0.0, 1.0)
     }
 
     /// Builds a closed annular clip with independently rounded end caps.

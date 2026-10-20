@@ -5,6 +5,7 @@
 //! explicit and rejects out-of-range arc geometry before render preparation.
 
 use super::gauge_scale::{validate_gauge_scale, ValidatedGaugeScale};
+use super::gauge_ticks::{validate_gauge_ticks, ValidatedGaugeTicks};
 use super::helpers::{require_bool, require_f32, require_string};
 use super::raw::ValueConfig;
 use super::value::validate_arc_inner_value_widget;
@@ -61,6 +62,8 @@ pub struct ValidatedArcGaugeWidget {
     pub inner_value: ValidatedValueWidget,
     /// Optional fixed scale and redline.
     pub scale: ValidatedGaugeScale,
+    /// Optional dial ticks and numerals (require a fixed scale).
+    pub ticks: Option<ValidatedGaugeTicks>,
 }
 
 /// Validates a raw value config as an arc gauge.
@@ -265,6 +268,7 @@ fn validate_arc_shaped_gauge(
         require_string(value.min_max_label_color.clone(), &p("min_max_label_color"))?;
 
     let scale = validate_gauge_scale(&value, &p)?;
+    let ticks = validate_gauge_ticks(&value, &p, &scale)?;
     let inner_value = validate_arc_inner_value_widget(value, index)?;
 
     Ok(ValidatedArcGaugeWidget {
@@ -296,5 +300,6 @@ fn validate_arc_shaped_gauge(
         min_max_label_color,
         inner_value,
         scale,
+        ticks,
     })
 }

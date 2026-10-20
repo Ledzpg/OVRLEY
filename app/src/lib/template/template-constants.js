@@ -99,8 +99,27 @@ const DISPLAY_VARIANT_FRAME_KEYS_BY_TYPE = {
 }
 
 /** Optional fixed scale and redline fields of gauge display variants (unset = automatic scale, no redline). */
-export const GAUGE_SCALE_KEYS = ['scale_min', 'scale_max', 'redline_value', 'redline_color']
+export const GAUGE_SCALE_KEYS = ['scale_min', 'scale_max', 'redline_value', 'redline_color', 'redline_fill_all', 'redline_blink_hz', 'fill_zones']
 const GAUGE_SCALE_DISPLAY_TYPES = new Set(['linear', 'arc', 'corner'])
+
+/** Optional dial ticks and numerals of arc-shaped gauge variants (unset tick_major_interval = no ticks). */
+export const GAUGE_TICK_KEYS = [
+  'tick_major_interval',
+  'tick_minor_count',
+  'tick_position',
+  'tick_color',
+  'tick_major_length',
+  'tick_minor_length',
+  'tick_thickness',
+  'tick_offset',
+  'tick_show_labels',
+  'tick_label_divisor',
+  'tick_label_decimals',
+  'tick_label_font_size',
+  'tick_label_color',
+  'tick_label_offset',
+]
+const GAUGE_TICK_DISPLAY_TYPES = new Set(['arc', 'corner'])
 
 export const DISPLAY_VARIANT_KEYS = Object.freeze(
   Object.fromEntries(
@@ -113,6 +132,7 @@ export const DISPLAY_VARIANT_KEYS = Object.freeze(
           ...Object.keys(definition.defaults || {}).filter((key) => !DISPLAY_VARIANT_EXCLUDED_KEYS.has(key)),
           ...(definition.conditionalKeys || []),
           ...(GAUGE_SCALE_DISPLAY_TYPES.has(displayType) ? GAUGE_SCALE_KEYS : []),
+          ...(GAUGE_TICK_DISPLAY_TYPES.has(displayType) ? GAUGE_TICK_KEYS : []),
         ],
       ]),
   ),

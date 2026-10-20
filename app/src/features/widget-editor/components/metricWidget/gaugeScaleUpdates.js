@@ -1,5 +1,8 @@
 /** Pure update builders for the gauge fixed-scale and redline controls. */
 
+import { countGaugeTicks, MAX_GAUGE_TICKS } from './gaugeTickUpdates'
+import { fitZonesToScale } from './gaugeZoneUpdates'
+
 export const DEFAULT_REDLINE_COLOR = '#ff3b30'
 
 const REDLINE_DEFAULT_POSITION = 0.85
@@ -35,7 +38,7 @@ export function buildGaugeScaleUpdate(data, defaults, change) {
   const range = fixed ? { min: data.scale_min, max: data.scale_max } : null
 
   if (Object.hasOwn(change, 'fixedScale')) {
-    if (!change.fixedScale) return { scale_min: undefined, scale_max: undefined }
+    if (!change.fixedScale) return { scale_min: undefined, scale_max: undefined, tick_major_interval: undefined, fill_zones: undefined }
     const patch = { scale_min: defaults.min, scale_max: defaults.max }
     if (data.redline_value != null && !isInside(data.redline_value, defaults.min, defaults.max)) patch.redline_value = defaults.redline
     return patch
@@ -46,13 +49,18 @@ export function buildGaugeScaleUpdate(data, defaults, change) {
     const min = Object.hasOwn(change, 'scaleMin') ? parseNumber(change.scaleMin) : range.min
     const max = Object.hasOwn(change, 'scaleMax') ? parseNumber(change.scaleMax) : range.max
     if (min === null || max === null || max <= min) return {}
+    if (data.tick_major_interval != null && countGaugeTicks(min, max, data.tick_major_interval, data.tick_minor_count) > MAX_GAUGE_TICKS) return {}
     const patch = { scale_min: min, scale_max: max }
     if (data.redline_value != null && !isInside(data.redline_value, min, max)) patch.redline_value = defaultRedlineInside(min, max)
+    if (data.fill_zones?.length > 0) {
+      const fitted = fitZonesToScale(data.fill_zones, min, max)
+      patch.fill_zones = fitted.length > 0 ? fitted : undefined
+    }
     return patch
   }
 
   if (Object.hasOwn(change, 'redline')) {
-    if (!change.redline) return { redline_value: undefined }
+    if (!change.redline) return { redline_value: undefined, redline_fill_all: undefined, redline_blink_hz: undefined }
     const value = range
       ? isInside(defaults.redline, range.min, range.max)
         ? defaults.redline

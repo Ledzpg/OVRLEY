@@ -17,7 +17,9 @@ pub use geometry::{bar_fill_rect, bordered_bar_fill_rect};
 
 use self::labels::label_padding;
 use self::layer::{draw_continuous_fill, draw_segmented_fill, draw_static_layer};
-use super::metric::{fill_percentage, gauge_range, metric_values, resolve_redline};
+use super::metric::{
+    fill_percentage, fill_stops, gauge_range, metric_values, redline_overrun, resolve_redline,
+};
 use crate::activity::schema::DenseActivityReport;
 use crate::debug::RenderProfiler;
 use crate::error::CoreResult;
@@ -48,6 +50,12 @@ pub fn prepare_linear_gauge_cache(
         let scaled_height = ((gauge.height as f32) * scale).round().max(1.0) as u32;
         let (min_value, max_value) = gauge_range(&gauge.scale, dense_activity, gauge.metric);
         let redline = resolve_redline(&gauge.scale, min_value, max_value);
+        let fill_stops = fill_stops(
+            &gauge.scale,
+            min_value,
+            max_value,
+            gauge.track_filled_opacity,
+        );
         let shadow = normalize_shadow_style_validated(
             &scene.presentation.shadow_color,
             scene.presentation.shadow_strength_for(&gauge.shadow),
@@ -80,11 +88,20 @@ pub fn prepare_linear_gauge_cache(
             .max(1);
         let frame_states = metric_values(&dense_activity.series, gauge.metric)
             .iter()
-            .map(|value| {
+            .enumerate()
+            .map(|(frame_index, value)| {
                 let value = resolve_metric_display_value(gauge.metric, *value, dense_activity)
                     .unwrap_or(min_value);
+                let frame_seconds = dense_activity
+                    .frame_elapsed_seconds
+                    .get(frame_index)
+                    .copied()
+                    .unwrap_or(0.0);
+                let (overrun, blink_on) = redline_overrun(redline.as_ref(), value, frame_seconds);
                 LinearGaugeFrameState {
                     fill01: fill_percentage(value, min_value, max_value),
+                    overrun,
+                    blink_on,
                 }
             })
             .collect::<Vec<_>>();
@@ -125,6 +142,7 @@ pub fn prepare_linear_gauge_cache(
             track_fill_style: gauge.track_fill_style,
             bar_geometry: crate::normalize::scale_bar_geometry(gauge.bar_geometry, scale),
             redline,
+            fill_stops,
             frame_states,
         })
     })
@@ -148,9 +166,13 @@ pub fn draw_linear_gauge_widget(
             .frame_states
             .get(frame_index)
             .or_else(|| cache.frame_states.last())?;
-        match cache.track_fill_style {
-            TrackFillStyle::Bars => draw_segmented_fill(canvas, cache, state.fill01),
-            TrackFillStyle::Fill => draw_continuous_fill(canvas, cache, state.fill01),
+        // At the redline the whole track fills (and may blink) in the redline color.
+        if !state.overrun || state.blink_on {
+            let fill01 = if state.overrun { 1.0 } else { state.fill01 };
+            match cache.track_fill_style {
+                TrackFillStyle::Bars => draw_segmented_fill(canvas, cache, fill01, state.overrun),
+                TrackFillStyle::Fill => draw_continuous_fill(canvas, cache, fill01, state.overrun),
+            }
         }
 
         Some(WidgetRenderReport {
