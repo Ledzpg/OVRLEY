@@ -107,6 +107,13 @@ This fork can be installed and updated on its own, without touching an upstream 
   platforms are not tested here.
 - Your own templates and projects stay in `Documents\OVRLEY`, as in upstream, so they are found by either install.
 
+## Languages
+
+All texts added by this fork are available in the same 15 languages as the original interface. English and Portuguese
+(pt-BR) were written by the fork's author; the other 13 (cs, de, es, fr, it, ja, ko, nl, pl, ru, sv, tr, zh-CN) were
+translated with AI assistance and have not been reviewed by native speakers. Corrections are welcome as issues or pull
+requests.
+
 ## Verification
 
 Each change above has automated tests (Rust integration tests for the renderer, Vitest for the editor), and the

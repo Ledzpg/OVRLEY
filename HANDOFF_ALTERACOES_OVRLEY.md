@@ -118,8 +118,8 @@ Duas métricas novas, ligadas em todo o caminho da `core_temperature`
   `showUnitsByDefault: true`, ícone `{ source: shared, assetFile:
   widget-temperature.svg }` (igual ao `temperature`).
 - **Frontend**: `lib/widget/standard-metrics.js` (conversão °F nos dois tipos).
-  Textos só em **en** e **pt-BR** (`widgets.types.*`); os outros 13 idiomas caem
-  no inglês pelo `fallbackLng`.
+  Os textos novos do fork (89 chaves) existem nos 15 idiomas: en e pt-BR escritos à mão,
+  os outros 13 traduzidos com IA e sem revisão de nativos (commit `feat(i18n)`).
 - Os parsers JS de FIT/GPX (`app/src/lib/activity/`) **não** preenchem essas
   métricas; só o CSV.
 
