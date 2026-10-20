@@ -29,7 +29,7 @@ was **added or changed**. It is not affiliated with, or endorsed by, the origina
 
 | Area | Addition |
 | --- | --- |
-| Metrics | Coolant temperature and intake air temperature, imported from CSV |
+| Metrics | Coolant and intake air temperature, fuel level, battery voltage and estimated range, imported from CSV |
 | Gauges | Fixed scale with a redline, tick marks and numerals, color bands with gradients, blinking redline overrun, needle |
 | Widgets | Per-widget shadow, close-up map that follows the current position, widget sets ("Cluster", "Temps.") |
 | Maps | Raster map tiles behind the route widget (OpenStreetMap, OpenTopoMap, Esri Light Gray or a custom URL) |
@@ -43,7 +43,15 @@ was **added or changed**. It is not affiliated with, or endorsed by, the origina
 - The CSV importer recognizes exact header aliases such as `Coolant Temperature (°C)`, `ECT`, `Intake Air Temp` or
   `IAT`. Fahrenheit columns are converted on import, and readings outside -60 to 300 °C are dropped as a
   disconnected sensor.
-- Only the CSV importer fills them; the FIT and GPX parsers do not.
+- **Fuel level** (litres, or a percentage of the tank), **battery voltage** (V) and **estimated range** (km or miles)
+  are also new metrics, in the Motorsports category, each with its own icon. As text, arc, corner or linear widgets.
+  The CSV columns are `Fuel Level (L)`, `Battery Voltage (V)` and `Estimated Range (km)` (or `mi`). A fuel level in
+  percent cannot be imported, because converting it needs the tank capacity.
+- A fuel level widget has a **Tank Capacity** field (litres) in its settings, used to show the level as a percentage.
+  It is not read from the file, so it works for any vehicle.
+- A battery reading of 0 V is dropped as a sensor that is not answering; implausible fuel and range values are
+  dropped too.
+- Only the CSV importer fills these metrics; the FIT and GPX parsers do not.
 
 ## Gauges
 
