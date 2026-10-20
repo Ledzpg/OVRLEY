@@ -84,6 +84,9 @@ O usuário pediu cinco coisas, todas implementadas:
 4. **Escala fixa e redline** nos medidores de **RPM e temperaturas**. As demais
    métricas ficaram de fora de propósito (ver "Como ligar para outras métricas").
 5. Atualizar a **exportação do Garagem** para gravar as duas temperaturas.
+6. Novos layouts (templates) de cluster, principalmente tacômetro + velocímetro + marcha no canto
+   inferior direito, o que exigiu **marcas e numerais no mostrador** (seção 5).
+7. Barras na vertical (já existia, seção 7) e avaliação de um mapa com ruas (seção 7, não implementado).
 
 ## 1. Temperaturas: `coolant_temperature` e `intake_air_temperature`
 
@@ -241,6 +244,143 @@ Pasta: `G:\Users\Luiz\Desktop\DEV PROGRAMAS\Garagem`. Commitado no branch
 - Gravações exportadas **antes** desta mudança têm a temperatura na coluna
   Torque; é preciso reexportar.
 
+## 5. Marcas e numerais do mostrador (arco e canto)
+
+Mostrador de tacômetro: marcas maiores (com numerais), marcas menores entre elas e tudo depois do redline na
+cor do redline. Só em medidores `arc` e `corner` e **exige escala fixa** (`scale_min`/`scale_max`). Todos os
+valores em unidade canônica; os numerais mostram `valor / tick_label_divisor` (rpm ÷ 1000 → 0..11).
+
+| Campo | Significado |
+|---|---|
+| `tick_major_interval` | liga as marcas; distância entre marcas maiores |
+| `tick_minor_count` | marcas menores entre duas maiores (0 a 9) |
+| `tick_position` | `inside` (para o centro) ou `outside` |
+| `tick_color`, `tick_thickness`, `tick_offset` | cor, espessura e distância da trilha |
+| `tick_major_length`, `tick_minor_length` | comprimentos |
+| `tick_show_labels`, `tick_label_divisor`, `tick_label_decimals` | numerais |
+| `tick_label_font_size`, `tick_label_color`, `tick_label_offset` | estilo dos numerais |
+
+Com `tick_major_interval` presente **todos** os outros campos são obrigatórios (o frontend materializa os
+padrões); o limite é 400 marcas. A fonte dos numerais é `min_max_label_font`.
+
+- **Rust**: `normalize/gauge_ticks.rs` (validação, `ValidatedGaugeTicks::marks`), campo `ticks` em
+  `ValidatedArcGaugeWidget`, campos novos em `ValueConfig`; `render/widgets/gauges/arc/ticks.rs` desenha tudo
+  na camada estática (`draw_static_layer`). O ângulo de cada marca usa `ArcTrackSpec::angle_at`, o **mesmo**
+  mapeamento do preenchimento e do redline (cantos arredondados incluídos); em barras segmentadas usa o
+  varrimento linear. `redline_zones` foi refatorado para usar `angle_at`.
+- **Frontend**: `widget-preview/shared/gaugeTicks.js` (+ `getArcFractionAngle` em `gaugeRedline.js`), hook e
+  SVG do arco; editor em `metricWidget/GaugeTickControls.jsx` e `gaugeTickUpdates.js` (puro). Desligar a escala
+  fixa também desliga as marcas. `GAUGE_TICK_KEYS` em `template-constants.js` (só `arc` e `corner`).
+  `gaugeScale` em `assets/standard-metrics.json` ganhou `tickInterval`, `tickMinor` e `labelDivisor` por métrica.
+- **Cuidado com i18n**: as chaves novas têm prefixo `gaugeTick*` porque `ticks` e `tickColor` já existiam
+  (fita de bússola). Chave duplicada em JSON sobrescreve a anterior em silêncio.
+- Testes: `tests/gauge_ticks_tests.rs` (5, incluindo pixels de marcas e o redline em **barra vertical**) e
+  `gaugeTicks.test.jsx` (16).
+
+## 6. Templates de cluster
+
+Em `templates/` (1920x1080, fonte Rajdhani): `cluster-tacometro-velocimetro` (mostrador de RPM 0-11000 com
+redline em 10000 com faixas de cor — ver seção 8 —, velocidade grande, caixa amarela da marcha, RPM pequeno), `cluster-barras-verticais`
+(velocidade + marcha e duas barras verticais, RPM e arrefecimento, com redline) e `painel-temperaturas`
+(dois mostradores, arrefecimento 40-120 e admissão 0-80). Os valores de escala e redline são do exemplo do
+usuário (0-11000 rpm); ajuste na interface para outras motos. O número da marcha usa a **sombra por widget**
+com valor 0. `app/src/tests/features/template-manager/bundledClusterTemplates.test.js` garante que carregam
+pelo mesmo caminho do app e que o backend recebe uma config completa.
+
+**Como conferir um template visualmente sem abrir o app** (usado nesta sessão; os arquivos foram descartados):
+um teste vitest temporário carrega o JSON com `normalizeTemplateFilePayload` e grava
+`createBatchRenderTemplate(...)` em disco; um teste Rust `#[ignore]` lê essa config, importa um CSV real com
+`parse_csv_activity_path`, faz `trim_activity` + `densify_activity` e chama `render_preview_with_report`
+para gerar um PNG (composto sobre um fundo cinza para as cores claras aparecerem).
+
+## 7. Barras na vertical e mapa
+
+- **Barras verticais já existiam**: o medidor linear tem o campo `orientation` (`horizontal`/`vertical`) no
+  editor ("Orientação"); o preenchimento sobe de baixo para cima. Agora o redline também foi testado na
+  vertical (`vertical_linear_gauge_puts_the_redline_zone_at_the_top`) e há um template que a usa.
+- **Mapa com ruas**: implementado como fundo de mapa raster do widget de rota — ver seção 9.
+
+## 8. Faixas de cor, degradê e redline cheio/piscante
+
+Para o tacômetro (e qualquer medidor de arco, canto ou linear com **escala fixa**): o preenchimento pode ter
+faixas de cor, sólidas ou em degradê, e ao chegar no redline o medidor inteiro pode ficar vermelho e piscar.
+
+| Campo | Significado |
+|---|---|
+| `fill_zones` | lista de 1 a 12 faixas `{ start, color, end_color? }`; a primeira começa em `scale_min`, `start` estritamente crescente e menor que `scale_max` |
+| `redline_fill_all` | ao atingir `redline_value` pinta a trilha toda na cor do redline (exige `redline_value`) |
+| `redline_blink_hz` | pisca nessa frequência (0 < hz ≤ 20; exige `redline_fill_all`) |
+
+- Faixa sem `end_color` é sólida; com `end_color` o degradê vai da cor da faixa até o início da próxima. **A última
+  faixa termina no redline** (quando existe e cai dentro dela), então um degradê amarelo → vermelho a partir de 8000
+  encontra o vermelho do redline exatamente em 10000; sem redline, vai até o fim da escala. `end_color` da última
+  faixa deve ser a cor do redline para a emenda ficar contínua (o editor já sugere isso).
+- Exemplo do usuário (moto: torque máximo 7000, potência máxima 8000, redline 10000): `[0 #2bd9ff→#47ff6b]`,
+  `[7000 #47ff6b]`, `[8000 #ffd400→#ff3b30]`. O editor tem o botão de preset por torque/potência
+  (`buildTorquePowerZones`) e o `standard-metrics.json` traz `zonePreset` para o rpm.
+- **Rust**: `normalize/gauge_scale.rs` (`ValidatedFillZone`, `ValidatedRedline` com `fill_all`/`blink_hz`),
+  `render/widgets/gauges/metric.rs` (`fill_stops`, `redline_overrun`: sobre o redline desenha a trilha toda; fase
+  "apagada" do pisca esconde o preenchimento; o tempo vem do tempo do quadro). Arco usa gradiente de varredura
+  (Skia), linear usa gradiente linear e barras segmentadas amostram a cor no centro de cada barra.
+- **Frontend**: `widget-preview/shared/gaugeZones.js` (`getFillStops(zones, range, redlineValue)`,
+  `getStopColorAt`, `isRedlineOverrun`, `isRedlineBlinkOn`), editor `GaugeZoneControls.jsx` +
+  `gaugeZoneUpdates.js`. O arco do preview aproxima o gradiente de varredura com cunhas de 3°.
+- Testes: `tests/gauge_zones_tests.rs` (8: validação, gradiente/sólido, redline cheio, pisca ligado/apagado,
+  arco, e o degradê da última faixa chegando ao vermelho no redline) e `gaugeZones.test.jsx`.
+
+## 9. Mapa raster (tiles) atrás da rota
+
+O widget `course` ganhou um fundo de mapa opcional feito de **tiles raster** (PNG/JPEG, 256 px, esquema XYZ), como
+o GPStitch/gopro-overlay. Sem `map_tile_url` o widget é idêntico ao de antes.
+
+| Campo | Significado |
+|---|---|
+| `map_tile_url` | modelo de URL com `{z}`, `{x}` e `{y}` (qualquer ordem); só `https://` ou `file://` (pacote de tiles offline) |
+| `map_attribution` | crédito desenhado no canto inferior direito (obrigatório, não vazio) |
+| `map_opacity` | 0-100 (o Rust aceita fração ou percentual; abaixo de 5 o editor não deixa, porque 1 seria lido como 100%) |
+| `map_zoom_offset` | -2 a 2 somados ao zoom que casa com a resolução do widget (positivo = mais nítido, mais tiles) |
+
+Contrato estrito: se `map_tile_url` existe, os outros três são obrigatórios; os outros três sem a URL são erro.
+
+- **Projeção**: com mapa, a rota usa **Web Mercator** (`mercator_degrees`: x = lon+180, y = ordenada de Mercator
+  em graus, mundo = 360x360) em vez da aproximação equirretangular; sem mapa nada muda. A rota e o mapa usam a
+  **mesma** transformação de ajuste (`render/widgets/route/fit.rs::RouteFit`), então a linha cai exatamente sobre
+  as ruas. Zoom = o que faz o pixel do tile casar com o pixel de saída (+ `map_zoom_offset`), reduzido até caber
+  em no máximo 64 tiles. Os tiles viram um mosaico e são desenhados de uma vez com interpolação linear.
+- **Rust (`ovrley_core`)**: `raster_tiles.rs` (trait `RasterTileSource`, registro global
+  `install_raster_tile_source`, modelos de URL, leitura de `file://`), `render/widgets/route/map.rs` (zoom, busca
+  de tiles em até 6 threads, mosaico, camada estática girada com o widget, crédito), `fit.rs`, `prepare.rs`
+  (`route_map_fit`, `rotated_layer_bounds`, projeção Mercator), `normalize/route.rs` (`ValidatedRouteMap`),
+  `commands/route_geometry.rs::build_route_map_png_command` (PNG para o preview, sem o crédito). **Falha tile =
+  falha o render** (mensagem com a URL), sem mapa parcial.
+- **Tauri (`src-tauri`)**: `raster_tile_source.rs` (`HttpRasterTileSource`: reqwest com User-Agent
+  `OVRLEY/<versão>`, cache em disco em `<app cache>/raster-tiles`, validade de 14 dias, usa o tile vencido se não
+  conseguir atualizar, recusa resposta que não seja imagem), instalado em `lib.rs` no setup; comando
+  `backend_build_route_map` devolve um data URL PNG (`null` se não há mapa).
+- **Frontend**: `COURSE_MAP_KEYS` em `template-constants.js`; `usePlotPreviewGeometry.js` busca a imagem
+  (`buildRouteMap` em `api/backend.js`) e `RoutePreview.jsx` a desenha com o crédito; editor em
+  `RouteMapBackgroundSection.jsx` + `routeMapUpdates.js` (presets, validação). O preview só consegue
+  mostrar o mapa com o app Tauri (usa o comando).
+- **Provedores**: os presets são só os que respondem **sem chave**: OpenStreetMap, OpenTopoMap e Esri Light Gray.
+  **Os tiles raster do CARTO (`basemaps.cartocdn.com`) agora devolvem uma marca d'água "API KEY REQUIRED"** —
+  foi o primeiro teste e por isso foram removidos. Provedores com chave (Thunderforest, MapTiler, Stadia, Mapbox)
+  funcionam pela opção "URL personalizada" com a chave na própria URL (fica salva no template: não compartilhar).
+  Cada provedor tem termos de uso e exige o crédito; o OSM pede uso moderado e User-Agent identificável (o cache
+  em disco ajuda: cada tile é baixado uma vez). Confira os termos do Esri antes de usar em vídeo público.
+- Template `templates/mapa-trajeto.json` (mapa OSM, linha ciano, marcador em halo amarelo). A seta amarela da
+  imagem de referência **não existe**: os marcadores são `single`, `ring` e `halo`.
+- Testes: `tests/route_map_tests.rs` (6: alinhamento por pixel com um pacote `file://` gerado, PNG do preview,
+  opacidade, rota sem mapa inalterada, validação estrita, falha de tile alto e claro), testes unitários de
+  `fit`, `map` e `raster_tiles`, `raster_tile_source.rs` (4, com servidor `tiny_http` local) e
+  `routeMapUpdates.test.js` (9). Conferido **visualmente** com tiles reais do OSM sobre o `ida_ovrley_temps.csv`:
+  a rota segue a RJ-124 (Rio Bonito -> Araruama).
+- Rodar `cargo test` na pasta `src-tauri` (crate do app) exige
+  `TAURI_CONFIG='{"bundle":{"resources":{"../THIRD_PARTY_NOTICES.txt":null}}}'` porque o arquivo de licenças só
+  é gerado no empacotamento (é o mesmo atalho que `scripts/tauri.mjs` usa no `dev`).
+- Limitações: sem cache de tiles entre execuções do `ovrley_core` fora do app (só o shell Tauri instala a fonte
+  HTTP); mapa gira junto com a rotação do widget (o texto dos tiles também); não há estilo claro/escuro por filtro
+  de cor; tiles do hemisfério com antimeridiano não são tratados.
+
 ## Notas / achados fora de escopo
 
 - **Testes de frontend**: com o `igc-parser` compilado (ver "Ambiente"), a
@@ -263,6 +403,29 @@ Pasta: `G:\Users\Luiz\Desktop\DEV PROGRAMAS\Garagem`. Commitado no branch
 ---
 
 ## Log de sessões
+
+### 2026-10-20 (continuação 3) — Claude Code (mapa raster)
+
+- **Mapa de tiles raster atrás da rota** (Rust, Tauri, preview, editor, template `mapa-trajeto`). Seção 9.
+- Achado: tiles raster do CARTO exigem chave de API agora; presets só com provedores sem chave.
+- Verificação: `cargo test` do `ovrley_core` (57 suítes) e do app (47 testes) sem falhas; `eslint` limpo;
+  `vitest` só com a falha de idioma já descrita. Conferido visualmente com tiles reais do OSM. Não testado
+  na interface real (`pnpm dev`) nem com render de vídeo completo.
+
+### 2026-10-20 (continuação 2) — Claude Code (faixas de cor)
+
+- **Faixas de cor com degradê, redline cheio e piscante** (Rust, preview, editor, template do cluster). Seção 8.
+- A última faixa termina no redline, para o degradê encontrar a cor do redline.
+- Verificação: `cargo test` 56 suítes ok, `eslint` limpo, `vitest` só com a falha de idioma já descrita.
+
+### 2026-10-20 (continuação) — Claude Code (marcas do mostrador, templates de cluster)
+
+- **Marcas e numerais** no arco/canto (Rust, preview SVG, editor, manifesto). Seção 5.
+- **3 templates novos** conferidos visualmente com dados reais do `ida_ovrley_temps.csv`. Seção 6.
+- **Barras verticais**: já existiam; adicionado teste de pixel do redline na vertical. Seção 7.
+- **Mapa**: estudado (app, GPStitch, gopro-overlay), não implementado. Seção 7.
+- Verificação: `cargo test` do `ovrley_core` sem falhas; `eslint` limpo; `vitest` só com a falha de formatação
+  de idioma já descrita. Não testado na interface real nem com render de vídeo.
 
 ### 2026-10-20 — Claude Code (temperaturas, sombra por widget, tacômetro, exportação do Garagem)
 
