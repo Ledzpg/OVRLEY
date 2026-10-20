@@ -15,8 +15,8 @@ mudou em 2026-10-20.
 
 1. Leia este arquivo inteiro, principalmente a seção **Log de sessões**.
 2. Rode `git status` e `git log --oneline -6`. As mudanças abaixo estão
-   commitadas no branch **`garagem-customizacoes`** (criado a partir do `main`
-   no commit `13c3f41f`), sem push; não há remoto próprio. Os commits, em
+   commitadas no branch **`ledzpg`** (antes `garagem-customizacoes`; criado a partir do `main`
+   no commit `13c3f41f`). Remotos: `origin` = fork `Ledzpg/OVRLEY`, `upstream` = `spirokai/OVRLEY`. Os commits, em
    ordem, são: temperaturas, sombra por widget, escala fixa/redline e este
    documento. Cada commit de código compila sozinho (`cargo check --tests`).
    Se houver arquivos modificados que você não tocou, pare e pergunte ao
@@ -588,7 +588,7 @@ O mapa total (`course` com mapa, seção 9) continua como estava. Todos os campo
   `eslint` limpo; `vitest` com 1 falha de formatação de idioma (ver acima); `vitest` e
   `tsc` do Garagem sem erros.
 - Commits feitos no fim da sessão, a pedido do usuário: 4 no OVRLEY (branch
-  `garagem-customizacoes`) e 2 no Garagem (branch `unificacao`), sem push.
+  `garagem-customizacoes`, hoje `ledzpg`) e 2 no Garagem (branch `unificacao`), sem push.
 - **Não feito**: push, build/empacotamento, teste visual no app, teste de
   render de vídeo, tradução dos demais idiomas.
 - Arquivos novos: `src-tauri/ovrley_core/src/normalize/gauge_scale.rs`,
