@@ -391,12 +391,18 @@ do tacômetro da imagem de referência. Só em medidores `arc` e `corner`; funci
 | `needle_length` | liga a agulha; tamanho ao longo do raio |
 | `needle_width` | tamanho transversal |
 | `needle_offset` | deslocamento do centro da agulha a partir do meio da trilha (positivo = para fora, aceita negativo) |
-| `needle_color` | cor da borda e do miolo |
+| `needle_color` | cor da borda (e do miolo quando não há `needle_fill_color`) |
+| `needle_fill_color` | opcional: cor do miolo (ou da ponta de dentro, no degradê); ausente = `needle_color` |
+| `needle_fill_end_color`, `needle_fill_end_opacity` | opcionais, **juntos**: ponta de fora do degradê (cor e opacidade 0-1); a opacidade sem a cor é erro |
 | `needle_border_thickness` | espessura da borda (0 = sem borda) |
-| `needle_fill_opacity` | opacidade do miolo, 0-1 (0 deixa só a borda) |
+| `needle_fill_opacity` | opacidade do miolo, ou da ponta de dentro no degradê, 0-1 (0 deixa só a borda) |
 | `needle_corner_radius` | raio dos cantos (limitado à metade da agulha) |
 
 Com `needle_length` presente **todos** os outros campos são obrigatórios (o frontend materializa os padrões).
+
+O degradê corre ao longo da agulha, do lado do centro até a ponta de fora, interpolando cor e opacidade de cada ponta
+(`needle.rs::fill_paint`, gradiente linear do Skia; no preview, `<linearGradient>` em `userSpaceOnUse`). Ligar o degradê
+no editor começa com a cor do miolo e opacidade 0 na ponta de fora (efeito de brilho que some).
 
 - **Rust**: `normalize/gauge_needle.rs` (`ValidatedGaugeNeedle`), campo `needle` em `ValidatedArcGaugeWidget`;
   `render/widgets/gauges/arc/needle.rs` desenha a cada quadro por cima do preenchimento (e sob o valor numérico).
@@ -407,8 +413,34 @@ Com `needle_length` presente **todos** os outros campos são obrigatórios (o fr
   editor `GaugeNeedleControls.jsx` + `gaugeNeedleUpdates.js`, `GAUGE_NEEDLE_KEYS` em `template-constants.js`
   (só `arc` e `corner`). Chaves de i18n com prefixo `gaugeNeedle*`.
 - O template `cluster-tacometro-velocimetro` usa a agulha (40 x 10, deslocada 6 px para fora, miolo a 30%).
-- Testes: `tests/gauge_needle_tests.rs` (5: validação, posição no topo, segue o valor, sem agulha, só borda) e
-  `gaugeNeedle.test.jsx` (14). Conferido visualmente no cluster com dados reais.
+- Testes: `tests/gauge_needle_tests.rs` (10: validação, posição, segue o valor, sem agulha, só borda, cor própria do
+  miolo, degradê da ponta de dentro para a de fora, cor/opacidade de cada ponta) e `gaugeNeedle.test.jsx` (26). Conferido visualmente no cluster com dados reais.
+
+## 11. Conjuntos de widgets no menu
+
+No drawer de widgets há a seção **Conjuntos** (`WidgetButtonGrid`), que adiciona vários widgets de uma vez:
+`tach-cluster` (tacômetro + velocímetro + marcha, de `templates/cluster-tacometro-velocimetro.json`) e
+`temperature-panel` (arrefecimento + admissão, de `templates/painel-temperaturas.json`). O layout vem do próprio
+template (fonte única): `useWidgetManager.addWidgetGroup` lê o template (`backend.getTemplate`), passa por
+`prepareTemplateFilePayload` (fontes) e `features/widget-editor/utils/widgetGroupConfig.js::appendWidgetGroup`
+acrescenta backdrops, labels, valores e plots à config atual **descartando os ids do template** (ids novos e únicos),
+seleciona o primeiro e fecha o drawer; erro de leitura vai para `setErrorMessage` e nada muda. Catálogo em
+`features/widget-drawer/data/widgetGroups.js` (para um novo conjunto: uma entrada + chaves `widget-drawer.*` no i18n).
+Os widgets entram nas posições do template (1920x1080); em cenas de outro tamanho é preciso arrastar.
+Os templates continuam existindo na lista de templates. O `cluster-barras-verticais` e o `mapa-trajeto` não estão
+no menu (o mapa já é o widget "Map" com as opções de mapa). Testes: `WidgetGroups.test.jsx` (12).
+
+## 11b. Fontes dos templates e limite do ajuste vertical
+
+- **Erro "font family is unavailable: Bebas Neue"** ao carregar um template: nome de família "solto" (sem extensão) é
+  procurado entre as fontes **do sistema**, e os templates `champagne-borders`, `champagne-shadows` e `white-opacity`
+  usavam "Bebas Neue" (e o `lavender-gradient`, "Roboto"), que só existem na máquina de quem os fez. Correção:
+  `fonts/BebasNeue-Regular.ttf` (+ `fonts/OFL-BebasNeue.txt`, licença OFL) entrou no pacote e os templates passaram a
+  usar os ids embutidos `Bebas Neue.ttf` e `Inter.ttf` (o `lavender-gradient` perdeu o Roboto). Teste
+  `tests/bundled_template_fonts_tests.rs`: todo template em `templates/` só pode citar fontes embutidas. Projetos ou
+  templates **do usuário** que citem "Bebas Neue" solto continuam falhando: trocar a fonte para "Bebas Neue.ttf".
+- Slider "Ajuste vertical" do rótulo do mostrador de arco (`ArcDisplaySection.jsx`): limite de ±50 para ±150 px
+  (o cluster usa 96).
 
 ## Notas / achados fora de escopo
 
@@ -432,6 +464,14 @@ Com `needle_length` presente **todos** os outros campos são obrigatórios (o fr
 ---
 
 ## Log de sessões
+
+### 2026-10-20 (continuação 6) — Claude Code (fontes, ajuste vertical, degradê da agulha)
+
+- Fonte Bebas Neue embutida e templates corrigidos; limite do ajuste vertical 150 px; degradê na agulha. Seções 10 e 11b.
+
+### 2026-10-20 (continuação 5) — Claude Code (conjuntos no menu)
+
+- Seção **Conjuntos** no drawer de widgets. Seção 11.
 
 ### 2026-10-20 (continuação 4) — Claude Code (agulha)
 
