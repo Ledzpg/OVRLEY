@@ -2,7 +2,7 @@
   "format": "ovrley-template",
   "version": 3,
   "name": "cluster-tacometro-velocimetro",
-  "savedAt": "2026-10-20T12:00:00.000Z",
+  "savedAt": "2026-10-20T21:37:45.791Z",
   "config": {
     "scene": {
       "width": 1920,
@@ -12,9 +12,9 @@
     },
     "backdrops": [
       {
-        "id": "widget-1",
-        "x": 1438,
-        "y": 598,
+        "id": "widget-3",
+        "x": 762,
+        "y": 412,
         "opacity": 1,
         "display_type": "circle",
         "fill_color": "#000000",
@@ -29,9 +29,9 @@
         }
       },
       {
-        "id": "widget-2",
-        "x": 1556,
-        "y": 744,
+        "id": "widget-4",
+        "x": 873,
+        "y": 584,
         "opacity": 1,
         "display_type": "rectangle",
         "fill_color": "#ffd400",
@@ -55,25 +55,23 @@
     "rasters": [],
     "labels": [
       {
-        "id": "widget-6",
-        "text": "KM/H",
-        "x": 1728,
-        "y": 862,
+        "x": 1042,
+        "y": 676,
         "font": "Rajdhani.ttf",
         "font_size": 30,
-        "color": "#cfd3d8",
-        "opacity": 1,
+        "text": "KM/H",
         "font_weight": 400,
         "italic": false,
-        "letter_spacing": 0
+        "letter_spacing": 0,
+        "color": "#cfd3d8",
+        "opacity": 1,
+        "id": "widget-5"
       }
     ],
     "values": [
       {
-        "id": "widget-3",
-        "value": "rpm",
-        "x": 1450,
-        "y": 610,
+        "x": 774,
+        "y": 424,
         "prefix": "",
         "suffix": "",
         "decimals": 0,
@@ -85,11 +83,13 @@
         "icon_offset_y": 0,
         "icon_color": "#ffd400",
         "font": "Rajdhani.ttf",
-        "font_size": 34,
+        "font_size": 60,
         "color": "#ffffff",
         "opacity": 1,
         "show_units": true,
         "display_unit": "rpm",
+        "id": "widget-6",
+        "value": "rpm",
         "display_variants": {
           "arc": {
             "width": 440,
@@ -98,7 +98,7 @@
             "arc_angle": 270,
             "track_fill_style": "fill",
             "inner_widget_offset_x": 0,
-            "inner_widget_offset_y": 96,
+            "inner_widget_offset_y": 108,
             "track_thickness": 10,
             "track_corner_radius": 0,
             "track_border_thickness": 0,
@@ -148,21 +148,21 @@
             "tick_label_font_size": 28,
             "tick_label_color": "#ffffff",
             "tick_label_offset": 8,
-            "needle_length": 40,
+            "needle_length": 80,
             "needle_width": 10,
-            "needle_offset": 6,
+            "needle_offset": -30,
             "needle_color": "#ffffff",
-            "needle_border_thickness": 2,
-            "needle_fill_opacity": 0.3,
+            "needle_border_thickness": 0,
+            "needle_fill_opacity": 0,
+            "needle_fill_end_color": "#ffffff",
+            "needle_fill_end_opacity": 1,
             "needle_corner_radius": 3
           }
         }
       },
       {
-        "id": "widget-4",
-        "value": "gear_position",
-        "x": 1587,
-        "y": 752,
+        "x": 904,
+        "y": 585,
         "prefix": "",
         "suffix": "",
         "decimals": 0,
@@ -179,14 +179,15 @@
         "color": "#111111",
         "opacity": 1,
         "show_units": false,
+        "display_unit": "gear",
+        "id": "widget-7",
+        "value": "gear_position",
         "shadow_strength": 0,
         "shadow_distance": 0
       },
       {
-        "id": "widget-5",
-        "value": "speed",
-        "x": 1808,
-        "y": 742,
+        "x": 1122,
+        "y": 556,
         "prefix": "",
         "suffix": "",
         "decimals": 0,
@@ -202,7 +203,10 @@
         "font_size": 112,
         "color": "#ffffff",
         "opacity": 1,
-        "show_units": false
+        "show_units": false,
+        "display_unit": "kmh",
+        "id": "widget-8",
+        "value": "speed"
       }
     ],
     "plots": []

@@ -55,7 +55,7 @@ describe('cluster template contents', () => {
     expect(dial.fill_zones[0]).toHaveProperty('end_color')
     // The warning band blends into the redline color, meeting it at the redline.
     expect(dial.fill_zones[2]).toMatchObject({ color: '#ffd400', end_color: dial.redline_color })
-    expect(dial).toMatchObject({ needle_length: 40, needle_width: 10 })
+    expect(dial).toMatchObject({ needle_length: 80, needle_width: 10 })
     expect(values.some((widget) => widget.value === 'speed')).toBe(true)
     const gear = values.find((widget) => widget.value === 'gear_position')
     expect(gear).toMatchObject({ shadow_strength: 0, shadow_distance: 0 })
