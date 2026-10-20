@@ -1,13 +1,15 @@
+> This is the README of the original project, [spirokai/OVRLEY](https://github.com/spirokai/OVRLEY), kept for reference. The page for this fork is the [main README](../README.md).
+
 <div align="center">
-  <img src="app/public/logo.svg" alt="OVRLEY Logo" height="60" />
+  <img src="../app/public/logo.svg" alt="OVRLEY Logo" height="60" />
 </div>
 
 <br />
 
 <div align="center">
-  <img src="docs/hero.avif" alt="OVRLEY Dashboard Interface" width="100%" />
-  <img src="docs/hero2.avif" alt="OVRLEY Dashboard Interface" width="100%" />
-  <img src="docs/gauge-showcase.gif" alt="OVRLEY Gauge Showcase" width="100%" />
+  <img src="hero.avif" alt="OVRLEY Dashboard Interface" width="100%" />
+  <img src="hero2.avif" alt="OVRLEY Dashboard Interface" width="100%" />
+  <img src="gauge-showcase.gif" alt="OVRLEY Gauge Showcase" width="100%" />
 </div>
 
 <br />
@@ -108,9 +110,9 @@ The Rust backend includes several extra test suites covering rendering correctne
 
 | Suite                | Purpose                                                                                        | Docs                                                         |
 | -------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| **Render Baselines** | Pixel-level regression tests — rendered frames and videos compared against committed baselines | [`BASELINES.md`](src-tauri/ovrley_core/BASELINES.md)         |
-| **Canvas Parity**    | Rust Skia vs browser SVG pixel comparison with SSIM scoring and diff images                    | [`CANVAS_PARITY.md`](src-tauri/ovrley_core/CANVAS_PARITY.md) |
-| **Benchmarks**       | Real-render encoding benchmarks measuring job time and file size per codec/hardware profile    | [`BENCHMARKS.md`](src-tauri/ovrley_core/BENCHMARKS.md)       |
+| **Render Baselines** | Pixel-level regression tests — rendered frames and videos compared against committed baselines | [`BASELINES.md`](../src-tauri/ovrley_core/BASELINES.md)         |
+| **Canvas Parity**    | Rust Skia vs browser SVG pixel comparison with SSIM scoring and diff images                    | [`CANVAS_PARITY.md`](../src-tauri/ovrley_core/CANVAS_PARITY.md) |
+| **Benchmarks**       | Real-render encoding benchmarks measuring job time and file size per codec/hardware profile    | [`BENCHMARKS.md`](../src-tauri/ovrley_core/BENCHMARKS.md)       |
 
 ## Building & Compatibility
 
