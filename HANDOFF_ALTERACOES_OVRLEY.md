@@ -40,12 +40,25 @@ Foi instalado, com autorização do usuário:
   `cargo` pode não estar no PATH: use o PowerShell.
 - **Visual Studio Build Tools 2022** com a carga de trabalho C++ (winget
   `Microsoft.VisualStudio.2022.BuildTools`), exigido pelo linker MSVC e pelo Skia.
-- **pnpm 10.25.0 via corepack**: use `corepack pnpm ...`. O
-  `corepack enable` global falha com EPERM em `C:\Program Files\nodejs`.
-- Dependências JS instaladas com
-  `corepack pnpm install --frozen-lockfile --ignore-scripts`. O `--ignore-scripts`
-  **pulou o postinstall que baixa o FFmpeg**, então `vendor/ffmpeg/` não existe.
-  Para exportar vídeo de verdade: `node scripts/install-ffmpeg.mjs`.
+- **pnpm 10.25.0 via corepack**: o `corepack enable` global falha com EPERM em
+  `C:\Program Files\nodejs`, então os atalhos foram criados em
+  `%USERPROFILE%\.corepack-bin` (`corepack enable --install-directory`).
+  Em um terminal novo: `$env:Path = "$env:USERPROFILE\.corepack-bin;$env:USERPROFILE\.cargo\bin;" + $env:Path`.
+  Isso é necessário porque `pnpm dev` chama `pnpm tauri dev` por dentro.
+- Dependências JS instaladas com `pnpm install --frozen-lockfile`. O
+  `vendor/ffmpeg/` (FFmpeg 191 MiB, BtbN FFmpeg-Builds) foi baixado pelo
+  postinstall do projeto; o Tauri **exige** essa pasta para compilar.
+- **`igc-parser` (dependência do GitHub) foi compilado à mão.** O pacote vem de
+  um tarball do GitHub sem `index.js`; o pnpm tenta gerá-lo rodando o `pnpm
+  install` do próprio pacote, que pede pnpm 12.14.0, e o corepack deste PC não
+  consegue executá-lo (`ERR_PNPM_PREPARE_PACKAGE`). Sem `index.js` o Vite não
+  resolve o pacote e o app não carrega. Solução usada: baixar o tarball do
+  commit do lockfile, transpilar `index.ts` com o esbuild do próprio projeto e
+  gravar `index.js` em `node_modules/.pnpm/igc-parser@.../node_modules/igc-parser/`.
+  **Qualquer `pnpm install --force` ou reinstalação do `node_modules` apaga
+  esse arquivo** e o app volta a não abrir; refaça o passo (script usado:
+  `esbuild.buildSync({ entryPoints: ['index.ts'], outfile: '.../index.js',
+  format: 'cjs', platform: 'node', target: 'es2017' })`).
 
 Comandos de verificação:
 
@@ -230,11 +243,11 @@ Pasta: `G:\Users\Luiz\Desktop\DEV PROGRAMAS\Garagem`. Commitado no branch
 
 ## Notas / achados fora de escopo
 
-- **Testes de frontend que já falhavam antes** (confirmado com `git stash`):
-  8 arquivos / 9 testes em `features/projects/*`, `features/render-video/*`,
-  `features/toolbar/ActivityDrawerContent.test.jsx`,
-  `lib/activity/igc-parser.test.js` e `lib/import-activity-boundary.test.js`.
-  Não foram investigados.
+- **Testes de frontend**: com o `igc-parser` compilado (ver "Ambiente"), a
+  suíte inteira passa **exceto** `features/toolbar/ActivityDrawerContent.test.jsx`
+  (1 teste), que espera "42.2 km" e falha porque o Windows está em pt-BR
+  (formata "42,2"). Não tem relação com estas mudanças. Antes do `igc-parser`
+  compilado, 7 outras suítes falhavam pelo mesmo motivo do pacote ausente.
 - O log **cru** do Garagem (`Time_Sec`, `Timestamp_UTC`...) ainda não é
   importável direto: o cabeçalho de tempo `time sec` não é um apelido. Os
   cabeçalhos de temperatura do log cru já funcionam. Para importar o log cru
@@ -264,7 +277,7 @@ Pasta: `G:\Users\Luiz\Desktop\DEV PROGRAMAS\Garagem`. Commitado no branch
 - **Garagem**: exportação com colunas próprias de temperatura, testes e
   especificação atualizados. Seção 4.
 - Verificação: `cargo test` do `ovrley_core` sem falhas (suíte inteira);
-  `eslint` limpo; `vitest` com apenas as 9 falhas que já existiam; `vitest` e
+  `eslint` limpo; `vitest` com 1 falha de formatação de idioma (ver acima); `vitest` e
   `tsc` do Garagem sem erros.
 - Commits feitos no fim da sessão, a pedido do usuário: 4 no OVRLEY (branch
   `garagem-customizacoes`) e 2 no Garagem (branch `unificacao`), sem push.
