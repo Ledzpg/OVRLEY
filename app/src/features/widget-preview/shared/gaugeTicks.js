@@ -6,6 +6,37 @@
 import { getArcPoint } from '../widgets/arc-gauge/trackPath'
 import { getArcFractionAngle } from './gaugeRedline'
 
+/**
+ * Screen angle where a fill of `fraction` ends. The fill is measured on the border-inset track, exactly as the Rust
+ * renderer builds its reveal spec; segmented bars use the plain sweep.
+ *
+ * @param {object} params
+ * @param {object} params.data - Gauge data (border, corner radius and flat-fill fields).
+ * @param {object} params.trackGeometry - Track geometry of the gauge.
+ * @param {boolean} params.segmented - Whether the track is drawn as bars.
+ * @param {number} params.fraction - Fill fraction (0-1).
+ * @returns {number} Angle in degrees.
+ */
+export function getArcValueAngle({ data, trackGeometry, segmented, fraction }) {
+  if (segmented) return trackGeometry.startAngle + trackGeometry.sweepAngle * fraction
+  const border = data.track_border_thickness
+  const direction = Math.sign(trackGeometry.sweepAngle) || 1
+  const angleOffset =
+    border > 0 && trackGeometry.radius > 0 ? Math.min(((border / trackGeometry.radius) * 180) / Math.PI, Math.abs(trackGeometry.sweepAngle) / 2) : 0
+  const innerCorner = Math.max(0, data.track_corner_radius - border)
+  return getArcFractionAngle(
+    {
+      ...trackGeometry,
+      startAngle: trackGeometry.startAngle + direction * angleOffset,
+      sweepAngle: trackGeometry.sweepAngle - direction * angleOffset * 2,
+      trackThickness: Math.max(0, trackGeometry.trackThickness - border * 2),
+      startCornerRadius: innerCorner,
+      endCornerRadius: data.track_fill_flat ? 0 : innerCorner,
+    },
+    fraction,
+  )
+}
+
 /** Returns true when the gauge has dial ticks turned on. */
 export function hasGaugeTicks(data) {
   return data?.tick_major_interval != null
@@ -55,26 +86,12 @@ export function getArcTickLayout({ data, trackGeometry, range, redline, segmente
   const outer = trackGeometry.trackThickness + border * 2
   const side = data.tick_position === 'outside' ? 1 : -1
   const edge = trackGeometry.radius + side * (outer * 0.5 + data.tick_offset)
-  const direction = Math.sign(trackGeometry.sweepAngle) || 1
-
-  // The fill is measured on the border-inset track, exactly as the Rust renderer builds its reveal spec.
-  const angleOffset =
-    border > 0 && trackGeometry.radius > 0 ? Math.min(((border / trackGeometry.radius) * 180) / Math.PI, Math.abs(trackGeometry.sweepAngle) / 2) : 0
-  const innerCorner = Math.max(0, data.track_corner_radius - border)
-  const spec = {
-    ...trackGeometry,
-    startAngle: trackGeometry.startAngle + direction * angleOffset,
-    sweepAngle: trackGeometry.sweepAngle - direction * angleOffset * 2,
-    trackThickness: Math.max(0, trackGeometry.trackThickness - border * 2),
-    startCornerRadius: innerCorner,
-    endCornerRadius: data.track_fill_flat ? 0 : innerCorner,
-  }
 
   const lines = []
   const labels = []
   for (const mark of getGaugeTickMarks(data, range.min, range.max)) {
     const fraction = (mark.value - range.min) / (range.max - range.min)
-    const angle = segmented ? trackGeometry.startAngle + trackGeometry.sweepAngle * fraction : getArcFractionAngle(spec, fraction)
+    const angle = getArcValueAngle({ data, trackGeometry, segmented, fraction })
     const inRedline = redline != null && fraction >= redline.fraction
     const length = mark.major ? data.tick_major_length : data.tick_minor_length
     const from = getArcPoint(trackGeometry.centerX, trackGeometry.centerY, edge, angle)

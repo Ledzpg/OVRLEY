@@ -17,6 +17,7 @@ import { BarFillStyleDetails, BarFillStyleField } from './BarFillStyleControls'
 import GaugeScaleControls from './GaugeScaleControls'
 import GaugeZoneControls from './GaugeZoneControls'
 import GaugeTickControls from './GaugeTickControls'
+import GaugeNeedleControls from './GaugeNeedleControls'
 import { getArcGaugeLayout, getCornerGaugeLayout } from '@/features/widget-preview/widgets/arc-gauge/geometry'
 import { getArcBarGapMax, getArcTrackCornerRadiusMax, getSuggestedArcBarGeometry } from '@/features/widget-preview/shared/gaugeBarGeometry'
 import { buildMetricUnitUpdate } from '@/lib/widget/altitude'
@@ -303,6 +304,7 @@ export default function ArcDisplaySection({ widget, updateWidgetData, updateWidg
       <GaugeScaleControls widget={widget} data={arcData} update={updateArc} />
       <GaugeZoneControls widget={widget} data={arcData} update={updateArc} />
       <GaugeTickControls widget={widget} data={arcData} update={updateArc} />
+      <GaugeNeedleControls data={arcData} update={updateArc} />
 
       <div className="space-y-4">
         <div className="flex w-full items-center gap-3">

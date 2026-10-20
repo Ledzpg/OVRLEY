@@ -6,6 +6,7 @@ import { getArcFilledTrackRevealSpec, getArcPoint } from './trackPath'
 import { getArcBarSegments, getBarFillCount } from '../../shared/gaugeBarGeometry'
 import { getArcRedlineZonePaths, getRedlineBarStart } from '../../shared/gaugeRedline'
 import { getArcTickLayout, hasGaugeTicks } from '../../shared/gaugeTicks'
+import { getArcNeedleLayout, hasGaugeNeedle } from '../../shared/gaugeNeedle'
 import { getArcZoneWedges, getFillStops, isRedlineBlinkOn, isRedlineOverrun } from '../../shared/gaugeZones'
 import { buildArcGaugeInnerWidgetModel } from '../metric/model'
 import { getTextShadowParts } from '../../shared/shadow'
@@ -114,6 +115,7 @@ export function useArcGaugePreviewPresentation({ widget, activity, previewSecond
           measureText: (text, fontSize) => measureArcPreviewText(text, fontSize, labelFontFamily),
         })
       : null
+    const needle = hasGaugeNeedle(widget.data) ? getArcNeedleLayout({ data: widget.data, trackGeometry, segmented, fraction: layout.fill }) : null
     const metricType = widget.data.value
     const displayUnit = widget.data.display_unit
     const minLabel = formatGaugeBoundaryLabel(metricType, layout.min + presentation.valueOffset, displayUnit)
@@ -133,6 +135,7 @@ export function useArcGaugePreviewPresentation({ widget, activity, previewSecond
       zoneWedges,
       overrun,
       ticks,
+      needle,
       minLabel,
       maxLabel,
       labels: widget.data.show_min_max_labels

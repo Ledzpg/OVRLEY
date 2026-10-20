@@ -147,7 +147,14 @@
             "tick_label_decimals": 0,
             "tick_label_font_size": 28,
             "tick_label_color": "#ffffff",
-            "tick_label_offset": 8
+            "tick_label_offset": 8,
+            "needle_length": 40,
+            "needle_width": 10,
+            "needle_offset": 6,
+            "needle_color": "#ffffff",
+            "needle_border_thickness": 2,
+            "needle_fill_opacity": 0.3,
+            "needle_corner_radius": 3
           }
         }
       },

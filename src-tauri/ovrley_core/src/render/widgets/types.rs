@@ -494,6 +494,8 @@ pub struct ArcGaugeCache {
     pub bar_geometry: Option<ResolvedBarGeometry>,
     pub redline: Option<ResolvedRedline>,
     pub fill_stops: Option<Vec<FillStop>>,
+    /// Needle drawn at each frame's value angle, scaled to render pixels.
+    pub needle: Option<crate::normalize::ValidatedGaugeNeedle>,
     pub text_style: crate::render::text::ResolvedTextStyle,
     pub has_unit: bool,
     pub unit_font_size: f32,
@@ -514,6 +516,8 @@ pub struct ArcGaugeFrameState {
     pub overrun: bool,
     /// Visible phase of the blinking overrun fill.
     pub blink_on: bool,
+    /// Screen angle (degrees) of the needle; `None` when the gauge has no needle.
+    pub needle_angle: Option<f32>,
 }
 
 /// Prepared elevation widget cache.

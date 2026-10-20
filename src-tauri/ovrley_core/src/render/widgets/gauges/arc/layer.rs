@@ -113,24 +113,11 @@ pub(super) fn draw_static_layer(
         )?;
     }
     if gauge.ticks.is_some() {
-        let (spec_geometry, spec_thickness, spec_corner) = if border_thickness > 0.0 {
-            let inner = inner_segment_geometry(geometry, border_thickness);
-            (
-                inner,
-                (track_thickness - border_thickness * 2.0).max(0.0),
-                (gauge.track_corner_radius * scale - border_thickness).max(0.0),
-            )
-        } else {
-            (geometry, track_thickness, gauge.track_corner_radius * scale)
-        };
-        let end_corner = if gauge.track_fill_flat { 0.0 } else { spec_corner };
-        let spec = ArcTrackSpec::full(spec_geometry, spec_thickness, spec_corner)
-            .with_end_corner_radius(end_corner);
         super::ticks::draw_ticks(
             canvas,
             gauge,
             geometry,
-            spec,
+            value_track_spec(gauge, geometry, scale),
             scale,
             font_dirs,
             (min_value, max_value),
@@ -144,6 +131,41 @@ pub(super) fn draw_static_layer(
         )?;
     }
     Ok(())
+}
+
+/// The filled track as the value reveals it (inside the border, with the fill's end cap). Ticks and
+/// the needle map values to angles through it, so they land exactly where a fill of that value ends.
+pub(super) fn value_track_spec(
+    gauge: &ValidatedArcGaugeWidget,
+    geometry: ArcGaugeGeometry,
+    scale: f32,
+) -> ArcTrackSpec {
+    let track_thickness = gauge.track_thickness * scale;
+    let border_thickness = gauge.track_border_thickness * scale;
+    let (spec_geometry, spec_thickness, spec_corner) = if border_thickness > 0.0 {
+        (
+            inner_segment_geometry(geometry, border_thickness),
+            (track_thickness - border_thickness * 2.0).max(0.0),
+            (gauge.track_corner_radius * scale - border_thickness).max(0.0),
+        )
+    } else {
+        (geometry, track_thickness, gauge.track_corner_radius * scale)
+    };
+    let end_corner = if gauge.track_fill_flat { 0.0 } else { spec_corner };
+    ArcTrackSpec::full(spec_geometry, spec_thickness, spec_corner).with_end_corner_radius(end_corner)
+}
+
+/// Screen angle of a fill fraction: cap-aware for continuous fills, plain sweep for bars.
+pub(super) fn value_angle(
+    gauge: &ValidatedArcGaugeWidget,
+    geometry: ArcGaugeGeometry,
+    scale: f32,
+    fraction: f32,
+) -> f32 {
+    match gauge.track_fill_style {
+        TrackFillStyle::Fill => value_track_spec(gauge, geometry, scale).angle_at(fraction),
+        TrackFillStyle::Bars => geometry.start_angle + geometry.sweep_angle * fraction,
+    }
 }
 
 fn draw_static_track(

@@ -310,6 +310,7 @@ export function OverlayArcGaugeWidget({ widget, activity, previewSecond, globalO
     zoneWedges,
     overrun,
     ticks,
+    needle,
     minLabel,
     maxLabel,
     labels,
@@ -371,6 +372,22 @@ export function OverlayArcGaugeWidget({ widget, activity, previewSecond, globalO
             />
           ))}
         </g>
+      ) : null}
+      {needle ? (
+        <rect
+          x={needle.x}
+          y={needle.y}
+          width={needle.width}
+          height={needle.height}
+          rx={needle.cornerRadius}
+          transform={needle.transform}
+          fill={widget.data.needle_color}
+          fillOpacity={widget.data.needle_fill_opacity * opacity}
+          stroke={widget.data.needle_border_thickness > 0 ? widget.data.needle_color : 'none'}
+          strokeWidth={widget.data.needle_border_thickness}
+          strokeOpacity={opacity}
+          data-testid={`${widget.data.display_type}-gauge-needle`}
+        />
       ) : null}
       {widget.data.show_min_max_labels ? (
         <>

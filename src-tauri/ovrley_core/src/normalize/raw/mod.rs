@@ -451,6 +451,21 @@ pub struct ValueConfig {
     pub tick_label_color: Option<String>,
     #[serde(default)]
     pub tick_label_offset: Option<f32>,
+    /// Dial needle (arc-shaped gauges); `needle_length` turns it on and requires the others.
+    #[serde(default)]
+    pub needle_length: Option<f32>,
+    #[serde(default)]
+    pub needle_width: Option<f32>,
+    #[serde(default)]
+    pub needle_offset: Option<f32>,
+    #[serde(default)]
+    pub needle_color: Option<String>,
+    #[serde(default)]
+    pub needle_border_thickness: Option<f32>,
+    #[serde(default)]
+    pub needle_fill_opacity: Option<f32>,
+    #[serde(default)]
+    pub needle_corner_radius: Option<f32>,
     #[serde(default)]
     pub diameter: Option<f32>,
     #[serde(default)]

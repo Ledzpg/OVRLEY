@@ -14,12 +14,13 @@
 mod geometry;
 mod inner_widget;
 mod layer;
+mod needle;
 mod path;
 mod segment;
 mod ticks;
 
 use self::inner_widget::{inner_widget_layout, unit_font_size, DEFAULT_GAP_PX, LINE_HEIGHT};
-use self::layer::{draw_fill, draw_static_layer};
+use self::layer::{draw_fill, draw_static_layer, value_angle};
 use super::metric::{
     fill_percentage, fill_stops, format_gauge_label, gauge_range, metric_values, redline_overrun,
     resolve_redline,
@@ -124,8 +125,13 @@ pub fn prepare_arc_gauge_cache(
                     .copied()
                     .unwrap_or(0.0);
                 let (overrun, blink_on) = redline_overrun(redline.as_ref(), value, frame_seconds);
+                let fill01 = fill_percentage(value, min_value, max_value);
                 ArcGaugeFrameState {
-                    fill01: fill_percentage(value, min_value, max_value),
+                    fill01,
+                    needle_angle: gauge
+                        .needle
+                        .as_ref()
+                        .map(|_| value_angle(gauge, geometry, scale, fill01)),
                     value_text: parts.standard_text().0.to_string(),
                     overrun,
                     blink_on,
@@ -202,6 +208,14 @@ pub fn prepare_arc_gauge_cache(
             bar_geometry: crate::normalize::scale_bar_geometry(gauge.bar_geometry, scale),
             redline,
             fill_stops,
+            needle: gauge.needle.as_ref().map(|needle| crate::normalize::ValidatedGaugeNeedle {
+                length: needle.length * scale,
+                width: needle.width * scale,
+                offset: needle.offset * scale,
+                border_thickness: needle.border_thickness * scale,
+                corner_radius: needle.corner_radius * scale,
+                ..needle.clone()
+            }),
             text_style,
             has_unit: unit_text.is_some(),
             unit_font_size: static_unit_font_size,
@@ -250,6 +264,12 @@ pub fn draw_arc_gauge_widget(
                 }
             } else if state.fill01 > 0.0 {
                 draw_fill(canvas, cache, geometry, state.fill01, false);
+            }
+        }
+
+        if let (Some(needle), Some(angle)) = (&cache.needle, state.needle_angle) {
+            if geometry.radius > 0.0 {
+                needle::draw_needle(canvas, needle, geometry, angle, cache.text_style.opacity);
             }
         }
 

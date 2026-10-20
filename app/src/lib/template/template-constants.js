@@ -124,6 +124,17 @@ export const GAUGE_TICK_KEYS = [
 ]
 const GAUGE_TICK_DISPLAY_TYPES = new Set(['arc', 'corner'])
 
+/** Optional dial needle of arc-shaped gauge variants (unset needle_length = no needle). */
+export const GAUGE_NEEDLE_KEYS = [
+  'needle_length',
+  'needle_width',
+  'needle_offset',
+  'needle_color',
+  'needle_border_thickness',
+  'needle_fill_opacity',
+  'needle_corner_radius',
+]
+
 export const DISPLAY_VARIANT_KEYS = Object.freeze(
   Object.fromEntries(
     Object.entries(DISPLAY_TYPE_DEFINITIONS)
@@ -135,7 +146,7 @@ export const DISPLAY_VARIANT_KEYS = Object.freeze(
           ...Object.keys(definition.defaults || {}).filter((key) => !DISPLAY_VARIANT_EXCLUDED_KEYS.has(key)),
           ...(definition.conditionalKeys || []),
           ...(GAUGE_SCALE_DISPLAY_TYPES.has(displayType) ? GAUGE_SCALE_KEYS : []),
-          ...(GAUGE_TICK_DISPLAY_TYPES.has(displayType) ? GAUGE_TICK_KEYS : []),
+          ...(GAUGE_TICK_DISPLAY_TYPES.has(displayType) ? [...GAUGE_TICK_KEYS, ...GAUGE_NEEDLE_KEYS] : []),
         ],
       ]),
   ),

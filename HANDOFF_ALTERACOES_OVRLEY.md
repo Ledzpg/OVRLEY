@@ -381,6 +381,35 @@ Contrato estrito: se `map_tile_url` existe, os outros três são obrigatórios; 
   HTTP); mapa gira junto com a rotação do widget (o texto dos tiles também); não há estilo claro/escuro por filtro
   de cor; tiles do hemisfério com antimeridiano não são tratados.
 
+## 10. Agulha do mostrador (arco e canto)
+
+Barra curta com o miolo translúcido e a borda sólida, atravessando a trilha no ângulo do valor atual, como a agulha
+do tacômetro da imagem de referência. Só em medidores `arc` e `corner`; funciona com escala automática ou fixa.
+
+| Campo | Significado |
+|---|---|
+| `needle_length` | liga a agulha; tamanho ao longo do raio |
+| `needle_width` | tamanho transversal |
+| `needle_offset` | deslocamento do centro da agulha a partir do meio da trilha (positivo = para fora, aceita negativo) |
+| `needle_color` | cor da borda e do miolo |
+| `needle_border_thickness` | espessura da borda (0 = sem borda) |
+| `needle_fill_opacity` | opacidade do miolo, 0-1 (0 deixa só a borda) |
+| `needle_corner_radius` | raio dos cantos (limitado à metade da agulha) |
+
+Com `needle_length` presente **todos** os outros campos são obrigatórios (o frontend materializa os padrões).
+
+- **Rust**: `normalize/gauge_needle.rs` (`ValidatedGaugeNeedle`), campo `needle` em `ValidatedArcGaugeWidget`;
+  `render/widgets/gauges/arc/needle.rs` desenha a cada quadro por cima do preenchimento (e sob o valor numérico).
+  O ângulo vem de `layer.rs::value_angle`/`value_track_spec`, o **mesmo** mapeamento das marcas (extraído de
+  `draw_static_layer`): cap-aware no preenchimento contínuo, varredura simples nas barras. A agulha continua
+  marcando o valor real quando o redline enche a trilha toda.
+- **Frontend**: `shared/gaugeNeedle.js` (+ `getArcValueAngle` extraído de `gaugeTicks.js`), hook e SVG do arco,
+  editor `GaugeNeedleControls.jsx` + `gaugeNeedleUpdates.js`, `GAUGE_NEEDLE_KEYS` em `template-constants.js`
+  (só `arc` e `corner`). Chaves de i18n com prefixo `gaugeNeedle*`.
+- O template `cluster-tacometro-velocimetro` usa a agulha (40 x 10, deslocada 6 px para fora, miolo a 30%).
+- Testes: `tests/gauge_needle_tests.rs` (5: validação, posição no topo, segue o valor, sem agulha, só borda) e
+  `gaugeNeedle.test.jsx` (14). Conferido visualmente no cluster com dados reais.
+
 ## Notas / achados fora de escopo
 
 - **Testes de frontend**: com o `igc-parser` compilado (ver "Ambiente"), a
@@ -403,6 +432,10 @@ Contrato estrito: se `map_tile_url` existe, os outros três são obrigatórios; 
 ---
 
 ## Log de sessões
+
+### 2026-10-20 (continuação 4) — Claude Code (agulha)
+
+- **Agulha do mostrador** (Rust, preview, editor, template do cluster). Seção 10. `cargo test`, `eslint` e `vitest` sem novas falhas.
 
 ### 2026-10-20 (continuação 3) — Claude Code (mapa raster)
 
