@@ -465,6 +465,12 @@ pub struct ValueConfig {
     #[serde(default)]
     pub needle_fill_opacity: Option<f32>,
     #[serde(default)]
+    pub needle_fill_color: Option<String>,
+    #[serde(default)]
+    pub needle_fill_end_color: Option<String>,
+    #[serde(default)]
+    pub needle_fill_end_opacity: Option<f32>,
+    #[serde(default)]
     pub needle_corner_radius: Option<f32>,
     #[serde(default)]
     pub diameter: Option<f32>,

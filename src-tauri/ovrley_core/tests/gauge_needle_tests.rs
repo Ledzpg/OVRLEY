@@ -179,3 +179,75 @@ fn a_hollow_needle_keeps_only_its_border() {
     assert_eq!(image.get_pixel(200, 14).0[3], 0, "no body above the track");
     assert!(image.get_pixel(200, 10).0[3] > 80, "border remains at the tip");
 }
+
+fn gradient_needle(start_opacity: f64, end_color: &str, end_opacity: f64) -> serde_json::Value {
+    let mut value = with_needle();
+    value["needle_border_thickness"] = serde_json::json!(0);
+    value["needle_fill_color"] = serde_json::json!("#ff0000");
+    value["needle_fill_opacity"] = serde_json::json!(start_opacity);
+    value["needle_fill_end_color"] = serde_json::json!(end_color);
+    value["needle_fill_end_opacity"] = serde_json::json!(end_opacity);
+    value
+}
+
+#[test]
+fn needle_fill_fields_validate_strictly() {
+    assert!(config_for(gradient_needle(1.0, "#0000ff", 0.0)).is_ok());
+
+    let end_opacity_alone = without(gradient_needle(1.0, "#0000ff", 0.5), "needle_fill_end_color");
+    assert!(config_for(end_opacity_alone).err().unwrap().to_string().contains("requires needle_fill_end_color"));
+    let end_color_alone = without(gradient_needle(1.0, "#0000ff", 0.5), "needle_fill_end_opacity");
+    assert!(config_for(end_color_alone).err().unwrap().to_string().contains("needle_fill_end_opacity"));
+    let bad_color = gradient_needle(1.0, "blue", 0.5);
+    assert!(config_for(bad_color).err().unwrap().to_string().contains("needle_fill_end_color"));
+    let bad_fill = with(gradient_needle(1.0, "#0000ff", 0.5), "needle_fill_color", serde_json::json!("red"));
+    assert!(config_for(bad_fill).err().unwrap().to_string().contains("needle_fill_color"));
+    // Without a fill color the body keeps using the border color, as before the gradient existed.
+    assert!(config_for(without(with_needle(), "needle_fill_color")).is_ok());
+}
+
+#[test]
+fn the_needle_fill_runs_from_the_inner_to_the_outer_end() {
+    // Needle at the top (5500 of 11000): it spans y = 10 (outer end) to 50 (inner end), centered at x = 200,
+    // and the track covers y = 20..40, so the parts that stick out (10..20 and 40..50) show the fill alone.
+    // Opaque red at the inner end fading to fully transparent blue at the outer end.
+    let config = config_for(gradient_needle(1.0, "#0000ff", 0.0)).unwrap();
+    let image = render(&config, 5500.0, 0.0, "gauge_needle_gradient.png");
+    let inner = image.get_pixel(200, 47).0;
+    let middle = image.get_pixel(200, 42).0;
+    let outer = image.get_pixel(200, 14).0;
+    assert!(inner[3] > 200 && inner[0] > 200 && inner[2] < 60, "inner end is opaque red, got {inner:?}");
+    assert!((160..=235).contains(&middle[3]), "a bit further out it is more transparent, got {middle:?}");
+    assert!(outer[3] < 70, "outer end is almost transparent, got {outer:?}");
+    assert!(inner[3] > middle[3] && middle[3] > outer[3], "opacity falls toward the outer end");
+}
+
+#[test]
+fn each_end_has_its_own_color_and_opacity() {
+    // Red at 40% on the inner end, opaque blue on the outer end.
+    let config = config_for(gradient_needle(0.4, "#0000ff", 1.0)).unwrap();
+    let image = render(&config, 5500.0, 0.0, "gauge_needle_two_colors.png");
+    let inner = image.get_pixel(200, 48).0;
+    let outer = image.get_pixel(200, 12).0;
+    assert!((70..=130).contains(&inner[3]) && inner[0] > inner[2], "inner end is a faint red, got {inner:?}");
+    assert!(outer[3] > 200 && outer[2] > outer[0], "outer end is opaque blue, got {outer:?}");
+}
+
+#[test]
+fn a_fully_transparent_gradient_draws_nothing_but_the_border() {
+    let mut value = gradient_needle(0.0, "#0000ff", 0.0);
+    value["needle_border_thickness"] = serde_json::json!(0);
+    let image = render(&config_for(value).unwrap(), 5500.0, 0.0, "gauge_needle_invisible.png");
+    assert_eq!(image.get_pixel(200, 15).0[3], 0);
+    assert_eq!(image.get_pixel(200, 45).0[3], 0);
+}
+
+#[test]
+fn a_solid_fill_can_have_its_own_color() {
+    let mut value = with_needle();
+    value["needle_fill_color"] = serde_json::json!("#00ff00");
+    value["needle_fill_opacity"] = serde_json::json!(1.0);
+    let image = render(&config_for(value).unwrap(), 5500.0, 0.0, "gauge_needle_fill_color.png");
+    let body = image.get_pixel(200, 45).0;
+    assert!(body[1] > 200 && body[0] < 60 && body[2] < 60, "body is green while the border stays magenta, got {body:?}");
+}

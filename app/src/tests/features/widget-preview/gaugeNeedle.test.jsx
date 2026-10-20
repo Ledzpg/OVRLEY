@@ -132,11 +132,14 @@ describe('needle preview', () => {
 describe('needle controls', () => {
   test('enabling writes every field and disabling clears them all', () => {
     const on = buildNeedleUpdate({}, { enabled: true })
-    expect(Object.keys(on).sort()).toEqual([...NEEDLE_FIELDS].sort())
+    expect(Object.keys(on).sort()).toEqual(Object.keys(NEEDLE_DEFAULTS).sort())
     expect(on).toEqual(NEEDLE_DEFAULTS)
+    expect(on).not.toHaveProperty('needle_fill_end_color')
     const off = buildNeedleUpdate(NEEDLE, { enabled: false })
     expect(Object.values(off).every((value) => value === undefined)).toBe(true)
     expect(Object.keys(off)).toEqual(NEEDLE_FIELDS)
+    expect(NEEDLE_FIELDS).toContain('needle_fill_end_color')
+    expect(NEEDLE_FIELDS).toContain('needle_fill_end_opacity')
   })
 
   test('keeps values the user already set when re-enabling', () => {
@@ -168,5 +171,93 @@ describe('needle controls', () => {
   test('only arc and corner variants carry needle fields', () => {
     for (const type of ['arc', 'corner']) for (const key of GAUGE_NEEDLE_KEYS) expect(DISPLAY_VARIANT_KEYS[type]).toContain(key)
     for (const key of GAUGE_NEEDLE_KEYS) expect(DISPLAY_VARIANT_KEYS.linear).not.toContain(key)
+  })
+})
+
+describe('needle fill', () => {
+  test('the body uses the border color when no fill color is set', () => {
+    const layout = getArcNeedleLayout({ data: makeArc().data, trackGeometry, segmented: false, fraction: 0.5 })
+    expect(layout.fill).toEqual({ color: '#ff00ff', opacity: 0.5, end: null })
+  })
+
+  test('a fill color and a gradient end are carried to the layout', () => {
+    const data = { ...makeArc().data, needle_fill_color: '#ff0000', needle_fill_end_color: '#0000ff', needle_fill_end_opacity: 0.2 }
+    const layout = getArcNeedleLayout({ data, trackGeometry, segmented: false, fraction: 0.5 })
+    expect(layout.fill).toEqual({ color: '#ff0000', opacity: 0.5, end: { color: '#0000ff', opacity: 0.2 } })
+  })
+
+  test('a solid body is painted with its color and opacity', () => {
+    render(
+      <OverlayArcGaugeWidget
+        widget={makeArc({ needle_fill_color: '#00ff00' })}
+        activity={rpmActivity(4000)}
+        previewSecond={0}
+        globalScale={1}
+        globalOpacity={1}
+      />,
+    )
+    const needle = screen.getByTestId('arc-gauge-needle')
+    expect(needle.getAttribute('fill')).toBe('#00ff00')
+    expect(needle.getAttribute('fill-opacity')).toBe('0.5')
+    expect(needle.getAttribute('stroke')).toBe('#ff00ff')
+  })
+
+  test('a gradient body references a gradient with a color and an opacity at each end', () => {
+    const widget = makeArc({ needle_fill_color: '#ff0000', needle_fill_end_color: '#0000ff', needle_fill_end_opacity: 0.25 })
+    const { container } = render(
+      <OverlayArcGaugeWidget widget={widget} activity={rpmActivity(4000)} previewSecond={0} globalScale={1} globalOpacity={0.5} />,
+    )
+    const needle = screen.getByTestId('arc-gauge-needle')
+    const gradientId = /url\(#(.+)\)/.exec(needle.getAttribute('fill'))[1]
+    const gradient = container.querySelector(`[id="${gradientId}"]`)
+    const [first, last] = gradient.querySelectorAll('stop')
+    expect(first.getAttribute('stop-color')).toBe('#ff0000')
+    expect(Number(first.getAttribute('stop-opacity'))).toBeCloseTo(0.5 * 0.5)
+    expect(last.getAttribute('stop-color')).toBe('#0000ff')
+    expect(Number(last.getAttribute('stop-opacity'))).toBeCloseTo(0.25 * 0.5)
+    // The gradient runs along the needle, from its inner end to its outer end.
+    expect(Number(gradient.getAttribute('x2')) - Number(gradient.getAttribute('x1'))).toBeCloseTo(40)
+    expect(gradient.getAttribute('y1')).toBe(gradient.getAttribute('y2'))
+  })
+})
+
+describe('needle fill controls', () => {
+  const solid = { ...NEEDLE, needle_fill_color: '#ffffff' }
+
+  test('turning the gradient on fades the body color to nothing by default', () => {
+    expect(buildNeedleUpdate(solid, { gradient: true })).toEqual({ needle_fill_end_color: '#ffffff', needle_fill_end_opacity: 0 })
+    expect(buildNeedleUpdate(NEEDLE, { gradient: true }).needle_fill_end_color).toBe('#ff00ff')
+  })
+
+  test('turning the gradient off clears both end fields', () => {
+    const graded = { ...solid, needle_fill_end_color: '#0000ff', needle_fill_end_opacity: 0.5 }
+    expect(buildNeedleUpdate(graded, { gradient: false })).toEqual({ needle_fill_end_color: undefined, needle_fill_end_opacity: undefined })
+  })
+
+  test('re-enabling the gradient keeps the end the user chose', () => {
+    const graded = { ...solid, needle_fill_end_color: '#0000ff', needle_fill_end_opacity: 0.5 }
+    expect(buildNeedleUpdate(graded, { gradient: true })).toEqual({ needle_fill_end_color: '#0000ff', needle_fill_end_opacity: 0.5 })
+  })
+
+  test('start and end colors and opacities are edited independently', () => {
+    const graded = { ...solid, needle_fill_end_color: '#0000ff', needle_fill_end_opacity: 0.5 }
+    expect(buildNeedleUpdate(graded, { fillColor: '#ff0000' })).toEqual({ needle_fill_color: '#ff0000' })
+    expect(buildNeedleUpdate(graded, { fillOpacity: 80 })).toEqual({ needle_fill_opacity: 0.8 })
+    expect(buildNeedleUpdate(graded, { fillEndColor: '#00ff00' })).toEqual({ needle_fill_end_color: '#00ff00' })
+    expect(buildNeedleUpdate(graded, { fillEndOpacity: 10 })).toEqual({ needle_fill_end_opacity: 0.1 })
+    expect(buildNeedleUpdate(graded, { fillEndOpacity: 101 })).toEqual({})
+    expect(buildNeedleUpdate(graded, { fillEndOpacity: '' })).toEqual({})
+  })
+
+  test('end edits are ignored while the gradient is off', () => {
+    expect(buildNeedleUpdate(solid, { fillEndColor: '#00ff00' })).toEqual({})
+    expect(buildNeedleUpdate(solid, { fillEndOpacity: 50 })).toEqual({})
+  })
+
+  test('the new fields travel with the display variant', () => {
+    for (const key of ['needle_fill_color', 'needle_fill_end_color', 'needle_fill_end_opacity']) {
+      expect(GAUGE_NEEDLE_KEYS).toContain(key)
+      expect(DISPLAY_VARIANT_KEYS.arc).toContain(key)
+    }
   })
 })

@@ -7,11 +7,16 @@ export const NEEDLE_DEFAULTS = Object.freeze({
   needle_offset: 0,
   needle_color: '#ffffff',
   needle_border_thickness: 2,
+  needle_fill_color: '#ffffff',
   needle_fill_opacity: 0.35,
   needle_corner_radius: 3,
 })
 
-export const NEEDLE_FIELDS = Object.keys(NEEDLE_DEFAULTS)
+/** Fields of the gradient's outer end; present together or not at all. */
+const GRADIENT_END_FIELDS = ['needle_fill_end_color', 'needle_fill_end_opacity']
+
+/** Every needle field: all of them are cleared when the needle is turned off. */
+export const NEEDLE_FIELDS = [...Object.keys(NEEDLE_DEFAULTS), ...GRADIENT_END_FIELDS]
 
 /** Numeric needle fields with their validity rules. The offset may be negative (inward). */
 const NUMERIC_FIELDS = {
@@ -35,18 +40,33 @@ function parseNumber(raw) {
  * state it would reject. Turning the needle on writes every field; turning it off clears them all.
  *
  * @param {object} data - Current display-variant data.
- * @param {object} change - One of `enabled` (boolean), `field` + `value` (a numeric field), `color` or
- *   `fillOpacity` (percent, 0-100).
+ * @param {object} change - One of `enabled` (boolean), `field` + `value` (a numeric field), `color` (border),
+ *   `fillColor`, `fillOpacity` (percent, 0-100), `gradient` (boolean: turns the gradient body on or off),
+ *   `fillEndColor` or `fillEndOpacity` (percent, 0-100; only with the gradient on).
  * @returns {object} Patch to merge into the display variant.
  */
 export function buildNeedleUpdate(data, change) {
   if (Object.hasOwn(change, 'enabled')) {
     if (!change.enabled) return Object.fromEntries(NEEDLE_FIELDS.map((field) => [field, undefined]))
-    return Object.fromEntries(NEEDLE_FIELDS.map((field) => [field, data[field] ?? NEEDLE_DEFAULTS[field]]))
+    return Object.fromEntries(Object.keys(NEEDLE_DEFAULTS).map((field) => [field, data[field] ?? NEEDLE_DEFAULTS[field]]))
   }
   if (data.needle_length == null) return {}
 
   if (Object.hasOwn(change, 'color')) return { needle_color: change.color }
+  if (Object.hasOwn(change, 'fillColor')) return { needle_fill_color: change.fillColor }
+  if (Object.hasOwn(change, 'gradient')) {
+    if (!change.gradient) return { needle_fill_end_color: undefined, needle_fill_end_opacity: undefined }
+    // The outer end starts as a fade-out of the body color, the usual look of a glowing pointer.
+    return {
+      needle_fill_end_color: data.needle_fill_end_color ?? data.needle_fill_color ?? data.needle_color,
+      needle_fill_end_opacity: data.needle_fill_end_opacity ?? 0,
+    }
+  }
+  if (Object.hasOwn(change, 'fillEndColor')) return data.needle_fill_end_color == null ? {} : { needle_fill_end_color: change.fillEndColor }
+  if (Object.hasOwn(change, 'fillEndOpacity')) {
+    const percent = parseNumber(change.fillEndOpacity)
+    return data.needle_fill_end_color != null && percent !== null && percent >= 0 && percent <= 100 ? { needle_fill_end_opacity: percent / 100 } : {}
+  }
   if (Object.hasOwn(change, 'fillOpacity')) {
     const percent = parseNumber(change.fillOpacity)
     return percent !== null && percent >= 0 && percent <= 100 ? { needle_fill_opacity: percent / 100 } : {}

@@ -132,6 +132,9 @@ export const GAUGE_NEEDLE_KEYS = [
   'needle_color',
   'needle_border_thickness',
   'needle_fill_opacity',
+  'needle_fill_color',
+  'needle_fill_end_color',
+  'needle_fill_end_opacity',
   'needle_corner_radius',
 ]
 

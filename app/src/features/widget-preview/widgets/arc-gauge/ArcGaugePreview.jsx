@@ -374,20 +374,37 @@ export function OverlayArcGaugeWidget({ widget, activity, previewSecond, globalO
         </g>
       ) : null}
       {needle ? (
-        <rect
-          x={needle.x}
-          y={needle.y}
-          width={needle.width}
-          height={needle.height}
-          rx={needle.cornerRadius}
-          transform={needle.transform}
-          fill={widget.data.needle_color}
-          fillOpacity={widget.data.needle_fill_opacity * opacity}
-          stroke={widget.data.needle_border_thickness > 0 ? widget.data.needle_color : 'none'}
-          strokeWidth={widget.data.needle_border_thickness}
-          strokeOpacity={opacity}
-          data-testid={`${widget.data.display_type}-gauge-needle`}
-        />
+        <>
+          {needle.fill.end ? (
+            <defs>
+              <linearGradient
+                id={`${widget.data.display_type}-gauge-${widget.id}-needle-fill`}
+                gradientUnits="userSpaceOnUse"
+                x1={needle.x}
+                y1={0}
+                x2={needle.x + needle.width}
+                y2={0}
+              >
+                <stop offset="0" stopColor={needle.fill.color} stopOpacity={needle.fill.opacity * opacity} />
+                <stop offset="1" stopColor={needle.fill.end.color} stopOpacity={needle.fill.end.opacity * opacity} />
+              </linearGradient>
+            </defs>
+          ) : null}
+          <rect
+            x={needle.x}
+            y={needle.y}
+            width={needle.width}
+            height={needle.height}
+            rx={needle.cornerRadius}
+            transform={needle.transform}
+            fill={needle.fill.end ? `url(#${widget.data.display_type}-gauge-${widget.id}-needle-fill)` : needle.fill.color}
+            fillOpacity={needle.fill.end ? undefined : needle.fill.opacity * opacity}
+            stroke={widget.data.needle_border_thickness > 0 ? widget.data.needle_color : 'none'}
+            strokeWidth={widget.data.needle_border_thickness}
+            strokeOpacity={opacity}
+            data-testid={`${widget.data.display_type}-gauge-needle`}
+          />
+        </>
       ) : null}
       {widget.data.show_min_max_labels ? (
         <>
