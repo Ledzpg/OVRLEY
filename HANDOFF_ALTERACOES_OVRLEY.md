@@ -14,10 +14,14 @@ mudou em 2026-10-20.
 ## Antes de tocar em qualquer coisa
 
 1. Leia este arquivo inteiro, principalmente a seção **Log de sessões**.
-2. Rode `git status`. **Todas** as mudanças abaixo estão só na árvore de
-   trabalho: nada foi commitado, nenhum branch foi criado, não há remoto
-   próprio. Se houver arquivos modificados que você não tocou, pare e pergunte
-   ao usuário antes de commitar, descartar ou sobrescrever.
+2. Rode `git status` e `git log --oneline -6`. As mudanças abaixo estão
+   commitadas no branch **`garagem-customizacoes`** (criado a partir do `main`
+   no commit `13c3f41f`), sem push; não há remoto próprio. Os commits, em
+   ordem, são: temperaturas, sombra por widget, escala fixa/redline e este
+   documento. Cada commit de código compila sozinho (`cargo check --tests`).
+   Se houver arquivos modificados que você não tocou, pare e pergunte ao
+   usuário antes de commitar, descartar ou sobrescrever. Não faça merge,
+   rebase, reset nem push por conta própria.
 3. **Nunca rode `pnpm build` / `pnpm tauri build` sem o usuário pedir**
    (regra do `agents.md`). `cargo check` e `cargo test` no `ovrley_core` são
    seguros; `pnpm dev` abre o app.
@@ -204,7 +208,10 @@ normalização do template).
 
 ## 4. Garagem em Dia (projeto irmão)
 
-Pasta: `G:\Users\Luiz\Desktop\DEV PROGRAMAS\Garagem`. Nada commitado lá também.
+Pasta: `G:\Users\Luiz\Desktop\DEV PROGRAMAS\Garagem`. Commitado no branch
+`unificacao` (o branch em uso lá) em dois commits:
+`feat(datalogger): colunas proprias de temperatura no CSV do OVRLEY` e
+`docs(handoff): ...`. Sem push e sem bump de versão.
 
 - `app/src/cockpit/services/datalogger/ovrleyExport.ts`: o CSV agora tem **15
   colunas**. `Torque (Nm)` (que carregava a temperatura do arrefecimento como
@@ -217,6 +224,7 @@ Pasta: `G:\Users\Luiz\Desktop\DEV PROGRAMAS\Garagem`. Nada commitado lá também
   partes de colunas, seção 4, exemplo, checklist e tabela de widgets.
 - Verificado: `npx vitest run` no `app/` do Garagem (84 testes) e
   `npx tsc --noEmit` sem erros. **Não** houve build do APK/AAB nem bump de versão.
+  O `handoff.md` do Garagem ganhou uma entrada apontando para este arquivo.
 - Gravações exportadas **antes** desta mudança têm a temperatura na coluna
   Torque; é preciso reexportar.
 
@@ -258,7 +266,9 @@ Pasta: `G:\Users\Luiz\Desktop\DEV PROGRAMAS\Garagem`. Nada commitado lá também
 - Verificação: `cargo test` do `ovrley_core` sem falhas (suíte inteira);
   `eslint` limpo; `vitest` com apenas as 9 falhas que já existiam; `vitest` e
   `tsc` do Garagem sem erros.
-- **Não feito**: commit, build/empacotamento, teste visual no app, teste de
+- Commits feitos no fim da sessão, a pedido do usuário: 4 no OVRLEY (branch
+  `garagem-customizacoes`) e 2 no Garagem (branch `unificacao`), sem push.
+- **Não feito**: push, build/empacotamento, teste visual no app, teste de
   render de vídeo, tradução dos demais idiomas.
 - Arquivos novos: `src-tauri/ovrley_core/src/normalize/gauge_scale.rs`,
   `src-tauri/ovrley_core/tests/gauge_scale_tests.rs`,
