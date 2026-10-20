@@ -68,3 +68,6 @@ INSTALL-linux.txt
 
 # Local update site output (installer + latest.json to upload)
 update-site/
+
+# Internal notes, not published
+HANDOFF_ALTERACOES_OVRLEY.md
