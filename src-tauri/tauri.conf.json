@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "OVRLEY-fork_by_ledzpg",
+  "productName": "OVRLEY (fork by ledzpg)",
   "version": "0.1.3",
   "identifier": "io.github.ledzpg.ovrley",
   "build": {

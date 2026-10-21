@@ -8,6 +8,8 @@ import { fileURLToPath } from 'node:url'
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const outputDir = resolve(rootDir, 'update-site')
+// The installer is built under the product name (which has spaces and brackets); it is published under a plain file name.
+const releaseBaseName = 'OVRLEY-fork_by_ledzpg'
 
 const options = parseOptions(process.argv.slice(2))
 const config = JSON.parse(await readFile(resolve(rootDir, 'src-tauri', 'tauri.conf.json'), 'utf8'))
@@ -21,8 +23,9 @@ if (!endpointMatch) {
 const tag = `v${version}`
 const downloadUrl = `${endpointMatch[1]}/releases/download/${tag}/`
 
-const installerName = `${productName}_${version}_x64-setup.exe`
-const installerPath = resolve(rootDir, 'src-tauri', 'target', 'release', 'bundle', 'nsis', installerName)
+const builtName = `${productName}_${version}_x64-setup.exe`
+const installerName = `${releaseBaseName}_${version}_x64-setup.exe`
+const installerPath = resolve(rootDir, 'src-tauri', 'target', 'release', 'bundle', 'nsis', builtName)
 const signaturePath = `${installerPath}.sig`
 
 const signature = await readOrFail(signaturePath, 'run build-installer.bat first, with the signing key available')
