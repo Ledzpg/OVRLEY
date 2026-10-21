@@ -854,7 +854,8 @@
     "scaleMin": "最小",
     "shadowDistance": "影の距離",
     "shadowStrength": "影の強さ",
-    "fuelTankCapacity": "タンク容量"
+    "fuelTankCapacity": "タンク容量",
+    "gaugeZoneSameAsNext": "次の帯と同じ"
   },
   "widget-drawer": {
     "groupTachClusterShort": "メーター",

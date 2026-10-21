@@ -63,7 +63,8 @@ These apply to the arc, corner and linear gauges unless noted.
   outside the track, with a label divisor (for example RPM ÷ 1000 gives 0 to 11). Everything past the redline takes
   the redline color.
 - **Color bands with gradients**: split the fill into zones, each with a solid color or a gradient between two colors.
-  The last band ends exactly at the redline.
+  A gradient can follow the next band (the default, so it keeps blending into that band when you recolor it) or end in
+  a color of its own. The last band ends exactly at the redline.
 - **Blinking redline overrun**: when the value passes the redline the whole bar can fill with the redline color and
   blink.
 - **Needle** (arc and corner gauges): length, width, offset from the track, corner radius, border, and a fill that can

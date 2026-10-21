@@ -42,7 +42,7 @@ export function useLinearGaugePreviewPresentation({ widget, activity, previewSec
         fillRect: getLinearFillRect({ ...baseLayout.innerTrackRect, fill: 1, orientation: widget.data.orientation }),
       }
     : baseLayout
-  const fillStops = getFillStops(widget.data.fill_zones, { min: layout.min, max: layout.max }, widget.data.redline_value)
+  const fillStops = getFillStops(widget.data.fill_zones, { min: layout.min, max: layout.max }, widget.data.redline_value, widget.data.redline_color)
   const segmented = widget.data.track_fill_style === 'bars'
   const bars = segmented
     ? getLinearBarRects(widget.data)

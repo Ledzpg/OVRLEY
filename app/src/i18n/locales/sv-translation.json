@@ -854,7 +854,8 @@
     "scaleMin": "Minimum",
     "shadowDistance": "Skuggavstånd",
     "shadowStrength": "Skuggstyrka",
-    "fuelTankCapacity": "Tankvolym"
+    "fuelTankCapacity": "Tankvolym",
+    "gaugeZoneSameAsNext": "Samma som nästa"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Instrument",

@@ -854,7 +854,8 @@
     "scaleMin": "Minimum",
     "shadowDistance": "Schaduwafstand",
     "shadowStrength": "Schaduwsterkte",
-    "fuelTankCapacity": "Tankinhoud"
+    "fuelTankCapacity": "Tankinhoud",
+    "gaugeZoneSameAsNext": "Zelfde als volgende"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Cluster",

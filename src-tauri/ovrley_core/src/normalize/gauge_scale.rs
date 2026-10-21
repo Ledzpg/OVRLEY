@@ -42,6 +42,8 @@ pub struct ValidatedFillZone {
     pub color: String,
     /// Gradient target reached at the start of the next band (or the scale end).
     pub end_color: Option<String>,
+    /// The gradient ends in the color of the next band (the redline color for the last band).
+    pub end_follows_next: bool,
 }
 
 /// Validated scale override, redline and fill bands of a gauge.
@@ -187,6 +189,13 @@ fn validate_fill_zones(
             )));
         }
         previous = Some(start);
+        let end_follows_next = zone.end_follows_next.unwrap_or(false);
+        if end_follows_next && zone.end_color.is_some() {
+            return Err(CoreError::Config(format!(
+                "{}: cannot be combined with end_follows_next",
+                zone_path("end_color")
+            )));
+        }
         validated.push(ValidatedFillZone {
             start,
             color: require_hex_color(Some(zone.color.as_str()), &zone_path("color"))?,
@@ -195,6 +204,7 @@ fn validate_fill_zones(
                 .as_deref()
                 .map(|color| require_hex_color(Some(color), &zone_path("end_color")))
                 .transpose()?,
+            end_follows_next,
         });
     }
     Ok(validated)

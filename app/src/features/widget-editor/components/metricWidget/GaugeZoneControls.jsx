@@ -5,7 +5,11 @@ import { Button } from '@/components/ui/button'
 import { SectionHeading } from '@/components/ui/section-heading'
 import { getGaugeScaleDefaults } from '@/lib/widget/standard-metrics'
 import { ColorField, NumberField, ToggleField } from '../widgetFormControls'
+import { resolveZoneEndColor } from '@/features/widget-preview/shared/gaugeZones'
 import { buildRedlineOverrunUpdate, buildZonesUpdate, MAX_FILL_ZONES, MAX_REDLINE_BLINK_HZ } from './gaugeZoneUpdates'
+
+/** A band is a gradient when it names an end color or follows the next band. */
+const zoneIsGradient = (zone) => zone.end_color != null || zone.end_follows_next === true
 
 /**
  * Fill color bands (solid or gradient along the scale) and the full redline fill with optional blinking, for gauges of
@@ -86,28 +90,35 @@ export default function GaugeZoneControls({ widget, data, update }) {
                   </Button>
                 ) : null}
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 items-end gap-4">
                 <ColorField
                   label={t('widget-editor.gaugeZoneColor', 'Color')}
                   value={zone.color}
                   onChange={(color) => applyZones({ index, color })}
                 />
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <span className="text-[9px] font-bold uppercase text-muted-foreground">
-                      {t('widget-editor.gaugeZoneGradient', 'Gradient to next')}
-                    </span>
-                    <ToggleField checked={zone.end_color != null} onCheckedChange={(gradient) => applyZones({ index, gradient })} />
-                  </div>
-                  {zone.end_color != null ? (
-                    <ColorField
-                      label={t('widget-editor.gaugeZoneEndColor', 'End Color')}
-                      value={zone.end_color}
-                      onChange={(endColor) => applyZones({ index, endColor })}
-                    />
-                  ) : null}
+                <div className="flex h-9 items-center gap-3">
+                  <span className="text-[9px] font-bold uppercase text-muted-foreground">
+                    {t('widget-editor.gaugeZoneGradient', 'Gradient to next')}
+                  </span>
+                  <ToggleField checked={zoneIsGradient(zone)} onCheckedChange={(gradient) => applyZones({ index, gradient })} />
                 </div>
               </div>
+              {zoneIsGradient(zone) ? (
+                <div className="grid grid-cols-2 items-end gap-4">
+                  <ColorField
+                    label={t('widget-editor.gaugeZoneEndColor', 'End Color')}
+                    value={resolveZoneEndColor(zones, index, data.redline_color)}
+                    disabled={zone.end_follows_next === true}
+                    onChange={(endColor) => applyZones({ index, endColor })}
+                  />
+                  <div className="flex h-9 items-center gap-3">
+                    <span className="text-[9px] font-bold uppercase text-muted-foreground">
+                      {t('widget-editor.gaugeZoneSameAsNext', 'Same as next')}
+                    </span>
+                    <ToggleField checked={zone.end_follows_next === true} onCheckedChange={(followsNext) => applyZones({ index, followsNext })} />
+                  </div>
+                </div>
+              ) : null}
             </div>
           ))}
           {zones.length < MAX_FILL_ZONES ? (

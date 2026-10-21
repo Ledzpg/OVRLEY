@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, test } from 'vitest'
 import { OverlayArcGaugeWidget } from '@/features/widget-preview/widgets/arc-gauge/ArcGaugePreview'
 import { OverlayLinearGaugeWidget } from '@/features/widget-preview/widgets/linear-gauge/LinearGaugePreview'
-import { getFillStops, getStopColorAt, isRedlineBlinkOn, isRedlineOverrun } from '@/features/widget-preview/shared/gaugeZones'
+import { getFillStops, getStopColorAt, isRedlineBlinkOn, isRedlineOverrun, resolveZoneEndColor } from '@/features/widget-preview/shared/gaugeZones'
 import {
   buildRedlineOverrunUpdate,
   buildTorquePowerZones,
@@ -122,6 +122,25 @@ describe('fill stops', () => {
     // Without a redline (or one outside the band) the last band runs to the scale end.
     expect(getFillStops(bands, { min: 0, max: 11000 })[5].fraction).toBe(1)
     expect(getFillStops(bands, { min: 0, max: 11000 }, 7500)[5].fraction).toBe(1)
+  })
+
+  test('a gradient that follows the next band ends in its color, the last one in the redline color', () => {
+    const bands = [
+      { start: 0, color: '#0000ff', end_follows_next: true },
+      { start: 7000, color: '#00ff00' },
+      { start: 8000, color: '#ffff00', end_follows_next: true },
+    ]
+    const followed = getFillStops(bands, { min: 0, max: 11000 }, 10000, '#ff0000')
+    expect(followed.map((stop) => stop.color)).toEqual(['#0000ff', '#00ff00', '#00ff00', '#00ff00', '#ffff00', '#ff0000'])
+    // The same bands with the colors named give identical stops.
+    const named = [
+      { start: 0, color: '#0000ff', end_color: '#00ff00' },
+      { start: 7000, color: '#00ff00' },
+      { start: 8000, color: '#ffff00', end_color: '#ff0000' },
+    ]
+    expect(followed).toEqual(getFillStops(named, { min: 0, max: 11000 }, 10000, '#ff0000'))
+    // The last band has nothing to follow without a redline, so it stays solid.
+    expect(getFillStops(bands, { min: 0, max: 11000 })[5].color).toBe('#ffff00')
   })
 
   test('colors interpolate inside a gradient band and stay solid elsewhere', () => {
@@ -244,10 +263,12 @@ describe('band editor updates', () => {
     expect(defaults.zonePreset).toEqual({ torque: 7000, power: 8000 })
     const patch = buildZonesUpdate(base, defaults, { enabled: true })
     expect(patch.fill_zones).toEqual([
-      { start: 0, color: '#2bd9ff', end_color: '#47ff6b' },
+      { start: 0, color: '#2bd9ff', end_follows_next: true },
       { start: 7000, color: '#47ff6b' },
-      { start: 8000, color: '#ffd400', end_color: '#ff0000' },
+      { start: 8000, color: '#ffd400', end_follows_next: true },
     ])
+    // Without a redline the warning band has no color to follow and names its own.
+    expect(buildTorquePowerZones({ min: 0, max: 11000 }, 7000, 8000, null)[2]).toEqual({ start: 8000, color: '#ffd400', end_color: '#ff3b30' })
   })
 
   test('bands need a fixed scale', () => {
@@ -275,7 +296,7 @@ describe('band editor updates', () => {
     expect(buildZonesUpdate(data, defaults, { index: 0, remove: true })).toEqual({})
   })
 
-  test('a gradient on the last band blends into the redline color', () => {
+  test('a gradient on the last band follows the redline color', () => {
     const data = {
       ...base,
       fill_zones: [
@@ -283,7 +304,10 @@ describe('band editor updates', () => {
         { start: 8000, color: '#ffff00' },
       ],
     }
-    expect(buildZonesUpdate(data, defaults, { index: 1, gradient: true }).fill_zones[1].end_color).toBe('#ff0000')
+    const last = buildZonesUpdate(data, defaults, { index: 1, gradient: true }).fill_zones[1]
+    expect(last).toMatchObject({ end_follows_next: true })
+    expect(last.end_color).toBeUndefined()
+    expect(resolveZoneEndColor([data.fill_zones[0], last], 1, data.redline_color)).toBe('#ff0000')
   })
 
   test('adds a band halfway to the scale end and toggles gradients', () => {
@@ -291,9 +315,58 @@ describe('band editor updates', () => {
     const added = buildZonesUpdate(data, defaults, { add: true }).fill_zones
     expect(added).toHaveLength(4)
     expect(added[3].start).toBe(9500)
+    // A new gradient follows the next band by default.
     const gradient = buildZonesUpdate(data, defaults, { index: 1, gradient: true }).fill_zones[1]
-    expect(gradient.end_color).toBe('#ffff00')
-    expect(buildZonesUpdate(data, defaults, { index: 0, gradient: false }).fill_zones[0]).not.toHaveProperty('end_color', '#00ff00')
+    expect(gradient.end_follows_next).toBe(true)
+    expect(resolveZoneEndColor(buildZonesUpdate(data, defaults, { index: 1, gradient: true }).fill_zones, 1, base.redline_color)).toBe('#ffff00')
+    const solid = buildZonesUpdate(data, defaults, { index: 0, gradient: false }).fill_zones[0]
+    expect(solid.end_color).toBeUndefined()
+    expect(solid.end_follows_next).toBeUndefined()
+  })
+
+  test('a band added after a gradient that follows the redline starts in the redline color', () => {
+    const data = {
+      ...base,
+      fill_zones: [
+        { start: 0, color: '#00ff00' },
+        { start: 8000, color: '#ffff00', end_follows_next: true },
+      ],
+    }
+    expect(buildZonesUpdate(data, defaults, { add: true }).fill_zones[2].color).toBe('#ff0000')
+  })
+
+  test('same as next: off keeps the color the gradient ends in, on follows the next band again', () => {
+    const data = {
+      ...base,
+      fill_zones: [
+        { start: 0, color: '#0000ff', end_follows_next: true },
+        { start: 7000, color: '#00ff00' },
+      ],
+    }
+
+    const off = buildZonesUpdate(data, defaults, { index: 0, followsNext: false }).fill_zones
+    expect(off[0]).toMatchObject({ end_color: '#00ff00' })
+    expect(off[0].end_follows_next).toBeUndefined()
+
+    const recolored = buildZonesUpdate({ ...data, fill_zones: off }, defaults, { index: 0, endColor: '#ff00ff' }).fill_zones
+    expect(recolored[0].end_color).toBe('#ff00ff')
+
+    const on = buildZonesUpdate({ ...data, fill_zones: recolored }, defaults, { index: 0, followsNext: true }).fill_zones
+    expect(on[0].end_follows_next).toBe(true)
+    expect(on[0].end_color).toBeUndefined()
+  })
+
+  test('choosing an end color switches same as next off', () => {
+    const data = {
+      ...base,
+      fill_zones: [
+        { start: 0, color: '#0000ff', end_follows_next: true },
+        { start: 7000, color: '#00ff00' },
+      ],
+    }
+    const chosen = buildZonesUpdate(data, defaults, { index: 0, endColor: '#123456' }).fill_zones[0]
+    expect(chosen).toMatchObject({ end_color: '#123456' })
+    expect(chosen.end_follows_next).toBeUndefined()
   })
 
   test('changing the scale refits the bands; turning it off clears them', () => {

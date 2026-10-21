@@ -854,7 +854,8 @@
     "scaleMin": "Minimum",
     "shadowDistance": "Gölge mesafesi",
     "shadowStrength": "Gölge yoğunluğu",
-    "fuelTankCapacity": "Depo kapasitesi"
+    "fuelTankCapacity": "Depo kapasitesi",
+    "gaugeZoneSameAsNext": "Sonrakiyle aynı"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Gösterge",

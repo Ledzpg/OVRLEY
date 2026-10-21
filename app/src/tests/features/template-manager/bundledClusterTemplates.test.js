@@ -4,6 +4,7 @@ import { cwd } from 'node:process'
 import { describe, expect, test } from 'vitest'
 import { createBatchRenderTemplate } from '@/features/render-video/utils/renderConfig'
 import { normalizeTemplateFilePayload } from '@/features/template-manager/utils/templateSnapshot'
+import { resolveZoneEndColor } from '@/features/widget-preview/shared/gaugeZones'
 
 // Vitest runs from app/ (see agents.md), so the bundled templates live one level up.
 const TEMPLATES_DIR = resolve(cwd(), '..', 'templates')
@@ -52,9 +53,10 @@ describe('cluster template contents', () => {
       tick_major_interval: 1000,
     })
     expect(dial.fill_zones.map((zone) => zone.start)).toEqual([0, 7000, 8000])
-    expect(dial.fill_zones[0]).toHaveProperty('end_color')
+    expect(dial.fill_zones[0]).toMatchObject({ end_follows_next: true })
     // The warning band blends into the redline color, meeting it at the redline.
-    expect(dial.fill_zones[2]).toMatchObject({ color: '#ffd400', end_color: dial.redline_color })
+    expect(dial.fill_zones[2]).toMatchObject({ color: '#ffd400', end_follows_next: true })
+    expect(resolveZoneEndColor(dial.fill_zones, 2, dial.redline_color)).toBe(dial.redline_color)
     expect(dial).toMatchObject({ needle_length: 80, needle_width: 10 })
     expect(values.some((widget) => widget.value === 'speed')).toBe(true)
     const gear = values.find((widget) => widget.value === 'gear_position')

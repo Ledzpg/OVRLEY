@@ -272,3 +272,56 @@ fn a_gradient_in_the_last_band_reaches_the_redline_color_at_the_redline() {
     let end = at(9800.0);
     assert!(end[0] > 240 && end[1] < 40, "close to the redline it is almost the redline color, got {end:?}");
 }
+
+#[test]
+fn a_gradient_that_follows_the_next_band_ends_in_that_bands_color() {
+    // The first band blends into the second band's color (green) and the last one into the redline (red).
+    let bands = serde_json::json!([
+        { "start": 0, "color": "#0000ff", "end_follows_next": true },
+        { "start": 7000, "color": "#00ff00" },
+        { "start": 8000, "color": "#ffff00", "end_follows_next": true }
+    ]);
+    let config = config_for(with(with(linear(), "fill_zones", bands), "redline_fill_all", serde_json::json!(false))).unwrap();
+    let image = render(&config, 9990.0, 0.0, "gauge_zones_follows_next.png");
+    let at = |value: f64| image.get_pixel(x_at(value), 50).0;
+
+    let near_start = at(500.0);
+    assert!(near_start[2] > 200 && near_start[1] < 60, "start of the first band is blue, got {near_start:?}");
+    let end = at(6800.0);
+    assert!(end[1] > 230 && end[2] < 40, "the first band ends in the second band's green, got {end:?}");
+    let last_end = at(9800.0);
+    assert!(last_end[0] > 240 && last_end[1] < 40, "the last band ends in the redline color, got {last_end:?}");
+}
+
+#[test]
+fn following_the_next_band_is_the_same_as_naming_its_color() {
+    let followed = serde_json::json!([
+        { "start": 0, "color": "#0000ff", "end_follows_next": true },
+        { "start": 7000, "color": "#00ff00" }
+    ]);
+    let named = serde_json::json!([
+        { "start": 0, "color": "#0000ff", "end_color": "#00ff00" },
+        { "start": 7000, "color": "#00ff00" }
+    ]);
+    let render_with = |bands: serde_json::Value, name: &str| {
+        let config = config_for(with(with(linear(), "fill_zones", bands), "redline_fill_all", serde_json::json!(false))).unwrap();
+        render(&config, 9000.0, 0.0, name)
+    };
+
+    let a = render_with(followed, "gauge_zones_same_a.png");
+    let b = render_with(named, "gauge_zones_same_b.png");
+
+    assert_eq!(a.as_raw(), b.as_raw());
+}
+
+#[test]
+fn a_band_cannot_have_both_an_end_color_and_follow_the_next_band() {
+    let bands = serde_json::json!([
+        { "start": 0, "color": "#0000ff", "end_color": "#00ff00", "end_follows_next": true },
+        { "start": 7000, "color": "#00ff00" }
+    ]);
+
+    let error = config_for(with(linear(), "fill_zones", bands)).err().unwrap().to_string();
+
+    assert!(error.contains("fill_zones[0].end_color: cannot be combined with end_follows_next"), "got {error}");
+}

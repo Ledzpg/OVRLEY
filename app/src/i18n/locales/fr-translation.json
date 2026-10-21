@@ -854,7 +854,8 @@
     "scaleMin": "Minimum",
     "shadowDistance": "Distance de l'ombre",
     "shadowStrength": "Intensité de l'ombre",
-    "fuelTankCapacity": "Capacité du réservoir"
+    "fuelTankCapacity": "Capacité du réservoir",
+    "gaugeZoneSameAsNext": "Comme la suivante"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Combiné",

@@ -854,7 +854,8 @@
     "scaleMin": "Минимум",
     "shadowDistance": "Расстояние тени",
     "shadowStrength": "Интенсивность тени",
-    "fuelTankCapacity": "Объём бака"
+    "fuelTankCapacity": "Объём бака",
+    "gaugeZoneSameAsNext": "Как у следующей"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Панель",

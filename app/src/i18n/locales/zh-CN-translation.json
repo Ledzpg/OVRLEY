@@ -854,7 +854,8 @@
     "scaleMin": "最小值",
     "shadowDistance": "阴影距离",
     "shadowStrength": "阴影强度",
-    "fuelTankCapacity": "油箱容量"
+    "fuelTankCapacity": "油箱容量",
+    "gaugeZoneSameAsNext": "与下一段相同"
   },
   "widget-drawer": {
     "groupTachClusterShort": "仪表组",

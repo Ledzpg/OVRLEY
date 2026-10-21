@@ -854,7 +854,8 @@
     "units": "Units",
     "valueColor": "Value Color",
     "width": "Width",
-    "fuelTankCapacity": "Tank Capacity"
+    "fuelTankCapacity": "Tank Capacity",
+    "gaugeZoneSameAsNext": "Same as next"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Cluster",

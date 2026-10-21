@@ -854,7 +854,8 @@
     "scaleMin": "Minimum",
     "shadowDistance": "Vzdálenost stínu",
     "shadowStrength": "Intenzita stínu",
-    "fuelTankCapacity": "Objem nádrže"
+    "fuelTankCapacity": "Objem nádrže",
+    "gaugeZoneSameAsNext": "Stejná jako další"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Přístroje",

@@ -854,7 +854,8 @@
     "scaleMin": "Mínimo",
     "shadowDistance": "Distancia de la sombra",
     "shadowStrength": "Intensidad de la sombra",
-    "fuelTankCapacity": "Capacidad del depósito"
+    "fuelTankCapacity": "Capacidad del depósito",
+    "gaugeZoneSameAsNext": "Igual a la siguiente"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Cuadro",

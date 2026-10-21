@@ -854,7 +854,8 @@
     "scaleMin": "최솟값",
     "shadowDistance": "그림자 거리",
     "shadowStrength": "그림자 강도",
-    "fuelTankCapacity": "연료 탱크 용량"
+    "fuelTankCapacity": "연료 탱크 용량",
+    "gaugeZoneSameAsNext": "다음 구간과 동일"
   },
   "widget-drawer": {
     "groupTachClusterShort": "클러스터",

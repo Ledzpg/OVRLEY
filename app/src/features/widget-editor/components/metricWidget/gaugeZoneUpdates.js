@@ -1,5 +1,7 @@
 /** Pure update builders for the gauge fill color bands and the full redline fill controls. */
 
+import { resolveZoneEndColor } from '@/features/widget-preview/shared/gaugeZones'
+
 export const MAX_FILL_ZONES = 12
 export const MAX_REDLINE_BLINK_HZ = 20
 export const DEFAULT_REDLINE_BLINK_HZ = 5
@@ -36,7 +38,8 @@ export function fitZonesToScale(zones, min, max) {
 
 /**
  * Builds the bands for a tachometer from its landmark speeds: a gradient up to the peak torque, a solid band up to
- * the peak power, then a warning band that blends into the redline color up to the redline.
+ * the peak power, then a warning band that blends into the redline color up to the redline. The gradients follow the
+ * band after them (the redline color for the last one).
  *
  * @param {{ min: number, max: number }} range - Fixed scale.
  * @param {number} torque - Peak torque speed (rpm).
@@ -49,9 +52,12 @@ export function buildTorquePowerZones(range, torque, power, redline, redlineColo
   const ordered = range.min < torque && torque < power && power < range.max && (redline === null || power < redline)
   if (!ordered) return []
   return [
-    { start: range.min, color: DEFAULT_GRADIENT_START, end_color: DEFAULT_GRADIENT_END },
+    { start: range.min, color: DEFAULT_GRADIENT_START, end_follows_next: true },
     { start: torque, color: DEFAULT_GRADIENT_END },
-    { start: power, color: DEFAULT_ZONE_COLOR, end_color: redlineColor },
+    // Without a redline there is no color to follow, so the warning band names its own end color.
+    redline === null
+      ? { start: power, color: DEFAULT_ZONE_COLOR, end_color: redlineColor }
+      : { start: power, color: DEFAULT_ZONE_COLOR, end_follows_next: true },
   ]
 }
 
@@ -68,7 +74,7 @@ function withZone(zones, index, patch) {
  * @param {object} data - Current display-variant data.
  * @param {{ zonePreset?: { torque: number, power: number } }} defaults - Suggested values for the metric.
  * @param {object} change - One of `enabled`, `preset` (`torque`, `power`), `add`, `remove` (`index`), `start`, `color`,
- *   `gradient`, `endColor` (each with `index` and `value`).
+ *   `gradient`, `followsNext`, `endColor` (each with `index` and `value`).
  * @returns {object} Patch to merge into the display variant.
  */
 export function buildZonesUpdate(data, defaults, change) {
@@ -100,7 +106,7 @@ export function buildZonesUpdate(data, defaults, change) {
     const last = zones[zones.length - 1]
     const start = Math.round(((last.start + range.max) / 2) * 100) / 100
     if (start <= last.start || start >= range.max) return {}
-    return { fill_zones: [...zones, { start, color: last.end_color ?? last.color }] }
+    return { fill_zones: [...zones, { start, color: resolveZoneEndColor(zones, zones.length - 1, data.redline_color) ?? last.color }] }
   }
 
   const index = change.index
@@ -120,13 +126,16 @@ export function buildZonesUpdate(data, defaults, change) {
   }
   if (Object.hasOwn(change, 'color')) return { fill_zones: withZone(zones, index, { color: change.color }) }
   if (Object.hasOwn(change, 'gradient')) {
-    const zone = zones[index]
-    if (!change.gradient) return { fill_zones: withZone(zones, index, { end_color: undefined }) }
-    // A gradient blends into the next band; the last band blends into the redline color.
-    const nextColor = zones[index + 1]?.color ?? data.redline_color ?? zone.color
-    return { fill_zones: withZone(zones, index, { end_color: zone.end_color ?? nextColor }) }
+    // A new gradient follows the next band (the last band follows the redline color) until an end color is chosen.
+    return { fill_zones: withZone(zones, index, { end_color: undefined, end_follows_next: change.gradient ? true : undefined }) }
   }
-  if (Object.hasOwn(change, 'endColor')) return { fill_zones: withZone(zones, index, { end_color: change.endColor }) }
+  if (Object.hasOwn(change, 'followsNext')) {
+    if (change.followsNext) return { fill_zones: withZone(zones, index, { end_color: undefined, end_follows_next: true }) }
+    // Switching it off keeps the color the gradient currently ends in, now as the band's own end color.
+    const current = resolveZoneEndColor(zones, index, data.redline_color) ?? zones[index].color
+    return { fill_zones: withZone(zones, index, { end_color: current, end_follows_next: undefined }) }
+  }
+  if (Object.hasOwn(change, 'endColor')) return { fill_zones: withZone(zones, index, { end_color: change.endColor, end_follows_next: undefined }) }
   return {}
 }
 

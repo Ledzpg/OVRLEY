@@ -136,13 +136,17 @@ pub struct ScenePresentationConfig {
 /// One color band of a gauge fill, starting at `start` (canonical unit).
 ///
 /// With `end_color` the band is a gradient from `color` to `end_color` over its length
-/// (up to the start of the next band); without it the band is a solid color.
+/// (up to the start of the next band). With `end_follows_next` the gradient ends in the color of
+/// the next band (the redline color for the last band), so it follows that band when it changes;
+/// it cannot be combined with `end_color`. Without either the band is a solid color.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct FillZoneConfig {
     pub start: f64,
     pub color: String,
     #[serde(default)]
     pub end_color: Option<String>,
+    #[serde(default)]
+    pub end_follows_next: Option<bool>,
 }
 
 /// Static text label drawn onto the cached base layer.

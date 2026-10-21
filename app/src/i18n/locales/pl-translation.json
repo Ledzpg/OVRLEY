@@ -854,7 +854,8 @@
     "scaleMin": "Minimum",
     "shadowDistance": "Odległość cienia",
     "shadowStrength": "Intensywność cienia",
-    "fuelTankCapacity": "Pojemność zbiornika"
+    "fuelTankCapacity": "Pojemność zbiornika",
+    "gaugeZoneSameAsNext": "Jak następne"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Zegary",

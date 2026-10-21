@@ -122,7 +122,7 @@
               {
                 "start": 0,
                 "color": "#2bd9ff",
-                "end_color": "#47ff6b"
+                "end_follows_next": true
               },
               {
                 "start": 7000,
@@ -131,7 +131,7 @@
               {
                 "start": 8000,
                 "color": "#ffd400",
-                "end_color": "#ff3b30"
+                "end_follows_next": true
               }
             ],
             "tick_major_interval": 1000,

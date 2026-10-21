@@ -64,7 +64,7 @@ export function useArcGaugePreviewPresentation({ widget, activity, previewSecond
     const opacity = widget.data.opacity * globalOpacity
     const segmented = widget.data.track_fill_style === 'bars'
     const fillEndCornerRadius = widget.data.track_fill_flat ? 0 : widget.data.track_corner_radius
-    const fillStops = getFillStops(widget.data.fill_zones, { min: layout.min, max: layout.max }, widget.data.redline_value)
+    const fillStops = getFillStops(widget.data.fill_zones, { min: layout.min, max: layout.max }, widget.data.redline_value, widget.data.redline_color)
     // At the redline the whole track fills (and may blink) in the redline color.
     const overrunning = isRedlineOverrun(widget.data, presentation.rawValue)
     const showFill = !overrunning || isRedlineBlinkOn(widget.data.redline_blink_hz, previewSecond)

@@ -70,7 +70,8 @@ pub(crate) fn resolve_redline(
 /// Resolves the fill color bands into gradient stops along the track.
 ///
 /// A solid band contributes its color at both ends; a gradient band blends to its
-/// `end_color` at the start of the next band. The last band ends at the redline when one
+/// `end_color` (or, with `end_follows_next`, the next band's color, or the redline color for the
+/// last band) at the start of the next band. The last band ends at the redline when one
 /// lies inside it (the fill past the redline is the redline color anyway), so a gradient in
 /// the last band reaches its end color exactly at the redline; without a redline it runs to
 /// the scale end. Hard boundaries between bands are separated by a hair so positions stay
@@ -97,10 +98,16 @@ pub(crate) fn fill_stops(
             .get(index + 1)
             .map_or(last_band_end, |next| fill_percentage(next.start, min, max));
         let start_color = parse_color(&zone.color, opacity);
-        let end_color = zone
-            .end_color
-            .as_deref()
-            .map_or(start_color, |color| parse_color(color, opacity));
+        let end_color = match (zone.end_color.as_deref(), zone.end_follows_next) {
+            (Some(color), _) => parse_color(color, opacity),
+            (None, true) => scale
+                .fill_zones
+                .get(index + 1)
+                .map(|next| next.color.as_str())
+                .or_else(|| scale.redline.as_ref().map(|redline| redline.color.as_str()))
+                .map_or(start_color, |color| parse_color(color, opacity)),
+            (None, false) => start_color,
+        };
         stops.push(FillStop {
             fraction: start,
             color: start_color,
