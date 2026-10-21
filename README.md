@@ -52,6 +52,8 @@ was **added or changed**. It is not affiliated with, or endorsed by, the origina
 - A battery reading of 0 V is dropped as a sensor that is not answering; implausible fuel and range values are
   dropped too.
 - Only the CSV importer fills these metrics; the FIT and GPX parsers do not.
+- **Telemetry file template:** [`docs/telemetry-template.csv`](docs/telemetry-template.csv) has every supported column,
+  including the new ones, and [`docs/TELEMETRY_IMPORT.md`](docs/TELEMETRY_IMPORT.md) explains how the import works.
 
 ## Gauges
 
