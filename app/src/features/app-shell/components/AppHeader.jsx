@@ -35,7 +35,7 @@ export default function AppHeader({
   templateManagement,
   videoControls,
 }) {
-  const rawAppVersion = import.meta.env.VITE_OVRLEY_VERSION?.trim() || '0.00.0'
+  const rawAppVersion = import.meta.env.VITE_OVRLEY_VERSION
   const appVersion = rawAppVersion.startsWith('v') ? rawAppVersion : `v${rawAppVersion}`
 
   const handleHeaderMouseDown = (event) => {

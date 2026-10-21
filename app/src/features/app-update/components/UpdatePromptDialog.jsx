@@ -21,7 +21,7 @@ import { Trans, useTranslation } from 'react-i18next'
  */
 export default function UpdatePromptDialog({ open, phase, version, progress, progressPercent, progressLabel, onUpdateNow, onLater, onClose }) {
   const { t } = useTranslation()
-  const currentVersion = import.meta.env.VITE_OVRLEY_VERSION?.trim() || '0.00.0'
+  const currentVersion = import.meta.env.VITE_OVRLEY_VERSION
 
   const downloading = phase === 'downloading'
   const failed = phase === 'failed'

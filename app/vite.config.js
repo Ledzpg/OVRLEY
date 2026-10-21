@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { appVersionDefine } from './app-version.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -86,6 +87,7 @@ function parseDebugWritePlugin() {
 // https://vite.dev/config/
 export default defineConfig({
   base: './',
+  define: appVersionDefine,
   plugins: [react(), tailwindcss(), parseDebugWritePlugin()],
   server: {
     host: true,
