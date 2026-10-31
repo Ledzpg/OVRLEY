@@ -7,7 +7,8 @@
 //! placed on a valid timeline.
 //!
 //! Header aliases, source precedence, and unit compatibility live in
-//! [`headers`]. Column storage, timing reconstruction, duplicate-time
+//! [`headers`]. Rows that only repeat a slower sensor's last reading are
+//! reconstructed in [`held`]. Column storage, timing reconstruction, duplicate-time
 //! coalescing, and metric validation live in [`columns`]. The [`units`] module
 //! owns dimensional checks and canonical-unit conversion. The resulting
 //! [`ActivityColumns`](crate::activity::schema::ActivityColumns) is finalized
@@ -16,6 +17,7 @@
 mod columns;
 mod data;
 mod headers;
+mod held;
 mod metrics;
 mod parser;
 mod timing;

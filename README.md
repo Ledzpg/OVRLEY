@@ -52,6 +52,9 @@ was **added or changed**. It is not affiliated with, or endorsed by, the origina
 - A battery reading of 0 V is dropped as a sensor that is not answering; implausible fuel and range values are
   dropped too.
 - Only the CSV importer fills these metrics; the FIT and GPX parsers do not.
+- **Smooth gauges from loggers that repeat values:** in CSV files with 4 or more rows per second, a value repeated
+  while a slower sensor has not answered yet is drawn as a straight line to the next reading, not as a staircase
+  ([details](docs/TELEMETRY_IMPORT.md#logs-that-repeat-the-last-reading)).
 - **Telemetry file template:** [`docs/telemetry-template.csv`](docs/telemetry-template.csv) has every supported column,
   including the new ones, and [`docs/TELEMETRY_IMPORT.md`](docs/TELEMETRY_IMPORT.md) explains how the import works.
 

@@ -103,6 +103,25 @@ A value outside the range below becomes "no reading", so one bad sample does not
 
 Heading is wrapped into 0 to 360. Acceleration and lean angle keep their sign.
 
+## Logs that repeat the last reading
+
+Many loggers write a row every 100 ms but refresh each sensor more slowly: GPS once per second, an instrument
+cluster or OBD adapter a few times per second. The rows in between just repeat the last reading. Drawn as they are,
+gauges would move in steps.
+
+When a file has **4 or more rows per second**, OVRLEY treats every run of an identical value as one reading, made at
+the first row of the run, and draws a straight line to the next reading. This applies to latitude, longitude,
+altitude, speed, RPM, throttle, brake, engine load, engine power and torque.
+
+- A run is only bridged when the next reading follows within **1.5 seconds**. A longer run (a stopped vehicle, a sensor
+  that stopped answering) stays flat, so a stop is never turned into a slow ramp.
+- An empty cell ends a run; nothing is drawn across a gap.
+- Gear, temperatures, fuel, battery and range are not touched. G-force and heading have their own smoothing.
+- Files with fewer than 4 rows per second (a 1 Hz export, for example) are read as they are: there, two equal values in
+  a row are real readings.
+- Each reading is placed at the row where the logger first wrote it, and the line runs between those rows. The
+  readings themselves are never changed, so minimum, maximum and the values at the reading rows stay as recorded.
+
 ## Checklist before importing
 
 - The header names match the template (or an alias above), and units are in parentheses.

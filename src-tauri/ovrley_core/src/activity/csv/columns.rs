@@ -8,6 +8,7 @@
 
 pub(super) use super::data::CsvColumnData;
 use super::headers::{AccelerationKind, HeaderLayout, SourcePriority};
+use super::held;
 use super::metrics::{
     column_unit, parse_number, selected_acceleration_series, selected_gear_series, selected_series,
     selected_series_with_column,
@@ -131,6 +132,13 @@ pub(super) fn build_activity_columns(
         .for_each(|value| *value -= origin);
 
     let sample_count = groups.len();
+    // Held-value logs repeat each sensor's last reading on every row; see `held`.
+    let oversampled = held::is_oversampled(&elapsed_seconds);
+    let reconstruct_held = |values: &mut [Option<f64>]| {
+        if oversampled {
+            held::interpolate_held_readings(values, &elapsed_seconds);
+        }
+    };
     let gps_updates = parse_gps_updates(header, data)?;
     let timestamp = coalesce_series(absolute_timestamps, &groups)
         .into_iter()
@@ -189,9 +197,14 @@ pub(super) fn build_activity_columns(
         }
     }
 
-    let (elevation, _) = series(Metric::Elevation);
+    reconstruct_held(&mut latitude);
+    reconstruct_held(&mut longitude);
+
+    let (mut elevation, _) = series(Metric::Elevation);
+    reconstruct_held(&mut elevation);
     let (barometric_altitude, _) = series(Metric::BarometricAltitude);
-    let (speed, preserve_speed_gaps) = series(Metric::Speed);
+    let (mut speed, preserve_speed_gaps) = series(Metric::Speed);
+    reconstruct_held(&mut speed);
     let (heading, preserve_heading_gaps) = series(Metric::Heading);
     let (mut g_force_x, _) = series(Metric::GForceX);
     let (mut g_force_y, _) = series(Metric::GForceY);
@@ -268,17 +281,22 @@ pub(super) fn build_activity_columns(
         speed: preserve_speed_gaps,
         heading: preserve_heading_gaps,
     };
-    let (rpm, _) = series(Metric::Rpm);
-    let (engine_power, _) = series(Metric::EnginePower);
-    let (engine_load, _) = series(Metric::EngineLoad);
-    let (torque, _) = series(Metric::Torque);
+    let (mut rpm, _) = series(Metric::Rpm);
+    let (mut engine_power, _) = series(Metric::EnginePower);
+    let (mut engine_load, _) = series(Metric::EngineLoad);
+    let (mut torque, _) = series(Metric::Torque);
+    for values in [&mut rpm, &mut engine_power, &mut engine_load, &mut torque] {
+        reconstruct_held(values);
+    }
     let (coolant_temperature, _) = series(Metric::CoolantTemperature);
     let (intake_air_temperature, _) = series(Metric::IntakeAirTemperature);
     let (fuel_level, _) = series(Metric::FuelLevel);
     let (battery_voltage, _) = series(Metric::BatteryVoltage);
     let (estimated_range, _) = series(Metric::EstimatedRange);
-    let (throttle_position, _) = series(Metric::ThrottlePosition);
-    let (brake_position, _) = series(Metric::BrakePosition);
+    let (mut throttle_position, _) = series(Metric::ThrottlePosition);
+    let (mut brake_position, _) = series(Metric::BrakePosition);
+    reconstruct_held(&mut throttle_position);
+    reconstruct_held(&mut brake_position);
     let (source_lap_number, _) = series(Metric::LapNumber);
     let has_lap_number_column = header
         .columns
