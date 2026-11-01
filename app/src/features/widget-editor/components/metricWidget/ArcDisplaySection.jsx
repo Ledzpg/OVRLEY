@@ -42,6 +42,7 @@ const UNIT_POSITION_OPTIONS = [
   { value: 'below', labelKey: 'widget-editor.below', defaultLabel: 'Below' },
 ]
 const LABEL_OFFSET_RANGE = 150
+const VALUE_HORIZONTAL_OFFSET_RANGE = 200
 const VALUE_VERTICAL_OFFSET_RANGE = 250
 const CORNER_ORIENTATION_OPTIONS = [
   { value: 'bottom-left', labelKey: 'widget-editor.bottomLeft', defaultLabel: 'Bottom Left' },
@@ -302,8 +303,8 @@ export default function ArcDisplaySection({ widget, updateWidgetData, updateWidg
           editable
           label={t('widget-editor.horizontalOffset', 'Horizontal Offset')}
           value={arcData.inner_widget_offset_x}
-          min={-50}
-          max={50}
+          min={-VALUE_HORIZONTAL_OFFSET_RANGE}
+          max={VALUE_HORIZONTAL_OFFSET_RANGE}
           step={1}
           integerDisplay
           valueDisplay={`${arcData.inner_widget_offset_x}`}
