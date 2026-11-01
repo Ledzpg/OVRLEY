@@ -19,7 +19,9 @@ mod path;
 mod segment;
 mod ticks;
 
-use self::inner_widget::{inner_widget_layout, unit_font_size, DEFAULT_GAP_PX, LINE_HEIGHT};
+use self::inner_widget::{
+    draw_beside_unit, inner_widget_layout, unit_font_size, DEFAULT_GAP_PX, LINE_HEIGHT,
+};
 use self::layer::{draw_fill, draw_static_layer, value_angle};
 use super::metric::{
     fill_percentage, fill_stops, format_gauge_label, gauge_range, metric_values, redline_overrun,
@@ -28,7 +30,7 @@ use super::metric::{
 use crate::activity::schema::DenseActivityReport;
 use crate::debug::RenderProfiler;
 use crate::error::CoreResult;
-use crate::normalize::{ValidatedArcGaugeWidget, ValidatedSceneConfig};
+use crate::normalize::{ValidatedArcGaugeWidget, ValidatedArcUnitPosition, ValidatedSceneConfig};
 use crate::render::format::{format_metric_presentation_parts, resolve_metric_display_value};
 use crate::render::surface::create_surface;
 use crate::render::text::{
@@ -178,7 +180,9 @@ pub fn prepare_arc_gauge_cache(
             font_dirs,
             min_value,
             max_value,
-            unit_text.as_deref(),
+            unit_text
+                .as_deref()
+                .filter(|_| gauge.unit_position.is_stacked()),
             &text_style,
             altitude_offset_m,
             redline.as_ref(),
@@ -219,7 +223,15 @@ pub fn prepare_arc_gauge_cache(
                 ..needle.clone()
             }),
             text_style,
-            has_unit: unit_text.is_some(),
+            has_unit: unit_text.is_some() && gauge.unit_position.is_stacked(),
+            unit_position: gauge.unit_position,
+            unit_color: skia_safe::Color::from_argb(
+                gauge.inner_value.unit_color[3],
+                gauge.inner_value.unit_color[0],
+                gauge.inner_value.unit_color[1],
+                gauge.inner_value.unit_color[2],
+            ),
+            unit_text: unit_text.clone().filter(|_| !gauge.unit_position.is_stacked()),
             show_value: gauge.inner_value.show_value,
             unit_font_size: static_unit_font_size,
             inner_widget_gap: DEFAULT_GAP_PX * scale,
@@ -283,6 +295,7 @@ pub fn draw_arc_gauge_widget(
             &cache.text_style,
             cache.has_unit.then_some(cache.unit_font_size),
             cache.inner_widget_gap,
+            cache.unit_position == ValidatedArcUnitPosition::Above,
         );
         let font = resolve_font(
             &cache.font_dirs,
@@ -304,6 +317,26 @@ pub fn draw_arc_gauge_widget(
                 &state.value_text,
                 metric_vertical_metrics_text(&state.value_text),
                 &value_style,
+                &cache.font_dirs,
+            )
+            .ok()?;
+        }
+
+        if let Some(unit_text) = cache.unit_text.as_deref() {
+            let mut unit_style = cache.text_style.clone();
+            unit_style.font_size = cache.unit_font_size;
+            unit_style.color = cache.unit_color;
+            let value_advance = if cache.show_value { value_advance } else { 0.0 };
+            draw_beside_unit(
+                canvas,
+                &unit_style,
+                unit_text,
+                cache.unit_position,
+                &cache.text_style,
+                inner_layout.center_x,
+                inner_layout.value_top,
+                value_advance,
+                (cache.text_style.font_size * 0.08).max(cache.inner_widget_gap * 2.0),
                 &cache.font_dirs,
             )
             .ok()?;
@@ -360,7 +393,10 @@ pub(super) fn draw_arc_labels(
     let max_label = format_gauge_label(gauge.metric, display_unit, capacity, max_value + altitude_offset_m);
     let (min_angle, max_angle) = arc_label_angles(geometry);
 
-    for (label, angle) in [(&min_label, min_angle), (&max_label, max_angle)] {
+    for (label, angle, offset) in [
+        (&min_label, min_angle, gauge.min_label_offset),
+        (&max_label, max_angle, gauge.max_label_offset),
+    ] {
         let anchor = arc_label_anchor(
             geometry,
             angle,
@@ -370,8 +406,8 @@ pub(super) fn draw_arc_labels(
             scale,
         );
         let mut style = label_style.clone();
-        style.x = origin_x_for_centered_text(label, anchor.x, &font);
-        style.y = anchor.y - style.line_height * 0.5;
+        style.x = origin_x_for_centered_text(label, anchor.x + offset.0 * scale, &font);
+        style.y = anchor.y + offset.1 * scale - style.line_height * 0.5;
         draw_text(canvas, label, &style, font_dirs)?;
     }
     Ok(())
@@ -389,9 +425,14 @@ fn arc_static_layer_padding(
         shadow,
     );
     let labels_padding = if gauge.show_min_max_labels {
+        let nudge = [gauge.min_label_offset, gauge.max_label_offset]
+            .iter()
+            .map(|(x, y)| x.abs().max(y.abs()))
+            .fold(0.0, f32::max);
         ((gauge.min_max_label_font_size * scale) * 4.0
-            + arc_label_gap(gauge.min_max_label_font_size * scale, scale))
-        .ceil() as u32
+            + arc_label_gap(gauge.min_max_label_font_size * scale, scale)
+            + nudge * scale)
+            .ceil() as u32
     } else {
         0
     };

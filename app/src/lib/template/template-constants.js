@@ -145,6 +145,9 @@ export const GAUGE_NEEDLE_KEYS = [
 /** Optional fill direction of the arc gauge (unset = clockwise). Corner gauges have a fixed direction. */
 const ARC_FILL_DIRECTION_KEYS = ['fill_direction']
 
+/** Optional unit position and min/max label nudges of arc and corner gauges (unset = unit below, labels at their default spot). */
+const ARC_SHAPED_OPTIONAL_KEYS = ['unit_position', 'min_label_offset_x', 'min_label_offset_y', 'max_label_offset_x', 'max_label_offset_y']
+
 export const DISPLAY_VARIANT_KEYS = Object.freeze(
   Object.fromEntries(
     Object.entries(DISPLAY_TYPE_DEFINITIONS)
@@ -156,6 +159,7 @@ export const DISPLAY_VARIANT_KEYS = Object.freeze(
           ...Object.keys(definition.defaults || {}).filter((key) => !DISPLAY_VARIANT_EXCLUDED_KEYS.has(key)),
           ...(definition.conditionalKeys || []),
           ...(displayType === 'arc' ? ARC_FILL_DIRECTION_KEYS : []),
+          ...(GAUGE_TICK_DISPLAY_TYPES.has(displayType) ? ARC_SHAPED_OPTIONAL_KEYS : []),
           ...(GAUGE_SCALE_DISPLAY_TYPES.has(displayType) ? GAUGE_SCALE_KEYS : []),
           ...(GAUGE_TICK_DISPLAY_TYPES.has(displayType) ? [...GAUGE_TICK_KEYS, ...GAUGE_NEEDLE_KEYS] : []),
         ],

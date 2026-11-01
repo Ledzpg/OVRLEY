@@ -79,6 +79,10 @@ These apply to the arc, corner and linear gauges unless noted.
   counter-clockwise, so a short arc can sit on the left or right and fill from the bottom up (coolant and fuel gauges).
 - **Show Value** switch on arc gauges and text values: turn it off to draw only the bars (or only the icon), with no
   number inside the arc or beside the icon.
+- **Unit position** on arc and corner gauges: put the unit left, right, above or below the value (right and left keep
+  the unit on the value's baseline). The vertical offset of the value now goes up to ±250 px.
+- **Min/Max label offsets**: the minimum and maximum labels of an arc gauge each have their own horizontal and
+  vertical offset.
 - **Critical level** for fuel: the fuel gauge's redline is now a critical level that marks the values from zero up to
   the chosen level in red; with "Fill Completely" on, the gauge fills red and can blink once the level drops to it.
 

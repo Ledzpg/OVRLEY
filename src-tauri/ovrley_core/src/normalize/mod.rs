@@ -44,7 +44,7 @@ pub use raw::{
 
 pub use arc_gauge::{
     validate_arc_gauge, validate_corner_gauge, ValidatedArcFillDirection, ValidatedArcGaugeWidget,
-    ValidatedCornerGaugeOrientation, CORNER_GAUGE_ANGLE_DEGREES, MAX_ARC_ANGLE_DEGREES,
+    ValidatedArcUnitPosition, ValidatedCornerGaugeOrientation, CORNER_GAUGE_ANGLE_DEGREES, MAX_ARC_ANGLE_DEGREES,
     MAX_ARC_ROTATION_DEGREES, MIN_ARC_ANGLE_DEGREES,
 };
 pub use backdrop::{validate_backdrop, ValidatedBackdrop};

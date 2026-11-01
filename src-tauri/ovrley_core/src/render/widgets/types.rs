@@ -553,6 +553,10 @@ pub struct ArcGaugeCache {
     pub needle: Option<crate::normalize::ValidatedGaugeNeedle>,
     pub text_style: crate::render::text::ResolvedTextStyle,
     pub has_unit: bool,
+    /// Where the unit sits relative to the value. Only a unit beside it is drawn per frame.
+    pub unit_position: crate::normalize::ValidatedArcUnitPosition,
+    pub unit_text: Option<String>,
+    pub unit_color: skia_safe::Color,
     /// Draw the formatted number in the middle of the track.
     pub show_value: bool,
     pub unit_font_size: f32,

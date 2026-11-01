@@ -1,13 +1,17 @@
-//! Value/unit stack layout shared by arc-shaped gauges.
+//! Value/unit layout shared by arc-shaped gauges.
 //!
-//! Value and optional unit text are measured as one centered vertical stack.
-//! The unit is frame-invariant and belongs to the cached static layer; only the
-//! formatted metric value is painted during per-frame composition.
+//! A unit above or below the value is measured with it as one centered vertical stack. Such a unit
+//! is frame-invariant and belongs to the cached static layer; only the formatted metric value is
+//! painted during per-frame composition. A unit beside the value follows the width of the current
+//! value, so it is painted per frame, sharing the value's baseline.
 
 use super::geometry::ArcGaugeGeometry;
 use crate::error::CoreResult;
-use crate::normalize::ValidatedArcGaugeWidget;
-use crate::render::text::{draw_text, origin_x_for_centered_text, resolve_font, ResolvedTextStyle};
+use crate::normalize::{ValidatedArcGaugeWidget, ValidatedArcUnitPosition};
+use crate::render::text::{
+    draw_text, measure_text_with_font, origin_x_for_centered_text, resolve_font, ResolvedTextStyle,
+};
+use crate::render::widgets::value::NUMERIC_VERTICAL_METRICS_TEXT;
 use skia_safe::Canvas;
 use std::path::PathBuf;
 
@@ -29,7 +33,9 @@ pub(crate) fn unit_font_size(text_style: &ResolvedTextStyle, scale: f32) -> f32 
     (text_style.font_size * UNIT_RATIO).max(MIN_UNIT_FONT_SIZE * scale)
 }
 
-/// Measures and centers the value and optional unit around the inner anchor.
+/// Measures and centers the value and an optional stacked unit around the inner anchor.
+/// `unit_above` puts the stacked unit over the value instead of under it; a unit beside the value
+/// is not part of the stack (pass no `unit_font_size`).
 pub(crate) fn inner_widget_layout(
     geometry: ArcGaugeGeometry,
     offset_x: f32,
@@ -37,6 +43,7 @@ pub(crate) fn inner_widget_layout(
     text_style: &ResolvedTextStyle,
     unit_font_size: Option<f32>,
     minimum_gap: f32,
+    unit_above: bool,
 ) -> ArcInnerWidgetLayout {
     let value_line_height = text_style.font_size * LINE_HEIGHT;
     let unit_line_height = unit_font_size.unwrap_or(0.0) * LINE_HEIGHT;
@@ -48,11 +55,56 @@ pub(crate) fn inner_widget_layout(
     };
     let top = geometry.inner_widget_center_y + offset_y - group_height * 0.5;
 
+    let (value_top, unit_top) = if unit_above {
+        (top + unit_line_height + gap, top)
+    } else {
+        (top, top + value_line_height + gap)
+    };
     ArcInnerWidgetLayout {
         center_x: geometry.inner_widget_center_x + offset_x,
-        value_top: top,
-        unit_top: unit_font_size.map(|_| top + value_line_height + gap),
+        value_top,
+        unit_top: unit_font_size.map(|_| unit_top),
     }
+}
+
+/// Draws a unit beside the value, on the value's baseline.
+///
+/// The value stays centered on the anchor; the unit sits against its left or right edge.
+pub(crate) fn draw_beside_unit(
+    canvas: &Canvas,
+    unit_style: &ResolvedTextStyle,
+    unit_text: &str,
+    position: ValidatedArcUnitPosition,
+    value_style: &ResolvedTextStyle,
+    center_x: f32,
+    value_top: f32,
+    value_advance: f32,
+    gap: f32,
+    font_dirs: &[PathBuf],
+) -> CoreResult<()> {
+    let value_font = resolve_font(font_dirs, value_style.font_name.as_deref(), value_style.font_size)?;
+    let unit_font = resolve_font(font_dirs, unit_style.font_name.as_deref(), unit_style.font_size)?;
+    let baseline_offset = |font: &skia_safe::Font, text: &str, line_height: f32| {
+        let bounds = measure_text_with_font(text, font);
+        let glyph_height = bounds.bounds_bottom - bounds.bounds_top;
+        (line_height - glyph_height) * 0.5 - bounds.bounds_top
+    };
+    let value_baseline = value_top
+        + baseline_offset(
+            &value_font,
+            NUMERIC_VERTICAL_METRICS_TEXT,
+            value_style.font_size * LINE_HEIGHT,
+        );
+    let unit_line_height = unit_style.font_size * LINE_HEIGHT;
+    let (unit_advance, _) = unit_font.measure_str(unit_text, None);
+    let mut style = unit_style.clone();
+    style.line_height = unit_line_height;
+    style.y = value_baseline - baseline_offset(&unit_font, unit_text, unit_line_height);
+    style.x = match position {
+        ValidatedArcUnitPosition::Left => center_x - value_advance * 0.5 - gap - unit_advance,
+        _ => center_x + value_advance * 0.5 + gap,
+    };
+    draw_text(canvas, unit_text, &style, font_dirs)
 }
 
 /// Draws the optional unit into the frame-invariant static layer.
@@ -81,6 +133,7 @@ pub(crate) fn draw_static_unit(
         text_style,
         Some(unit_style.font_size),
         DEFAULT_GAP_PX * scale,
+        gauge.unit_position == ValidatedArcUnitPosition::Above,
     );
     let font = resolve_font(
         font_dirs,

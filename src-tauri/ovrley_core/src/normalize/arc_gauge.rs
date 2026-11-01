@@ -41,6 +41,24 @@ pub enum ValidatedArcFillDirection {
     CounterClockwise,
 }
 
+/// Where the unit sits relative to the value inside an arc gauge.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum ValidatedArcUnitPosition {
+    Left,
+    Right,
+    Above,
+    /// The unit stacks under the value.
+    #[default]
+    Below,
+}
+
+impl ValidatedArcUnitPosition {
+    /// The unit stacks with the value (above or below it) instead of sitting beside it.
+    pub fn is_stacked(self) -> bool {
+        matches!(self, Self::Above | Self::Below)
+    }
+}
+
 /// Fully validated arc gauge configuration.
 #[derive(Clone, Debug)]
 pub struct ValidatedArcGaugeWidget {
@@ -53,6 +71,7 @@ pub struct ValidatedArcGaugeWidget {
     pub display_type: DisplayType,
     pub arc_angle: f32,
     pub fill_direction: ValidatedArcFillDirection,
+    pub unit_position: ValidatedArcUnitPosition,
     pub corner_orientation: Option<ValidatedCornerGaugeOrientation>,
     pub inner_widget_offset_x: f32,
     pub inner_widget_offset_y: f32,
@@ -71,6 +90,9 @@ pub struct ValidatedArcGaugeWidget {
     pub min_max_label_font: String,
     pub min_max_label_font_size: f32,
     pub min_max_label_color: String,
+    /// Optional nudges of the minimum and maximum labels, in unscaled pixels (0 = default spot).
+    pub min_label_offset: (f32, f32),
+    pub max_label_offset: (f32, f32),
     /// Shared text formatting and styling for the inner value/unit stack.
     /// `show_icon` is always false for this presentation.
     pub inner_value: ValidatedValueWidget,
@@ -248,6 +270,30 @@ fn validate_arc_shaped_gauge(
             p("fill_direction")
         )));
     }
+    let unit_position = match value.unit_position.as_deref() {
+        None | Some("below") => ValidatedArcUnitPosition::Below,
+        Some("above") => ValidatedArcUnitPosition::Above,
+        Some("left") => ValidatedArcUnitPosition::Left,
+        Some("right") => ValidatedArcUnitPosition::Right,
+        Some(position) => {
+            return Err(CoreError::Config(format!(
+                "{}: must be 'left', 'right', 'above' or 'below', got '{position}'",
+                p("unit_position")
+            )));
+        }
+    };
+    let label_offset = |x: Option<f32>, y: Option<f32>, name: &str| -> CoreResult<(f32, f32)> {
+        let (x_name, y_name) = (format!("{name}_x"), format!("{name}_y"));
+        let (offset_x, offset_y) = (x.unwrap_or(0.0), y.unwrap_or(0.0));
+        for (field, offset) in [(&x_name, offset_x), (&y_name, offset_y)] {
+            if !offset.is_finite() {
+                return Err(CoreError::Config(format!("{}: must be finite, got {offset}", p(field))));
+            }
+        }
+        Ok((offset_x, offset_y))
+    };
+    let min_label_offset = label_offset(value.min_label_offset_x, value.min_label_offset_y, "min_label_offset")?;
+    let max_label_offset = label_offset(value.max_label_offset_x, value.max_label_offset_y, "max_label_offset")?;
     let inner_widget_offset_x =
         require_f32(value.inner_widget_offset_x, &p("inner_widget_offset_x"))?;
     let inner_widget_offset_y =
@@ -322,6 +368,7 @@ fn validate_arc_shaped_gauge(
         display_type,
         arc_angle,
         fill_direction,
+        unit_position,
         corner_orientation,
         inner_widget_offset_x,
         inner_widget_offset_y,
@@ -340,6 +387,8 @@ fn validate_arc_shaped_gauge(
         min_max_label_font,
         min_max_label_font_size,
         min_max_label_color,
+        min_label_offset,
+        max_label_offset,
         inner_value,
         scale,
         ticks,

@@ -72,6 +72,18 @@ function buildMarkerResizeContentDraft(origin, scaleFactor) {
   return { marker_size: scaleNumber(origin.markerSize, scaleFactor, { min: 0, max: 400 }) }
 }
 
+const LABEL_OFFSET_KEYS = ['min_label_offset_x', 'min_label_offset_y', 'max_label_offset_x', 'max_label_offset_y']
+
+/** Scales the optional min/max label nudges of arc gauges that set them. */
+function scaleOptionalLabelOffsets(data, scaleFactor, round) {
+  return Object.fromEntries(
+    LABEL_OFFSET_KEYS.filter((key) => data[key] != null).map((key) => [
+      key,
+      scaleNumber(data[key], scaleFactor, { min: -10_000, max: 10_000, round }),
+    ]),
+  )
+}
+
 function buildGaugeResizeContentDraft(origin, scaleFactor, { round = true } = {}) {
   const { data } = origin
   const trackThickness = scaleNumber(data.track_thickness, scaleFactor, { min: 1, max: 100, round })
@@ -92,6 +104,7 @@ function buildGaugeResizeContentDraft(origin, scaleFactor, { round = true } = {}
         inner_widget_offset_x: scaleNumber(data.inner_widget_offset_x, scaleFactor, { min: -10_000, max: 10_000, round }),
         inner_widget_offset_y: scaleNumber(data.inner_widget_offset_y, scaleFactor, { min: -10_000, max: 10_000, round }),
         min_max_label_font_size: scaleNumber(data.min_max_label_font_size, scaleFactor, { min: 6, max: 50, round }),
+        ...scaleOptionalLabelOffsets(data, scaleFactor, round),
       },
     },
   }

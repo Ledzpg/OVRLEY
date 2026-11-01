@@ -35,6 +35,14 @@ const FILL_DIRECTION_OPTIONS = [
   { value: 'clockwise', labelKey: 'widget-editor.clockwise', defaultLabel: 'Clockwise' },
   { value: 'counter-clockwise', labelKey: 'widget-editor.counterClockwise', defaultLabel: 'Counter-clockwise' },
 ]
+const UNIT_POSITION_OPTIONS = [
+  { value: 'left', labelKey: 'widget-editor.left', defaultLabel: 'Left' },
+  { value: 'right', labelKey: 'widget-editor.right', defaultLabel: 'Right' },
+  { value: 'above', labelKey: 'widget-editor.above', defaultLabel: 'Above' },
+  { value: 'below', labelKey: 'widget-editor.below', defaultLabel: 'Below' },
+]
+const LABEL_OFFSET_RANGE = 150
+const VALUE_VERTICAL_OFFSET_RANGE = 250
 const CORNER_ORIENTATION_OPTIONS = [
   { value: 'bottom-left', labelKey: 'widget-editor.bottomLeft', defaultLabel: 'Bottom Left' },
   { value: 'bottom-right', labelKey: 'widget-editor.bottomRight', defaultLabel: 'Bottom Right' },
@@ -87,6 +95,23 @@ export default function ArcDisplaySection({ widget, updateWidgetData, updateWidg
     if (!Number.isFinite(value)) return
     updateVariant({ [key]: Math.min(max, Math.max(min, value)) })
   }
+
+  const labelOffsetSlider = (key, labelKey, defaultLabel) => (
+    <SliderField
+      editable
+      label={t(labelKey, defaultLabel)}
+      value={arcData[key] ?? 0}
+      min={-LABEL_OFFSET_RANGE}
+      max={LABEL_OFFSET_RANGE}
+      step={1}
+      integerDisplay
+      valueDisplay={`${arcData[key] ?? 0}`}
+      suffix="px"
+      disabled={!arcData.show_min_max_labels}
+      onSliderChange={(value) => updateBoundedNumber(updateArcSize, key, value, -10_000, 10_000)}
+      onSliderCommit={() => commitWidgetSize(widget.id)}
+    />
+  )
 
   const handleSizeChange = (nextSize) => {
     const update = buildUniformResizeUpdate(widget, nextSize)
@@ -290,8 +315,8 @@ export default function ArcDisplaySection({ widget, updateWidgetData, updateWidg
           editable
           label={t('widget-editor.verticalOffset', 'Vertical Offset')}
           value={arcData.inner_widget_offset_y}
-          min={-150}
-          max={150}
+          min={-VALUE_VERTICAL_OFFSET_RANGE}
+          max={VALUE_VERTICAL_OFFSET_RANGE}
           step={1}
           integerDisplay
           valueDisplay={`${arcData.inner_widget_offset_y}`}
@@ -316,22 +341,38 @@ export default function ArcDisplaySection({ widget, updateWidgetData, updateWidg
       ) : null}
 
       {unitsMode !== 'hidden' ? (
-        <UnitsControlRow
-          title={t('widget-editor.unit', 'Unit')}
-          checked={widget.data.show_units ?? definition?.showUnitsByDefault ?? false}
-          onCheckedChange={(show_units) => updateWidgetData(widget.id, { show_units })}
-          colorValue={widget.data.unit_color}
-          onColorChange={(unit_color) => updateWidgetData(widget.id, { unit_color })}
-          selectLabel={t('widget-editor.unit', 'Unit')}
-          value={getStandardMetricDisplayUnit(widget.type, widget.data)}
-          onValueChange={(displayUnit) =>
-            updateWidgetData(
-              widget.id,
-              buildMetricUnitUpdate(widget.type, widget.data.starting_altitude, getStandardMetricDisplayUnit(widget.type, widget.data), displayUnit),
-            )
-          }
-          options={supportsUnitSelection ? unitOptions : undefined}
-        />
+        <>
+          <UnitsControlRow
+            title={t('widget-editor.unit', 'Unit')}
+            checked={widget.data.show_units ?? definition?.showUnitsByDefault ?? false}
+            onCheckedChange={(show_units) => updateWidgetData(widget.id, { show_units })}
+            colorValue={widget.data.unit_color}
+            onColorChange={(unit_color) => updateWidgetData(widget.id, { unit_color })}
+            selectLabel={t('widget-editor.unit', 'Unit')}
+            value={getStandardMetricDisplayUnit(widget.type, widget.data)}
+            onValueChange={(displayUnit) =>
+              updateWidgetData(
+                widget.id,
+                buildMetricUnitUpdate(
+                  widget.type,
+                  widget.data.starting_altitude,
+                  getStandardMetricDisplayUnit(widget.type, widget.data),
+                  displayUnit,
+                ),
+              )
+            }
+            options={supportsUnitSelection ? unitOptions : undefined}
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <SelectField
+              label={t('widget-editor.unitPosition', 'Unit Position')}
+              value={arcData.unit_position ?? 'below'}
+              disabled={!(widget.data.show_units ?? definition?.showUnitsByDefault ?? false)}
+              onValueChange={(unit_position) => updateArc({ unit_position })}
+              options={translateOptions(UNIT_POSITION_OPTIONS, t)}
+            />
+          </div>
+        </>
       ) : null}
 
       {widget.type === 'fuel_level' ? <FuelTankField widget={widget} updateWidgetData={updateWidgetData} /> : null}
@@ -378,6 +419,12 @@ export default function ArcDisplaySection({ widget, updateWidgetData, updateWidg
           disabled={!arcData.show_min_max_labels}
           onChange={(min_max_label_color) => updateArc({ min_max_label_color })}
         />
+        <div className="grid grid-cols-2 gap-4">
+          {labelOffsetSlider('min_label_offset_x', 'widget-editor.minLabelOffsetX', 'Min Horizontal Offset')}
+          {labelOffsetSlider('min_label_offset_y', 'widget-editor.minLabelOffsetY', 'Min Vertical Offset')}
+          {labelOffsetSlider('max_label_offset_x', 'widget-editor.maxLabelOffsetX', 'Max Horizontal Offset')}
+          {labelOffsetSlider('max_label_offset_y', 'widget-editor.maxLabelOffsetY', 'Max Vertical Offset')}
+        </div>
       </div>
     </>
   )

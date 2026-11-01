@@ -319,6 +319,119 @@ fn the_inner_number_is_only_drawn_while_show_value_is_on() {
     assert_eq!(render_center_pixels_drawn(Some(false)), 0);
 }
 
+/// Renders one frame of a 160 px half-circle speed gauge at (20, 30) after `tweak` edits its config.
+fn render_tweaked_arc(name: &str, tweak: impl FnOnce(&mut serde_json::Value)) -> image::RgbaImage {
+    let mut value = full_arc_gauge_config(20, 30);
+    tweak(&mut value);
+    let mut scene = common::builders::scene_json();
+    scene["width"] = serde_json::json!(320);
+    scene["height"] = serde_json::json!(240);
+    let config = validate_render_config(RenderConfig {
+        scene: serde_json::from_value(scene).unwrap(),
+        backdrops: vec![],
+        rasters: vec![],
+        labels: vec![],
+        values: vec![serde_json::from_value(value).unwrap()],
+        plots: serde_json::Value::Object(serde_json::Map::new()),
+        extra: BTreeMap::new(),
+    })
+    .unwrap();
+    let activity: ParsedActivity = serde_json::from_value(serde_json::json!({})).unwrap();
+    let dense = dense_speed_activity(vec![Some(0.0), Some(50.0)]);
+    let out_path = std::env::temp_dir().join(format!("arc_gauge_{name}.png"));
+    render_preview_with_report(&test_paths(), &config, &activity, &dense, 0.0, &out_path).unwrap();
+    let image = image::open(&out_path).unwrap().to_rgba8();
+    let _ = std::fs::remove_file(out_path);
+    image
+}
+
+/// Bounding box `(min_x, min_y, max_x, max_y)` of the drawn pixels inside the gauge's track
+/// (the gauge's center is at (100, 110) and the track's inner radius about 60).
+fn inner_ink_bounds(image: &image::RgbaImage) -> (u32, u32, u32, u32) {
+    let mut bounds = (u32::MAX, u32::MAX, 0, 0);
+    for (x, y, pixel) in image.enumerate_pixels() {
+        let (dx, dy) = (x as f32 - 100.0, y as f32 - 110.0);
+        if pixel.0[3] > 0 && (dx * dx + dy * dy).sqrt() < 52.0 {
+            bounds = (bounds.0.min(x), bounds.1.min(y), bounds.2.max(x), bounds.3.max(y));
+        }
+    }
+    bounds
+}
+
+#[test]
+fn the_unit_position_places_the_unit_around_the_value() {
+    let bounds = |position: Option<&str>| {
+        inner_ink_bounds(&render_tweaked_arc("unit_position", |value| {
+            value["show_min_max_labels"] = serde_json::json!(false);
+            if let Some(position) = position {
+                value["unit_position"] = serde_json::json!(position);
+            }
+        }))
+    };
+    let below = bounds(None);
+    assert_eq!(bounds(Some("below")), below, "absent means below");
+    let (above, left, right) = (bounds(Some("above")), bounds(Some("left")), bounds(Some("right")));
+    let size = |b: (u32, u32, u32, u32)| (b.2 - b.0, b.3 - b.1);
+    // Stacked: the unit adds height; beside the value it adds width instead.
+    assert!(size(below).1 > size(right).1 + 5, "{below:?} vs {right:?}");
+    assert!(size(above).1 > size(right).1 + 5, "{above:?} vs {right:?}");
+    assert!(size(right).0 > size(below).0 + 5, "{right:?} vs {below:?}");
+    assert!(size(left).0 > size(below).0 + 5, "{left:?} vs {below:?}");
+    // The unit is on the side it names.
+    assert!(left.0 < right.0 && left.2 < right.2, "{left:?} vs {right:?}");
+    // Above puts the unit over the value, below under it.
+    assert!(above.1 < below.1, "{above:?} vs {below:?}");
+}
+
+#[test]
+fn an_unknown_unit_position_is_rejected() {
+    let mut value = full_arc_gauge_config(20, 30);
+    value["unit_position"] = serde_json::json!("diagonal");
+    let error = validate_single_arc(value).err().expect("must be rejected").to_string();
+    assert!(error.contains("unit_position"), "{error}");
+}
+
+#[test]
+fn the_min_and_max_labels_move_independently() {
+    let render = |tweak: &dyn Fn(&mut serde_json::Value)| {
+        render_tweaked_arc("label_offsets", |value| {
+            value["unit_position"] = serde_json::json!("below");
+            tweak(value);
+        })
+    };
+    let base = render(&|_| {});
+    let moved_max = render(&|value| {
+        value["max_label_offset_x"] = serde_json::json!(-10);
+        value["max_label_offset_y"] = serde_json::json!(25);
+    });
+    let (mut left_changed, mut right_changed) = (0, 0);
+    for (x, y, pixel) in base.enumerate_pixels() {
+        if moved_max.get_pixel(x, y) != pixel {
+            if x < 100 {
+                left_changed += 1;
+            } else {
+                right_changed += 1;
+            }
+        }
+    }
+    assert_eq!(left_changed, 0, "the minimum label stays put");
+    assert!(right_changed > 0, "the maximum label moves");
+
+    let moved_min = render(&|value| value["min_label_offset_y"] = serde_json::json!(25));
+    let (mut left_changed, mut right_changed) = (0, 0);
+    for (x, y, pixel) in base.enumerate_pixels() {
+        if moved_min.get_pixel(x, y) != pixel {
+            if x < 100 {
+                left_changed += 1;
+            } else {
+                right_changed += 1;
+            }
+        }
+    }
+    assert!(left_changed > 0);
+    assert_eq!(right_changed, 0);
+}
+
 fn validate_single_arc(
     value: serde_json::Value,
 ) -> Result<ovrley_core::normalize::ValidatedRenderConfig, ovrley_core::CoreError> {

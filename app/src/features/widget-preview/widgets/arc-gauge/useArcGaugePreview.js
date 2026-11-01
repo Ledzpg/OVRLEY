@@ -23,8 +23,8 @@ function centeredTextBaseline(measurement, centerY) {
   return centerY + (measurement.ascent - measurement.descent) * 0.5
 }
 
-/** Returns measured min/max label positions for an arc layout. */
-function getLabelLayout(layout, minLabel, maxLabel, fontFamily, fontSize) {
+/** Returns measured min/max label positions for an arc layout, each nudged by its own optional offset. */
+function getLabelLayout(layout, minLabel, maxLabel, fontFamily, fontSize, data) {
   const minMeasurement = measureArcPreviewText(minLabel, fontSize, fontFamily)
   const maxMeasurement = measureArcPreviewText(maxLabel, fontSize, fontFamily)
   const labelRadius = layout.radius + layout.trackThickness * 0.5 + layout.borderThickness + getArcLabelGap(fontSize)
@@ -32,8 +32,14 @@ function getLabelLayout(layout, minLabel, maxLabel, fontFamily, fontSize) {
   const maxAnchor = getArcPoint(layout.centerX, layout.centerY, labelRadius, layout.labelAngles.max)
 
   return {
-    min: { x: centeredTextX(minMeasurement, minAnchor.x), baseline: centeredTextBaseline(minMeasurement, minAnchor.y) },
-    max: { x: centeredTextX(maxMeasurement, maxAnchor.x), baseline: centeredTextBaseline(maxMeasurement, maxAnchor.y) },
+    min: {
+      x: centeredTextX(minMeasurement, minAnchor.x) + (data.min_label_offset_x ?? 0),
+      baseline: centeredTextBaseline(minMeasurement, minAnchor.y) + (data.min_label_offset_y ?? 0),
+    },
+    max: {
+      x: centeredTextX(maxMeasurement, maxAnchor.x) + (data.max_label_offset_x ?? 0),
+      baseline: centeredTextBaseline(maxMeasurement, maxAnchor.y) + (data.max_label_offset_y ?? 0),
+    },
   }
 }
 
@@ -141,7 +147,7 @@ export function useArcGaugePreviewPresentation({ widget, activity, previewSecond
       minLabel,
       maxLabel,
       labels: widget.data.show_min_max_labels
-        ? getLabelLayout(layout, minLabel, maxLabel, labelFontFamily, widget.data.min_max_label_font_size)
+        ? getLabelLayout(layout, minLabel, maxLabel, labelFontFamily, widget.data.min_max_label_font_size, widget.data)
         : null,
       labelFontFamily,
       shadow,

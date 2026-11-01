@@ -373,6 +373,16 @@ pub struct ValueConfig {
     #[serde(default)]
     pub fill_direction: Option<String>,
     #[serde(default)]
+    pub unit_position: Option<String>,
+    #[serde(default)]
+    pub min_label_offset_x: Option<f32>,
+    #[serde(default)]
+    pub min_label_offset_y: Option<f32>,
+    #[serde(default)]
+    pub max_label_offset_x: Option<f32>,
+    #[serde(default)]
+    pub max_label_offset_y: Option<f32>,
+    #[serde(default)]
     pub inner_widget_offset_x: Option<f32>,
     #[serde(default)]
     pub inner_widget_offset_y: Option<f32>,
