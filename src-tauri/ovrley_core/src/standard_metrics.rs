@@ -45,6 +45,17 @@ pub enum StandardMetricUnitsMode {
     Hidden,
 }
 
+/// Which side of the redline value a gauge marks as the danger zone.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum RedlineZone {
+    /// From the redline value up to the end of the scale (RPM, temperatures).
+    #[default]
+    Above,
+    /// From the start of the scale up to the redline value, a critical level (fuel).
+    Below,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MetricIconAssetKey {
     Speed,
@@ -124,6 +135,16 @@ pub struct StandardMetricDefinition {
     pub icon: StandardMetricIconDefinition,
     pub interpolation: StandardMetricInterpolationKind,
     pub units_mode: StandardMetricUnitsMode,
+    pub redline_zone: RedlineZone,
+}
+
+/// The part of a metric's `gaugeScale` the renderer needs; the suggested scale values are
+/// editor defaults.
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct RawGaugeScale {
+    #[serde(default)]
+    redline_zone: RedlineZone,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
@@ -139,6 +160,8 @@ struct RawStandardMetricDefinition {
     icon: StandardMetricIconDefinition,
     interpolation: StandardMetricInterpolationKind,
     units_mode: StandardMetricUnitsMode,
+    #[serde(default)]
+    gauge_scale: Option<RawGaugeScale>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -245,6 +268,9 @@ fn load_manifest() -> StandardMetricManifest {
                     icon: definition.icon,
                     interpolation: definition.interpolation,
                     units_mode: definition.units_mode,
+                    redline_zone: definition
+                        .gauge_scale
+                        .map_or(RedlineZone::Above, |scale| scale.redline_zone),
                 },
             )
         })
@@ -382,6 +408,11 @@ pub fn standard_metric_formatter(kind: MetricKind) -> Option<StandardMetricForma
 
 pub fn standard_metric_interpolation(kind: MetricKind) -> Option<StandardMetricInterpolationKind> {
     standard_metric_definition(kind).map(|definition| definition.interpolation)
+}
+
+/// The side of the redline value that a metric's gauge marks as the danger zone.
+pub fn standard_metric_redline_zone(kind: MetricKind) -> RedlineZone {
+    standard_metric_definition(kind).map_or(RedlineZone::Above, |definition| definition.redline_zone)
 }
 
 pub fn standard_metric_units_mode(kind: MetricKind) -> Option<StandardMetricUnitsMode> {

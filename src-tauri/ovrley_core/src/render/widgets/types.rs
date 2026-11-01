@@ -420,6 +420,60 @@ pub struct ResolvedRedline {
     pub fill_all: bool,
     /// Blink rate of that full fill, in flashes per second.
     pub blink_hz: Option<f64>,
+    /// The zone lies below the value (a critical level) instead of above it.
+    pub below: bool,
+}
+
+impl ResolvedRedline {
+    /// The value is inside the zone: at or past the redline, or at or under a critical level.
+    pub fn reached_by(&self, value: f64) -> bool {
+        if self.below {
+            value <= self.value
+        } else {
+            value >= self.value
+        }
+    }
+
+    /// A position along the track (0 to 1) lies inside the zone.
+    pub fn contains_fraction(&self, fraction: f32) -> bool {
+        if self.below {
+            fraction <= self.fraction
+        } else {
+            fraction >= self.fraction
+        }
+    }
+
+    /// A discrete bar starts inside the zone.
+    pub fn covers_bar(&self, index: u32, count: u32) -> bool {
+        if count == 0 {
+            return false;
+        }
+        let start = index as f32 / count as f32;
+        if self.below {
+            start < self.fraction
+        } else {
+            start >= self.fraction
+        }
+    }
+
+    /// A continuous fill of `fill01` reaches into the zone.
+    pub fn fill_enters(&self, fill01: f32) -> bool {
+        if self.below {
+            fill01 > 0.0
+        } else {
+            fill01 > self.fraction
+        }
+    }
+
+    /// Orders the two parts of a track split at the redline, given as `(before, after)` the
+    /// boundary along the track, into `(normal, redline)`.
+    pub fn order_zones<T>(&self, before: T, after: T) -> (T, T) {
+        if self.below {
+            (after, before)
+        } else {
+            (before, after)
+        }
+    }
 }
 
 /// One color stop of a gauge fill along its track, with the gauge opacity already applied.
@@ -499,6 +553,8 @@ pub struct ArcGaugeCache {
     pub needle: Option<crate::normalize::ValidatedGaugeNeedle>,
     pub text_style: crate::render::text::ResolvedTextStyle,
     pub has_unit: bool,
+    /// Draw the formatted number in the middle of the track.
+    pub show_value: bool,
     pub unit_font_size: f32,
     pub inner_widget_gap: f32,
     pub inner_widget_offset_x: f32,

@@ -64,6 +64,7 @@ pub(crate) fn resolve_redline(
         value: redline.value,
         fill_all: redline.fill_all,
         blink_hz: redline.blink_hz,
+        below: redline.below,
     })
 }
 
@@ -91,7 +92,7 @@ pub(crate) fn fill_stops(
         let last_band_end = scale
             .redline
             .as_ref()
-            .filter(|redline| redline.value > zone.start && redline.value < max)
+            .filter(|redline| !redline.below && redline.value > zone.start && redline.value < max)
             .map_or(1.0, |redline| fill_percentage(redline.value, min, max));
         let end = scale
             .fill_zones
@@ -104,7 +105,13 @@ pub(crate) fn fill_stops(
                 .fill_zones
                 .get(index + 1)
                 .map(|next| next.color.as_str())
-                .or_else(|| scale.redline.as_ref().map(|redline| redline.color.as_str()))
+                .or_else(|| {
+                    scale
+                        .redline
+                        .as_ref()
+                        .filter(|redline| !redline.below)
+                        .map(|redline| redline.color.as_str())
+                })
                 .map_or(start_color, |color| parse_color(color, opacity)),
             (None, false) => start_color,
         };
@@ -150,7 +157,8 @@ pub(crate) fn stop_color_at(stops: &[FillStop], fraction: f32) -> skia_safe::Col
 
 /// Evaluates the redline overrun state of one frame: `(overrun, blink_on)`.
 ///
-/// `overrun` is true when a gauge that fills completely at the redline reaches it; `blink_on`
+/// `overrun` is true when a gauge that fills completely at the redline reaches it (for a
+/// critical level, when the value drops to it); `blink_on`
 /// is the visible phase of the optional blinking, derived from the frame time so the exported
 /// video blinks at the configured rate.
 pub(crate) fn redline_overrun(
@@ -158,18 +166,15 @@ pub(crate) fn redline_overrun(
     value: f64,
     frame_seconds: f64,
 ) -> (bool, bool) {
-    let Some(redline) = redline.filter(|redline| redline.fill_all && value >= redline.value) else {
+    let Some(redline) = redline
+        .filter(|redline| redline.fill_all && redline.reached_by(value))
+    else {
         return (false, true);
     };
     let blink_on = redline
         .blink_hz
         .map_or(true, |hz| ((frame_seconds * hz * 2.0).floor() as i64).rem_euclid(2) == 0);
     (true, blink_on)
-}
-
-/// Reports whether a discrete bar starts inside the redline zone.
-pub(crate) fn bar_is_redline(index: u32, count: u32, fraction: f32) -> bool {
-    count > 0 && index as f32 / count as f32 >= fraction
 }
 
 /// Selects the canonical dense telemetry series for a metric.

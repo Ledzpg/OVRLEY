@@ -96,6 +96,8 @@ pub struct ValidatedValueWidget {
     pub icon_offset_x: f32,
     pub icon_offset_y: f32,
     pub show_units: bool,
+    /// The number is drawn; `false` leaves only the icon and unit of the readout.
+    pub show_value: bool,
     pub show_full_distance: Option<bool>,
     pub show_full_ascent: Option<bool>,
     pub coordinate_format: Option<String>,
@@ -469,6 +471,7 @@ fn validate_value_widget_fields(
         icon_offset_x,
         icon_offset_y,
         show_units,
+        show_value: value.show_value.unwrap_or(true),
         show_full_distance,
         show_full_ascent,
         coordinate_format,

@@ -14,7 +14,7 @@ use crate::normalize::{ValidatedArcGaugeWidget, ValidatedSceneConfig};
 use crate::render::text::{parse_color, ResolvedTextStyle};
 use crate::render::widgets::common::normalize_shadow_style_validated;
 use crate::render::widgets::types::{ArcGaugeCache, ResolvedRedline};
-use super::super::metric::{bar_is_redline, stop_color_at};
+use super::super::metric::stop_color_at;
 use crate::types::TrackFillStyle;
 use skia_safe::{image_filters, paint::Style, BlendMode, Canvas, ClipOp, Paint};
 use std::path::PathBuf;
@@ -64,9 +64,7 @@ pub(super) fn draw_static_layer(
                 .enumerate()
             {
                 let empty_color = match redline {
-                    Some(redline)
-                        if bar_is_redline(index as u32, bar_geometry.count, redline.fraction) =>
-                    {
+                    Some(redline) if redline.covers_bar(index as u32, bar_geometry.count) => {
                         redline.color.as_str()
                     }
                     _ => gauge.track_empty_color.as_str(),
@@ -262,7 +260,8 @@ fn paint_empty_track(
         );
         return;
     };
-    let (normal_zone, red_zone) = spec.redline_zones(redline.fraction);
+    let (before, after) = spec.redline_zones(redline.fraction);
+    let (normal_zone, red_zone) = redline.order_zones(before, after);
     for (zone, color) in [(&normal_zone, empty_color), (&red_zone, redline.color.as_str())] {
         canvas.save();
         canvas.clip_path(zone, ClipOp::Intersect, true);
@@ -328,9 +327,7 @@ fn draw_segmented_fill(
         let zone_paint;
         let paint = match (&cache.redline, &redline_paint) {
             _ if overrun_paint.is_some() => overrun_paint.as_ref().expect("checked above"),
-            (Some(redline), Some(redline_paint))
-                if bar_is_redline(index as u32, bars.count, redline.fraction) =>
-            {
+            (Some(redline), Some(redline_paint)) if redline.covers_bar(index as u32, bars.count) => {
                 redline_paint
             }
             _ => match &cache.fill_stops {
@@ -388,7 +385,7 @@ fn draw_continuous_fill(
     let split = cache
         .redline
         .as_ref()
-        .filter(|redline| fill01 > redline.fraction);
+        .filter(|redline| redline.fill_enters(fill01));
     match split {
         None => {
             canvas.save();
@@ -403,7 +400,8 @@ fn draw_continuous_fill(
             canvas.restore();
         }
         Some(redline) => {
-            let (normal_zone, red_zone) = reveal_spec.redline_zones(redline.fraction);
+            let (before, after) = reveal_spec.redline_zones(redline.fraction);
+            let (normal_zone, red_zone) = redline.order_zones(before, after);
             let zones = [
                 (&normal_zone, normal_paint),
                 (&red_zone, fill_paint_with_color(cache, &redline.color)),

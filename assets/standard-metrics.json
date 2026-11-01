@@ -24,6 +24,7 @@
           "color": "#ffffff",
           "opacity": 1,
           "show_units": false,
+          "show_value": true,
           "display_unit": null
         },
         "fontSizeByType": {
@@ -1111,7 +1112,7 @@
         "source": "custom",
         "assetFile": "widget-fuel.svg"
       },
-      "gaugeScale": {"min": 0, "max": 21, "redline": 20, "tickInterval": 3, "tickMinor": 2, "labelDivisor": 1},
+      "gaugeScale": {"min": 0, "max": 21, "redline": 3, "redlineZone": "below", "tickInterval": 3, "tickMinor": 2, "labelDivisor": 1},
       "category": "motosports"
     },
     {

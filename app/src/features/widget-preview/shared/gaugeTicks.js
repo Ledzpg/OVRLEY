@@ -4,7 +4,7 @@
  */
 
 import { getArcPoint } from '../widgets/arc-gauge/trackPath'
-import { getArcFractionAngle } from './gaugeRedline'
+import { getArcFractionAngle, isFractionInRedline } from './gaugeRedline'
 
 /**
  * Screen angle where a fill of `fraction` ends. The fill is measured on the border-inset track, exactly as the Rust
@@ -92,7 +92,7 @@ export function getArcTickLayout({ data, trackGeometry, range, redline, segmente
   for (const mark of getGaugeTickMarks(data, range.min, range.max)) {
     const fraction = (mark.value - range.min) / (range.max - range.min)
     const angle = getArcValueAngle({ data, trackGeometry, segmented, fraction })
-    const inRedline = redline != null && fraction >= redline.fraction
+    const inRedline = redline != null && isFractionInRedline(redline, fraction)
     const length = mark.major ? data.tick_major_length : data.tick_minor_length
     const from = getArcPoint(trackGeometry.centerX, trackGeometry.centerY, edge, angle)
     const to = getArcPoint(trackGeometry.centerX, trackGeometry.centerY, edge + side * length, angle)

@@ -158,6 +158,7 @@ pub fn validate_time_value(value: ValueConfig, index: usize) -> CoreResult<Valid
             icon_offset_x,
             icon_offset_y,
             show_units: false,
+            show_value: value.show_value.unwrap_or(true),
             show_full_distance: None,
             show_full_ascent: None,
             coordinate_format: None,

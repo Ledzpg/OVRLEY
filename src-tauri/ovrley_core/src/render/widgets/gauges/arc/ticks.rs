@@ -72,7 +72,7 @@ pub(super) fn draw_ticks(
             TrackFillStyle::Bars => geometry.start_angle + geometry.sweep_angle * fraction,
         };
         let in_redline = redline
-            .map(|redline| fraction >= redline.fraction)
+            .map(|redline| redline.contains_fraction(fraction))
             .unwrap_or(false);
         let color = match redline {
             Some(redline) if in_redline => redline.color.as_str(),

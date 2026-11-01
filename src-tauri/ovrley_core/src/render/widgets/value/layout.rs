@@ -98,12 +98,14 @@ pub(crate) fn draw_metric_parts(
         } => (value_text, unit_text.as_deref()),
     };
 
+    // A hidden number keeps the numeric vertical metrics, so the icon and unit stay where they would be.
+    let (value_text, value_vertical_text) = if validated.show_value {
+        (value_text.as_str(), super::metric_vertical_metrics_text(value_text))
+    } else {
+        ("", NUMERIC_VERTICAL_METRICS_TEXT)
+    };
     let value_measure = measure_text(value_text, base_style, font_dirs)?;
-    let value_vertical_measure = measure_text(
-        super::metric_vertical_metrics_text(value_text),
-        base_style,
-        font_dirs,
-    )?;
+    let value_vertical_measure = measure_text(value_vertical_text, base_style, font_dirs)?;
     let value_line_height = base_style.font_size * METRIC_WIDGET_LINE_HEIGHT;
 
     let mut units_style = base_style.clone();
@@ -178,13 +180,15 @@ pub(crate) fn draw_metric_parts(
         );
     }
 
-    draw_text_with_vertical_metrics_text(
-        canvas,
-        value_text,
-        super::metric_vertical_metrics_text(value_text),
-        &value_style,
-        font_dirs,
-    )?;
+    if validated.show_value {
+        draw_text_with_vertical_metrics_text(
+            canvas,
+            value_text,
+            value_vertical_text,
+            &value_style,
+            font_dirs,
+        )?;
+    }
 
     if let (Some(unit_text), Some(unit_measure)) = (unit_text, units_measure) {
         let mut units_style = units_style;
@@ -590,6 +594,7 @@ mod tests {
             icon_offset_x: 0.0,
             icon_offset_y: 0.0,
             show_units: true,
+            show_value: true,
             show_full_distance: None,
             show_full_ascent: None,
             coordinate_format: None,

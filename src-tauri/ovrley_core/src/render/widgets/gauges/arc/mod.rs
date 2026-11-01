@@ -220,6 +220,7 @@ pub fn prepare_arc_gauge_cache(
             }),
             text_style,
             has_unit: unit_text.is_some(),
+            show_value: gauge.inner_value.show_value,
             unit_font_size: static_unit_font_size,
             inner_widget_gap: DEFAULT_GAP_PX * scale,
             inner_widget_offset_x: gauge.inner_widget_offset_x * scale,
@@ -297,14 +298,16 @@ pub fn draw_arc_gauge_widget(
         value_style.x = inner_layout.center_x - value_advance * 0.5;
         value_style.y = inner_layout.value_top;
         value_style.line_height = cache.text_style.font_size * LINE_HEIGHT;
-        draw_text_with_vertical_metrics_text(
-            canvas,
-            &state.value_text,
-            metric_vertical_metrics_text(&state.value_text),
-            &value_style,
-            &cache.font_dirs,
-        )
-        .ok()?;
+        if cache.show_value {
+            draw_text_with_vertical_metrics_text(
+                canvas,
+                &state.value_text,
+                metric_vertical_metrics_text(&state.value_text),
+                &value_style,
+                &cache.font_dirs,
+            )
+            .ok()?;
+        }
 
         let marker = arc_point(
             geometry.center_x,

@@ -223,20 +223,33 @@ export function getContentAlignmentOrigin(contentAlignment, anchorX, contentWidt
  * @param {string} params.valueText
  * @param {string} params.unitText
  * @param {boolean} params.showIcon
+ * @param {boolean} params.showValue - False lays the row out without the number (icon and unit only).
  * @param {boolean} params.showUnits
  * @param {number} params.iconSize
  * @param {'left'|'center'|'right'} params.contentAlignment
  * @param {number} params.globalScale - Global scale applied when the SVG is rendered.
  * @returns {{ icon: object|null, value: object, units: object|null, width: number, height: number, unitsFontSize: number, rowOriginX: number }}
  */
-export function getMetricWidgetLayout({ fontSize, fontFamily, valueText, unitText, showIcon, showUnits, iconSize, contentAlignment, globalScale }) {
+export function getMetricWidgetLayout({
+  fontSize,
+  fontFamily,
+  valueText,
+  unitText,
+  showIcon,
+  showValue,
+  showUnits,
+  iconSize,
+  contentAlignment,
+  globalScale,
+}) {
   // Font metrics — compute line heights and measure both value and units text using canvas measurement
   const valueLineHeight = fontSize * METRIC_WIDGET_LINE_HEIGHT
   const unitsFontSize = Math.max(fontSize * 0.28, 12)
   const unitsLineHeight = unitsFontSize * METRIC_WIDGET_LINE_HEIGHT
   const iconMarginRight = Math.max(fontSize * 0.08, 8)
-  const valueMeasure = measurePreviewText(valueText, fontSize, fontFamily)
-  const valueVerticalMetrics = getPreviewVerticalMetrics(valueText, fontSize, fontFamily)
+  // A hidden number keeps the numeric vertical metrics, so the icon and unit stay where they would be.
+  const valueMeasure = showValue ? measurePreviewText(valueText, fontSize, fontFamily) : createEmptyTextMeasure()
+  const valueVerticalMetrics = getPreviewVerticalMetrics(showValue ? valueText : NUMERIC_PREVIEW_VERTICAL_METRICS_TEXT, fontSize, fontFamily)
   const showUnitText = Boolean(showUnits && unitText)
   const unitsMeasure = showUnitText ? measurePreviewText(unitText, unitsFontSize, fontFamily) : createEmptyTextMeasure()
   const unitsVerticalMetrics = showUnitText

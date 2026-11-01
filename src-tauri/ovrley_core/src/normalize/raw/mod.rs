@@ -297,6 +297,10 @@ pub struct ValueConfig {
     pub icon_offset_y: Option<f32>,
     #[serde(default)]
     pub show_units: Option<bool>,
+    /// Draw the number of a metric widget; absent means shown. An icon-only readout or the
+    /// bars of an arc gauge set it to `false`.
+    #[serde(default)]
+    pub show_value: Option<bool>,
     #[serde(default)]
     pub show_full_distance: Option<bool>,
     #[serde(default)]

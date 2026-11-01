@@ -35,6 +35,7 @@ function makeWidget(overrides = {}) {
       color: '#ffffff',
       opacity: 1,
       show_units: true,
+      show_value: true,
       unit_color: '#ffffff',
       display_unit: 'kmh',
       prefix: '',

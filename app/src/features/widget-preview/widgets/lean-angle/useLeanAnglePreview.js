@@ -38,6 +38,7 @@ export function useLeanAnglePreview({ widget, activity, previewSecond, globalOpa
       valueText: formatted.value,
       unitText,
       showIcon: false,
+      showValue: true,
       showUnits: Boolean(unitText),
       iconSize: 0,
       contentAlignment: 'left',

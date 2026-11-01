@@ -4,6 +4,7 @@ import { getArcFilledTrackPath, getArcRoundedSegmentPath } from './trackPath'
 import { useArcGaugePreviewPresentation } from './useArcGaugePreview'
 import { PreviewSvgShadowBlurFilter, PreviewSvgText } from '../../shared/PreviewSvgComponents'
 import { getStopColorAt } from '../../shared/gaugeZones'
+import { isRedlineBar, splitRedlineBars } from '../../shared/gaugeRedline'
 
 /**
  * Renders a filled arc track path.
@@ -75,7 +76,7 @@ function buildArcSegmentGeometry(trackGeometry, segments) {
 function ArcBarFill({ geometries, data, redline, overrun, fillStops, filledBarCount, filledOpacity, testIdPrefix }) {
   const bars = []
   for (let index = 0; index < filledBarCount; index += 1) {
-    const inRedline = overrun != null || (redline != null && index >= redline.barStart)
+    const inRedline = overrun != null || (redline != null && isRedlineBar(redline, index))
     let color = data.track_filled_color
     if (overrun) color = overrun.color
     else if (inRedline) color = redline.color
@@ -208,14 +209,14 @@ function ArcGaugeTrack({
       {redline && segmented ? (
         <>
           <ArcSegmentPaths
-            geometries={geometries.slice(0, redline.barStart)}
+            geometries={splitRedlineBars(geometries, redline).normal}
             cornerRadius={data.track_corner_radius}
             fill={data.track_empty_color}
             fillOpacity={emptyOpacity}
             dataTestId={`${testIdPrefix}-bar-empty`}
           />
           <ArcSegmentPaths
-            geometries={geometries.slice(redline.barStart)}
+            geometries={splitRedlineBars(geometries, redline).redline}
             cornerRadius={data.track_corner_radius}
             fill={redline.color}
             fillOpacity={emptyOpacity}
@@ -451,19 +452,21 @@ export function OverlayArcGaugeWidget({ widget, activity, previewSecond, globalO
           borderThickness={sceneStyle?.border_thickness}
         />
       ) : null}
-      <PreviewSvgText
-        text={innerModel.valueText}
-        x={innerLayout.value.x}
-        baseline={innerLayout.value.baseline}
-        color={widget.data.color}
-        fontFamily={innerModel.fontFamily}
-        fontSize={widget.data.font_size}
-        opacity={opacity}
-        shadow={shadow}
-        shadowFilterId={`${widget.data.display_type}-gauge-${widget.id}-value-shadow`}
-        borderColor={sceneStyle?.border_color}
-        borderThickness={sceneStyle?.border_thickness}
-      />
+      {widget.data.show_value ? (
+        <PreviewSvgText
+          text={innerModel.valueText}
+          x={innerLayout.value.x}
+          baseline={innerLayout.value.baseline}
+          color={widget.data.color}
+          fontFamily={innerModel.fontFamily}
+          fontSize={widget.data.font_size}
+          opacity={opacity}
+          shadow={shadow}
+          shadowFilterId={`${widget.data.display_type}-gauge-${widget.id}-value-shadow`}
+          borderColor={sceneStyle?.border_color}
+          borderThickness={sceneStyle?.border_thickness}
+        />
+      ) : null}
     </svg>
   )
 }

@@ -73,6 +73,14 @@ describe('cluster template contents', () => {
     expect(fuel).toMatchObject({ rotation: 90, fill_direction: 'counter-clockwise', fuel_tank_capacity: 21 })
     const icons = values.filter((widget) => widget.display_type === 'text' && widget.show_icon)
     expect(icons.map((widget) => widget.value)).toEqual(['coolant_temperature', 'fuel_level'])
+    // Only the bars and the icons show: no number inside the arcs or beside the icons.
+    expect([...gauges, ...icons].every((widget) => widget.show_value === false)).toBe(true)
+  })
+
+  test('the fuel gauge turns red and blinks at a critical level of 3 litres', () => {
+    const { values } = effective('cluster-tacometro-velocimetro')
+    const fuel = values.find((widget) => widget.display_type === 'arc' && widget.value === 'fuel_level')
+    expect(fuel).toMatchObject({ redline_value: 3, redline_fill_all: true, redline_blink_hz: 3 })
   })
 
   test('the map template puts the route on a raster map with its credit', () => {

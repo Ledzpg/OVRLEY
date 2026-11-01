@@ -278,6 +278,47 @@ fn preview_render_reports_arc_gauge_without_text_or_icon_fallback() {
     let _ = std::fs::remove_file(out_path);
 }
 
+#[test]
+fn the_inner_number_is_only_drawn_while_show_value_is_on() {
+    let render_center_pixels_drawn = |show_value: Option<bool>| {
+        let mut value = full_arc_gauge_config(20, 30);
+        value["show_units"] = serde_json::json!(false);
+        value["show_min_max_labels"] = serde_json::json!(false);
+        if let Some(show_value) = show_value {
+            value["show_value"] = serde_json::json!(show_value);
+        }
+        let mut scene = common::builders::scene_json();
+        scene["width"] = serde_json::json!(320);
+        scene["height"] = serde_json::json!(240);
+        let config = validate_render_config(RenderConfig {
+            scene: serde_json::from_value(scene).unwrap(),
+            backdrops: vec![],
+            rasters: vec![],
+            labels: vec![],
+            values: vec![serde_json::from_value(value).unwrap()],
+            plots: serde_json::Value::Object(serde_json::Map::new()),
+            extra: BTreeMap::new(),
+        })
+        .unwrap();
+        let activity: ParsedActivity = serde_json::from_value(serde_json::json!({})).unwrap();
+        let dense = dense_speed_activity(vec![Some(0.0), Some(50.0)]);
+        let out_path = std::env::temp_dir().join("arc_gauge_show_value.png");
+        render_preview_with_report(&test_paths(), &config, &activity, &dense, 0.0, &out_path)
+            .unwrap();
+        let image = image::open(&out_path).unwrap().to_rgba8();
+        let _ = std::fs::remove_file(out_path);
+        // The gauge's center is at (100, 110); the half-circle track lies above its middle.
+        (60..140)
+            .flat_map(|x| (95..130).map(move |y| (x, y)))
+            .filter(|(x, y)| image.get_pixel(*x, *y).0[3] > 0)
+            .count()
+    };
+
+    assert!(render_center_pixels_drawn(None) > 0, "absent means the number is shown");
+    assert!(render_center_pixels_drawn(Some(true)) > 0);
+    assert_eq!(render_center_pixels_drawn(Some(false)), 0);
+}
+
 fn validate_single_arc(
     value: serde_json::Value,
 ) -> Result<ovrley_core::normalize::ValidatedRenderConfig, ovrley_core::CoreError> {

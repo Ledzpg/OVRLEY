@@ -394,6 +394,7 @@ mod tests {
             icon_offset_x: 0.0,
             icon_offset_y: 0.0,
             show_units: true,
+            show_value: true,
             show_full_distance: None,
             show_full_ascent: None,
             coordinate_format: None,

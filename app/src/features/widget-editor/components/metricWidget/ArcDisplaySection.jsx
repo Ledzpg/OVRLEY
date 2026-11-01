@@ -13,6 +13,7 @@ import { useAvailableFonts } from '@/hooks/useFonts'
 import useDisplayVariantUpdater from '../../hooks/useDisplayVariantUpdater'
 import { FontSection, UnitsControlRow } from '../widgetEditorSections'
 import FuelTankField from './FuelTankField'
+import ShowValueField from './ShowValueField'
 import { ColorField, SelectField, SizeSlider, SliderField, ToggleField } from '../widgetFormControls'
 import { BarFillStyleDetails, BarFillStyleField } from './BarFillStyleControls'
 import GaugeScaleControls from './GaugeScaleControls'
@@ -268,6 +269,9 @@ export default function ArcDisplaySection({ widget, updateWidgetData, updateWidg
         title={t('widget-editor.label', 'Label')}
         fontSizeLabel={t('widget-editor.fontSize', 'Font Size')}
       />
+      <div className="grid grid-cols-2 gap-4">
+        <ShowValueField widget={widget} updateWidgetData={updateWidgetData} />
+      </div>
       <div className="grid grid-cols-2 gap-4">
         <SliderField
           editable

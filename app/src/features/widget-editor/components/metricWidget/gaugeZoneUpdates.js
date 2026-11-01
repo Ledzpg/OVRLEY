@@ -81,6 +81,8 @@ export function buildZonesUpdate(data, defaults, change) {
   if (data.scale_min == null || data.scale_max == null) return {}
   const range = { min: data.scale_min, max: data.scale_max }
   const zones = data.fill_zones ?? []
+  // A critical level sits at the start of the track, so no band ends in its color.
+  const endRedlineColor = defaults.redlineZone === 'below' ? undefined : data.redline_color
 
   if (Object.hasOwn(change, 'enabled')) {
     if (!change.enabled) return { fill_zones: undefined }
@@ -106,7 +108,7 @@ export function buildZonesUpdate(data, defaults, change) {
     const last = zones[zones.length - 1]
     const start = Math.round(((last.start + range.max) / 2) * 100) / 100
     if (start <= last.start || start >= range.max) return {}
-    return { fill_zones: [...zones, { start, color: resolveZoneEndColor(zones, zones.length - 1, data.redline_color) ?? last.color }] }
+    return { fill_zones: [...zones, { start, color: resolveZoneEndColor(zones, zones.length - 1, endRedlineColor) ?? last.color }] }
   }
 
   const index = change.index
@@ -132,7 +134,7 @@ export function buildZonesUpdate(data, defaults, change) {
   if (Object.hasOwn(change, 'followsNext')) {
     if (change.followsNext) return { fill_zones: withZone(zones, index, { end_color: undefined, end_follows_next: true }) }
     // Switching it off keeps the color the gradient currently ends in, now as the band's own end color.
-    const current = resolveZoneEndColor(zones, index, data.redline_color) ?? zones[index].color
+    const current = resolveZoneEndColor(zones, index, endRedlineColor) ?? zones[index].color
     return { fill_zones: withZone(zones, index, { end_color: current, end_follows_next: undefined }) }
   }
   if (Object.hasOwn(change, 'endColor')) return { fill_zones: withZone(zones, index, { end_color: change.endColor, end_follows_next: undefined }) }

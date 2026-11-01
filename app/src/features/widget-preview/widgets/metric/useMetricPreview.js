@@ -42,15 +42,19 @@ function buildMetricTextRuns({ widget, content, visualBounds, shadowFilterIds })
 
   const { layout, valueText, unitText } = content
   return [
-    {
-      key: 'value',
-      text: valueText,
-      x: layout.value.left + visualBounds.offsetX,
-      baseline: layout.value.baseline + visualBounds.offsetY,
-      color: widget.data.color,
-      fontSize: widget.data.font_size,
-      shadowFilterId: shadowFilterIds.value,
-    },
+    ...(widget.data.show_value
+      ? [
+          {
+            key: 'value',
+            text: valueText,
+            x: layout.value.left + visualBounds.offsetX,
+            baseline: layout.value.baseline + visualBounds.offsetY,
+            color: widget.data.color,
+            fontSize: widget.data.font_size,
+            shadowFilterId: shadowFilterIds.value,
+          },
+        ]
+      : []),
     ...(layout.units
       ? [
           {

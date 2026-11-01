@@ -4,7 +4,7 @@
  * whole track in the redline color, optionally blinking with the preview time.
  */
 
-import { getArcFractionAngle, wedgePath } from './gaugeRedline'
+import { getArcFractionAngle, isCriticalLevel, wedgePath } from './gaugeRedline'
 
 const WEDGE_STEP_DEGREES = 3
 const WEDGE_OVERLAP_DEGREES = 0.3
@@ -32,6 +32,16 @@ export function resolveZoneEndColor(zones, index, redlineColor) {
   if (zone.end_color != null) return zone.end_color
   if (zone.end_follows_next) return zones[index + 1]?.color ?? redlineColor ?? zone.color
   return undefined
+}
+
+/**
+ * The redline a fill band can end in: its value and color, unset for a critical level (which sits at the start of the
+ * track, so no band ends in it).
+ * @param {object} data - Gauge widget data.
+ * @returns {{ value: number|undefined, color: string|undefined }}
+ */
+export function getBandRedline(data) {
+  return isCriticalLevel(data) ? { value: undefined, color: undefined } : { value: data.redline_value, color: data.redline_color }
 }
 
 /**
@@ -86,9 +96,10 @@ export function getStopColorAt(stops, fraction) {
   return stops[stops.length - 1].color
 }
 
-/** Reports whether the value reached a redline that fills the whole track. */
+/** Reports whether the value reached a redline that fills the whole track (for a critical level: dropped to it). */
 export function isRedlineOverrun(data, value) {
-  return data?.redline_fill_all === true && data.redline_value != null && value != null && value >= data.redline_value
+  if (data?.redline_fill_all !== true || data.redline_value == null || value == null) return false
+  return isCriticalLevel(data) ? value <= data.redline_value : value >= data.redline_value
 }
 
 /**

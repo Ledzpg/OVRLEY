@@ -213,6 +213,16 @@ export function getGaugeScaleDefaults(type) {
 }
 
 /**
+ * Returns which side of the redline value the metric's gauge marks: 'above' (a redline, such as engine
+ * speed) or 'below' (a critical level, such as fuel).
+ * @param {string} type - metric type string
+ * @returns {'above' | 'below'}
+ */
+export function getStandardMetricRedlineZone(type) {
+  return getStandardMetricDefinition(type)?.gaugeScale?.redlineZone ?? 'above'
+}
+
+/**
  * Converts a canonical standard-metric value to a display unit.
  * @param {string} type
  * @param {number} value

@@ -22,6 +22,7 @@ export default function GaugeScaleControls({ widget, data, update }) {
 
   const fixedScale = data.scale_min != null && data.scale_max != null
   const redlineOn = data.redline_value != null
+  const critical = defaults.redlineZone === 'below'
 
   return (
     <div className="space-y-4">
@@ -48,21 +49,21 @@ export default function GaugeScaleControls({ widget, data, update }) {
         />
       </div>
       <div className="flex w-full items-center gap-3">
-        <SectionHeading icon={Gauge} title={t('widget-editor.redline', 'Redline')} />
+        <SectionHeading icon={Gauge} title={critical ? t('widget-editor.criticalLevel', 'Critical Level') : t('widget-editor.redline', 'Redline')} />
         <div className="shrink-0 pt-1">
           <ToggleField checked={redlineOn} onCheckedChange={(enabled) => update(buildGaugeScaleUpdate(data, defaults, { redline: enabled }))} />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <NumberField
-          label={t('widget-editor.redlineStart', 'Starts at')}
+          label={critical ? t('widget-editor.criticalLevelUpTo', 'Up to') : t('widget-editor.redlineStart', 'Starts at')}
           value={data.redline_value}
           disabled={!redlineOn}
           integerDisplay={false}
           onChange={(raw) => update(buildGaugeScaleUpdate(data, defaults, { redlineValue: raw }))}
         />
         <ColorField
-          label={t('widget-editor.redlineColor', 'Redline Color')}
+          label={critical ? t('widget-editor.criticalLevelColor', 'Critical Color') : t('widget-editor.redlineColor', 'Redline Color')}
           value={data.redline_color ?? DEFAULT_REDLINE_COLOR}
           disabled={!redlineOn}
           onChange={(redline_color) => update({ redline_color })}

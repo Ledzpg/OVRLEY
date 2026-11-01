@@ -33,6 +33,7 @@ export default function GaugeZoneControls({ widget, data, update }) {
   const zones = data.fill_zones ?? []
   const zonesOn = zones.length > 0
   const redlineOn = data.redline_value != null
+  const critical = defaults.redlineZone === 'below'
   const applyZones = (change) => update(buildZonesUpdate(data, defaults, change))
   const applyOverrun = (change) => update(buildRedlineOverrunUpdate(data, change))
 
@@ -107,7 +108,7 @@ export default function GaugeZoneControls({ widget, data, update }) {
                 <div className="grid grid-cols-2 items-end gap-4">
                   <ColorField
                     label={t('widget-editor.gaugeZoneEndColor', 'End Color')}
-                    value={resolveZoneEndColor(zones, index, data.redline_color)}
+                    value={resolveZoneEndColor(zones, index, critical ? undefined : data.redline_color)}
                     disabled={zone.end_follows_next === true}
                     onChange={(endColor) => applyZones({ index, endColor })}
                   />
@@ -133,7 +134,14 @@ export default function GaugeZoneControls({ widget, data, update }) {
       {redlineOn ? (
         <>
           <div className="flex w-full items-center gap-3">
-            <SectionHeading icon={Palette} title={t('widget-editor.redlineFillAll', 'Fill Completely at Redline')} />
+            <SectionHeading
+              icon={Palette}
+              title={
+                critical
+                  ? t('widget-editor.criticalLevelFillAll', 'Fill Completely at Critical Level')
+                  : t('widget-editor.redlineFillAll', 'Fill Completely at Redline')
+              }
+            />
             <div className="shrink-0 pt-1">
               <ToggleField checked={data.redline_fill_all === true} onCheckedChange={(fillAll) => applyOverrun({ fillAll })} />
             </div>

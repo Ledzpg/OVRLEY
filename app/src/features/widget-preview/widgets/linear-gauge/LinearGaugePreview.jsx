@@ -11,6 +11,7 @@
 import { PreviewSvgShadowBlurFilter, PreviewSvgText } from '../../shared/PreviewSvgComponents'
 import { useLinearGaugePreviewPresentation } from './useLinearGaugePreview'
 import { getStopColorAt } from '../../shared/gaugeZones'
+import { isRedlineBar, splitRedlineBars } from '../../shared/gaugeRedline'
 
 function SegmentRects({ segments, layer, ...props }) {
   const rects = []
@@ -38,7 +39,7 @@ function LinearBarFill({ data, presentation }) {
   const { redline, overrun, fillStops, filledCount, segments } = presentation
   const bars = []
   for (let index = 0; index < filledCount; index += 1) {
-    const inRedline = overrun != null || (redline != null && index >= redline.barStart)
+    const inRedline = overrun != null || (redline != null && isRedlineBar(redline, index))
     let color = data.track_filled_color
     if (overrun) color = overrun.color
     else if (inRedline) color = redline.color
@@ -97,7 +98,7 @@ function LinearGaugeTrack({ data, presentation, continuousFill }) {
       {redline && presentation.segmented ? (
         <>
           <SegmentRects
-            segments={presentation.segments.slice(0, redline.barStart)}
+            segments={splitRedlineBars(presentation.segments, redline).normal}
             layer={emptyLayer}
             fill={data.track_empty_color}
             fillOpacity={data.track_empty_opacity}
@@ -105,7 +106,7 @@ function LinearGaugeTrack({ data, presentation, continuousFill }) {
             data-testid="linear-gauge-bar-empty"
           />
           <SegmentRects
-            segments={presentation.segments.slice(redline.barStart)}
+            segments={splitRedlineBars(presentation.segments, redline).redline}
             layer={emptyLayer}
             fill={redline.color}
             fillOpacity={data.track_empty_opacity}

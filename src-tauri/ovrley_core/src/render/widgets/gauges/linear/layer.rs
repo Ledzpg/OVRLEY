@@ -4,7 +4,7 @@
 //! cached image. Per-frame work is limited to compositing that image and
 //! painting the current continuous fill or set of complete bars.
 
-use super::super::metric::{bar_fill_count, bar_is_redline, stop_color_at};
+use super::super::metric::{bar_fill_count, stop_color_at};
 use super::super::track_path::{translated_track_cap_path, translated_track_cap_reveal};
 use super::geometry::{bordered_bar_fill_rect, redline_zone_rects, segment_rect, track_cap_frame};
 use super::labels::label_layout;
@@ -68,7 +68,7 @@ pub(super) fn draw_static_layer(
                 gauge.orientation,
             );
             let empty_color = match redline {
-                Some(redline) if bar_is_redline(index, bar_geometry.count, redline.fraction) => {
+                Some(redline) if redline.covers_bar(index, bar_geometry.count) => {
                     redline.color.as_str()
                 }
                 _ => gauge.track_empty_color.as_str(),
@@ -180,7 +180,7 @@ fn draw_static_track(
         canvas.draw_rrect(inner_rrect, &empty_paint(empty_color));
         return;
     };
-    let (normal_zone, red_zone) = redline_zone_rects(
+    let (before, after) = redline_zone_rects(
         rect.left,
         rect.top,
         rect.width(),
@@ -189,6 +189,7 @@ fn draw_static_track(
         gauge.orientation,
         border,
     );
+    let (normal_zone, red_zone) = redline.order_zones(before, after);
     for (zone, color) in [(normal_zone, empty_color), (red_zone, redline.color.as_str())] {
         canvas.save();
         canvas.clip_rect(zone, skia_safe::ClipOp::Intersect, true);
@@ -218,9 +219,7 @@ pub(super) fn draw_segmented_fill(
         let zone_paint;
         let paint = match (&cache.redline, &redline_paint) {
             (Some(_), Some(redline_paint)) if overrun => redline_paint,
-            (Some(redline), Some(redline_paint))
-                if bar_is_redline(index, bar_geometry.count, redline.fraction) =>
-            {
+            (Some(redline), Some(redline_paint)) if redline.covers_bar(index, bar_geometry.count) => {
                 redline_paint
             }
             _ => match &cache.fill_stops {
@@ -270,12 +269,12 @@ pub(super) fn draw_continuous_fill(
     let split = cache
         .redline
         .as_ref()
-        .filter(|redline| fill01 > redline.fraction);
+        .filter(|redline| redline.fill_enters(fill01));
     let Some(redline) = split else {
         draw_continuous_fill_with(canvas, cache, fill01, &zone_fill_paint(cache));
         return;
     };
-    let (normal_zone, red_zone) = redline_zone_rects(
+    let (before, after) = redline_zone_rects(
         cache.x,
         cache.y,
         cache.width as f32,
@@ -284,6 +283,7 @@ pub(super) fn draw_continuous_fill(
         cache.orientation,
         cache.track_border_thickness,
     );
+    let (normal_zone, red_zone) = redline.order_zones(before, after);
     let zones = [
         (normal_zone, zone_fill_paint(cache)),
         (red_zone, fill_paint_with_color(cache, &redline.color)),

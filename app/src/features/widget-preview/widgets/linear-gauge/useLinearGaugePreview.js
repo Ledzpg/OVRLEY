@@ -10,8 +10,8 @@ import {
   getLinearTranslatedFillPath,
 } from './geometry'
 import { getTextShadowParts } from '../../shared/shadow'
-import { getLinearRedlineZoneRects, getRedlineBarStart } from '../../shared/gaugeRedline'
-import { getFillStops, isRedlineBlinkOn, isRedlineOverrun } from '../../shared/gaugeZones'
+import { fillEntersRedline, getLinearRedlineZoneRects, getRedlineBarStart } from '../../shared/gaugeRedline'
+import { getBandRedline, getFillStops, isRedlineBlinkOn, isRedlineOverrun } from '../../shared/gaugeZones'
 import { normalizeSvgShadowColor } from '../../shared/svgPreviewUtils'
 import { getPreviewFontFamily } from '../../shared/textMeasurement'
 import { formatGaugeBoundaryLabel } from '../../shared/gaugeLabelFormat'
@@ -42,7 +42,8 @@ export function useLinearGaugePreviewPresentation({ widget, activity, previewSec
         fillRect: getLinearFillRect({ ...baseLayout.innerTrackRect, fill: 1, orientation: widget.data.orientation }),
       }
     : baseLayout
-  const fillStops = getFillStops(widget.data.fill_zones, { min: layout.min, max: layout.max }, widget.data.redline_value, widget.data.redline_color)
+  const bandRedline = getBandRedline(widget.data)
+  const fillStops = getFillStops(widget.data.fill_zones, { min: layout.min, max: layout.max }, bandRedline.value, bandRedline.color)
   const segmented = widget.data.track_fill_style === 'bars'
   const bars = segmented
     ? getLinearBarRects(widget.data)
@@ -64,9 +65,9 @@ export function useLinearGaugePreviewPresentation({ widget, activity, previewSec
   const redline = layout.redline
     ? {
         ...layout.redline,
-        zones: getLinearRedlineZoneRects(layout.innerTrackRect, layout.redline.fraction, widget.data.orientation),
+        zones: getLinearRedlineZoneRects(layout.innerTrackRect, layout.redline.fraction, widget.data.orientation, layout.redline.below),
         barStart: segmented ? getRedlineBarStart(layout.redline.fraction, bars.count) : null,
-        fillPastRedline: !overrunning && layout.fill > layout.redline.fraction,
+        fillPastRedline: !overrunning && fillEntersRedline(layout.redline, layout.fill),
         normalZoneId: `${maskId}-zone-normal`,
         redlineZoneId: `${maskId}-zone-redline`,
       }

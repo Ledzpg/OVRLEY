@@ -63,6 +63,7 @@ function makeArc(overrides = {}) {
       color: '#ffffff',
       unit_color: '#ffffff',
       show_units: false,
+      show_value: true,
       display_unit: 'rpm',
       decimals: 0,
       ...SCALE,

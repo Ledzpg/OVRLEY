@@ -77,6 +77,10 @@ These apply to the arc, corner and linear gauges unless noted.
 - The vertical offset of an arc gauge label can now go up to ±150 px (it was ±50).
 - **Arc rotation and fill direction**: an arc gauge can be turned around its center (±180°) and can fill
   counter-clockwise, so a short arc can sit on the left or right and fill from the bottom up (coolant and fuel gauges).
+- **Show Value** switch on arc gauges and text values: turn it off to draw only the bars (or only the icon), with no
+  number inside the arc or beside the icon.
+- **Critical level** for fuel: the fuel gauge's redline is now a critical level that marks the values from zero up to
+  the chosen level in red; with "Fill Completely" on, the gauge fills red and can blink once the level drops to it.
 
 ## Widgets
 

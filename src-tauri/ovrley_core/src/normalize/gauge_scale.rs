@@ -6,8 +6,10 @@
 //! `redline_value` marks the point from which the track uses its own color.
 //! `fill_zones` colors the fill along the scale with solid or gradient bands, and
 //! `redline_fill_all` / `redline_blink_hz` make the gauge fill completely (and blink)
-//! once the value reaches the redline. All values are expressed in the metric's
-//! canonical unit (rpm, °C).
+//! once the value reaches the redline. For a metric whose low end is the danger (fuel level),
+//! the catalog marks the redline as a critical level: the zone is then everything up to the
+//! value, and the gauge fills and blinks once the value drops to it. All values are expressed in
+//! the metric's canonical unit (rpm, °C, L).
 //!
 //! Absence of every field is the documented default: the gauge keeps its
 //! automatic range and has no redline. Anything present is validated once here.
@@ -15,6 +17,7 @@
 use super::helpers::{require_finite_f64, require_hex_color};
 use super::raw::ValueConfig;
 use crate::error::{CoreError, CoreResult};
+use crate::standard_metrics::{standard_metric_redline_zone, RedlineZone};
 
 /// Most bands a fill may have.
 pub const MAX_FILL_ZONES: usize = 12;
@@ -32,6 +35,8 @@ pub struct ValidatedRedline {
     pub fill_all: bool,
     /// Blink rate of that full fill in flashes per second; `None` keeps it steady.
     pub blink_hz: Option<f64>,
+    /// The zone lies below `value` (a critical level, as for fuel) instead of above it.
+    pub below: bool,
 }
 
 /// Validated color band of the fill.
@@ -129,6 +134,7 @@ pub(crate) fn validate_gauge_scale(
                 color,
                 fill_all: value.redline_fill_all.unwrap_or(false),
                 blink_hz,
+                below: standard_metric_redline_zone(value.value) == RedlineZone::Below,
             })
         }
     };

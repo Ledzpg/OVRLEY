@@ -7,6 +7,7 @@ import {
 import { BALANCE_FORMAT_OPTIONS } from '@/features/widget-preview/widgets/metric/format'
 import { FontSection, IconSection, UnitsControlRow } from '../widgetEditorSections'
 import FuelTankField from './FuelTankField'
+import ShowValueField from './ShowValueField'
 import { SelectField, SliderField, ToggleField } from '../widgetFormControls'
 import { buildMetricUnitUpdate } from '@/lib/widget/altitude'
 import { TYPE_DEFAULTS } from '@/lib/widget/standard-widgets'
@@ -58,6 +59,12 @@ export default function TextDisplaySection({ widget, updateWidgetData, updateWid
         commitWidgetSize={commitWidgetSize}
         showContentAlignment
       />
+
+      {isCoordinateWidget ? null : (
+        <div className="grid grid-cols-2 gap-4">
+          <ShowValueField widget={widget} updateWidgetData={updateWidgetData} />
+        </div>
+      )}
 
       {hasDecimalControl ? (
         <div className="grid grid-cols-2 gap-4">
