@@ -855,11 +855,14 @@
     "shadowDistance": "阴影距离",
     "shadowStrength": "阴影强度",
     "fuelTankCapacity": "油箱容量",
+    "fillDirection": "填充方向",
+    "clockwise": "顺时针",
+    "counterClockwise": "逆时针",
     "gaugeZoneSameAsNext": "与下一段相同"
   },
   "widget-drawer": {
     "groupTachClusterShort": "仪表组",
-    "groupTachCluster": "转速表 + 速度 + 档位",
+    "groupTachCluster": "转速表 + 速度 + 档位 + 水温 + 燃油",
     "groupTemperaturesShort": "温度",
     "groupTemperatures": "冷却液温度和进气温度"
   }

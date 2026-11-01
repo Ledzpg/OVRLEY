@@ -28,6 +28,12 @@ import { translateOptions } from '@/i18n'
 
 const ARC_MIN_ANGLE = 30
 const ARC_MAX_ANGLE = 360
+const ARC_MIN_ROTATION = -180
+const ARC_MAX_ROTATION = 180
+const FILL_DIRECTION_OPTIONS = [
+  { value: 'clockwise', labelKey: 'widget-editor.clockwise', defaultLabel: 'Clockwise' },
+  { value: 'counter-clockwise', labelKey: 'widget-editor.counterClockwise', defaultLabel: 'Counter-clockwise' },
+]
 const CORNER_ORIENTATION_OPTIONS = [
   { value: 'bottom-left', labelKey: 'widget-editor.bottomLeft', defaultLabel: 'Bottom Left' },
   { value: 'bottom-right', labelKey: 'widget-editor.bottomRight', defaultLabel: 'Bottom Right' },
@@ -147,6 +153,28 @@ export default function ArcDisplaySection({ widget, updateWidgetData, updateWidg
             onSliderCommit={() => commitWidgetSize(widget.id)}
           />
         </div>
+        {isCornerGauge ? null : (
+          <div className="grid grid-cols-2 gap-4">
+            <SliderField
+              editable
+              label={t('widget-editor.rotation', 'Rotation')}
+              value={arcData.rotation}
+              min={ARC_MIN_ROTATION}
+              max={ARC_MAX_ROTATION}
+              step={5}
+              valueDisplay={`${arcData.rotation}`}
+              suffix="°"
+              onSliderChange={(rotation) => updateArcSize({ rotation })}
+              onSliderCommit={() => commitWidgetSize(widget.id)}
+            />
+            <SelectField
+              label={t('widget-editor.fillDirection', 'Fill Direction')}
+              value={arcData.fill_direction ?? 'clockwise'}
+              onValueChange={(fill_direction) => updateArc({ fill_direction })}
+              options={translateOptions(FILL_DIRECTION_OPTIONS, t)}
+            />
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-4">
           <BarFillStyleField data={arcData} suggestBarGeometry={suggestArcBarGeometry} updateVariant={updateArc} />
           <SliderField

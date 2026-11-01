@@ -855,11 +855,14 @@
     "shadowDistance": "Schattenabstand",
     "shadowStrength": "Schattenstärke",
     "fuelTankCapacity": "Tankvolumen",
+    "fillDirection": "Füllrichtung",
+    "clockwise": "Im Uhrzeigersinn",
+    "counterClockwise": "Gegen den Uhrzeigersinn",
     "gaugeZoneSameAsNext": "Wie nächste"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Cluster",
-    "groupTachCluster": "Drehzahlmesser + Geschwindigkeit + Gang",
+    "groupTachCluster": "Drehzahlmesser + Geschwindigkeit + Gang + Temperatur + Kraftstoff",
     "groupTemperaturesShort": "Temp.",
     "groupTemperatures": "Kühlmittel- und Ansauglufttemperatur"
   }

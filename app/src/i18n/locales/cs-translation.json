@@ -855,11 +855,14 @@
     "shadowDistance": "Vzdálenost stínu",
     "shadowStrength": "Intenzita stínu",
     "fuelTankCapacity": "Objem nádrže",
+    "fillDirection": "Směr plnění",
+    "clockwise": "Po směru hodinových ručiček",
+    "counterClockwise": "Proti směru hodinových ručiček",
     "gaugeZoneSameAsNext": "Stejná jako další"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Přístroje",
-    "groupTachCluster": "Otáčkoměr + rychlost + převodový stupeň",
+    "groupTachCluster": "Otáčkoměr + rychlost + převodový stupeň + teplota + palivo",
     "groupTemperaturesShort": "Teploty",
     "groupTemperatures": "Teploty chladicí kapaliny a nasávaného vzduchu"
   }

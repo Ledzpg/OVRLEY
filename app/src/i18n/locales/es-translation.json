@@ -855,11 +855,14 @@
     "shadowDistance": "Distancia de la sombra",
     "shadowStrength": "Intensidad de la sombra",
     "fuelTankCapacity": "Capacidad del depósito",
+    "fillDirection": "Sentido de llenado",
+    "clockwise": "Horario",
+    "counterClockwise": "Antihorario",
     "gaugeZoneSameAsNext": "Igual a la siguiente"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Cuadro",
-    "groupTachCluster": "Tacómetro + velocidad + marcha",
+    "groupTachCluster": "Tacómetro + velocidad + marcha + temperatura + combustible",
     "groupTemperaturesShort": "Temp.",
     "groupTemperatures": "Temperaturas del refrigerante y del aire de admisión"
   }

@@ -21,12 +21,24 @@ use crate::types::{DisplayType, MetricKind, TrackFillStyle};
 pub const MIN_ARC_ANGLE_DEGREES: f32 = 30.0;
 pub const MAX_ARC_ANGLE_DEGREES: f32 = 360.0;
 pub const CORNER_GAUGE_ANGLE_DEGREES: f32 = 90.0;
+/// Largest accepted turn of an arc gauge around its center, in either direction.
+pub const MAX_ARC_ROTATION_DEGREES: f32 = 360.0;
 
 /// The supported bottom-corner placements for a fixed 90° gauge.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ValidatedCornerGaugeOrientation {
     BottomLeft,
     BottomRight,
+}
+
+/// The direction in which an arc gauge fills, seen on screen.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum ValidatedArcFillDirection {
+    /// Fills from the start of the arc towards its end, clockwise.
+    #[default]
+    Clockwise,
+    /// Fills from the end of the arc back towards its start, counter-clockwise.
+    CounterClockwise,
 }
 
 /// Fully validated arc gauge configuration.
@@ -40,6 +52,7 @@ pub struct ValidatedArcGaugeWidget {
     pub rotation: f32,
     pub display_type: DisplayType,
     pub arc_angle: f32,
+    pub fill_direction: ValidatedArcFillDirection,
     pub corner_orientation: Option<ValidatedCornerGaugeOrientation>,
     pub inner_widget_offset_x: f32,
     pub inner_widget_offset_y: f32,
@@ -211,6 +224,30 @@ fn validate_arc_shaped_gauge(
     let x = value.x;
     let y = value.y;
     let rotation = value.rotation.unwrap_or(0.0);
+    if !rotation.is_finite() || rotation.abs() > MAX_ARC_ROTATION_DEGREES {
+        return Err(CoreError::Config(format!(
+            "{}: must be {}..={}, got {rotation}",
+            p("rotation"),
+            -MAX_ARC_ROTATION_DEGREES as i32,
+            MAX_ARC_ROTATION_DEGREES as i32,
+        )));
+    }
+    let fill_direction = match value.fill_direction.as_deref() {
+        None | Some("clockwise") => ValidatedArcFillDirection::Clockwise,
+        Some("counter-clockwise") => ValidatedArcFillDirection::CounterClockwise,
+        Some(direction) => {
+            return Err(CoreError::Config(format!(
+                "{}: must be 'clockwise' or 'counter-clockwise', got '{direction}'",
+                p("fill_direction")
+            )));
+        }
+    };
+    if corner_orientation.is_some() && value.fill_direction.is_some() {
+        return Err(CoreError::Config(format!(
+            "{}: corner gauges have a fixed fill direction",
+            p("fill_direction")
+        )));
+    }
     let inner_widget_offset_x =
         require_f32(value.inner_widget_offset_x, &p("inner_widget_offset_x"))?;
     let inner_widget_offset_y =
@@ -284,6 +321,7 @@ fn validate_arc_shaped_gauge(
         rotation,
         display_type,
         arc_angle,
+        fill_direction,
         corner_orientation,
         inner_widget_offset_x,
         inner_widget_offset_y,

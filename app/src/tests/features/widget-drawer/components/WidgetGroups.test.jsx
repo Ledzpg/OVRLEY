@@ -98,7 +98,7 @@ describe('widget group buttons', () => {
     for (const group of WIDGET_GROUPS) {
       expect(within(motorsports).getByRole('button', { name: group.nameDefault })).toBeInTheDocument()
     }
-    await user.click(screen.getByRole('button', { name: 'Tachometer + speed + gear' }))
+    await user.click(screen.getByRole('button', { name: 'Tachometer + speed + gear + coolant + fuel' }))
     expect(onAddGroup).toHaveBeenCalledWith(WIDGET_GROUPS[0])
     expect(screen.getByRole('button', { name: 'Coolant + intake air temperatures' })).toBeInTheDocument()
   })

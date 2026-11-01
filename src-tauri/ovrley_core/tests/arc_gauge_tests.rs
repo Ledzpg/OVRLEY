@@ -3,7 +3,7 @@ mod common;
 use ovrley_core::activity::schema::{DenseActivityReport, ParsedActivity};
 use ovrley_core::debug::RenderProfiler;
 use ovrley_core::normalize::raw::{RenderConfig, ValueConfig};
-use ovrley_core::normalize::validate_render_config;
+use ovrley_core::normalize::{validate_render_config, ValidatedArcFillDirection};
 use ovrley_core::paths::AppPaths;
 use ovrley_core::render::widgets::gauges::arc::{
     arc_gauge_geometry, arc_point, arc_radius, arc_start_end_angles,
@@ -38,11 +38,19 @@ fn value_config_deserializes_arc_gauge_specific_fields() {
 
 #[test]
 fn arc_angles_are_vertically_symmetric_for_small_half_and_full_sweeps() {
-    assert_eq!(arc_start_end_angles(30.0), (255.0, 285.0));
-    assert_eq!(arc_start_end_angles(180.0), (180.0, 360.0));
-    assert_eq!(arc_start_end_angles(360.0), (90.0, 450.0));
+    assert_eq!(arc_start_end_angles(30.0, 0.0), (255.0, 285.0));
+    assert_eq!(arc_start_end_angles(180.0, 0.0), (180.0, 360.0));
+    assert_eq!(arc_start_end_angles(360.0, 0.0), (90.0, 450.0));
 
-    let half = arc_gauge_geometry(200.0, 160.0, 180.0, 12.0, 2.0);
+    let half = arc_gauge_geometry(
+        200.0,
+        160.0,
+        180.0,
+        0.0,
+        ValidatedArcFillDirection::Clockwise,
+        12.0,
+        2.0,
+    );
     assert_eq!(half.center_x, 100.0);
     assert_eq!(half.center_y, 80.0);
     assert_eq!(half.radius, 72.0);
@@ -60,6 +68,90 @@ fn arc_angles_are_vertically_symmetric_for_small_half_and_full_sweeps() {
     assert!((start.y - 80.0).abs() < 0.001);
     assert!((end.x - 172.0).abs() < 0.001);
     assert!((end.y - 80.0).abs() < 0.001);
+}
+
+#[test]
+fn rotation_turns_the_arc_clockwise_around_its_center() {
+    // Centered on the left of the frame (9 o'clock), 70 degrees wide.
+    assert_eq!(arc_start_end_angles(70.0, -90.0), (145.0, 215.0));
+    // Centered on the right of the frame (3 o'clock).
+    assert_eq!(arc_start_end_angles(70.0, 90.0), (325.0, 395.0));
+}
+
+#[test]
+fn a_counter_clockwise_gauge_starts_at_the_far_end_and_sweeps_back() {
+    let clockwise = arc_gauge_geometry(
+        200.0,
+        200.0,
+        70.0,
+        90.0,
+        ValidatedArcFillDirection::Clockwise,
+        8.0,
+        0.0,
+    );
+    assert_eq!((clockwise.start_angle, clockwise.sweep_angle), (325.0, 70.0));
+
+    let counter_clockwise = arc_gauge_geometry(
+        200.0,
+        200.0,
+        70.0,
+        90.0,
+        ValidatedArcFillDirection::CounterClockwise,
+        8.0,
+        0.0,
+    );
+    assert_eq!(
+        (counter_clockwise.start_angle, counter_clockwise.sweep_angle),
+        (395.0, -70.0)
+    );
+    // Seen on screen the fill starts at the lower right (about 4 o'clock) and rises.
+    let start = arc_point(
+        counter_clockwise.center_x,
+        counter_clockwise.center_y,
+        counter_clockwise.radius,
+        counter_clockwise.start_angle,
+    );
+    assert!(start.x > counter_clockwise.center_x && start.y > counter_clockwise.center_y);
+}
+
+#[test]
+fn rotation_and_fill_direction_reach_the_prepared_gauge() {
+    let mut raw_config = full_arc_gauge_config(20, 30);
+    raw_config["rotation"] = serde_json::json!(90);
+    raw_config["arc_angle"] = serde_json::json!(70);
+    raw_config["fill_direction"] = serde_json::json!("counter-clockwise");
+    let config = validate_single_arc(raw_config).unwrap();
+    let paths = test_paths();
+    let activity: ParsedActivity = serde_json::from_value(serde_json::json!({})).unwrap();
+    let dense = dense_speed_activity(vec![Some(0.0), Some(100.0)]);
+    let mut profiler = RenderProfiler::default();
+
+    let assets = prepare_render_assets(&paths, &config, &activity, &dense, &mut profiler).unwrap();
+
+    let PreparedValue::ArcGauge(widget) = &assets.values()[0] else {
+        panic!("arc gauge should prepare a gauge cache at value index 0");
+    };
+    let cache = widget.cache.as_ref().expect("arc gauge cache must be prepared");
+    assert_eq!((cache.start_angle, cache.sweep_angle), (395.0, -70.0));
+}
+
+#[test]
+fn rotation_and_fill_direction_reject_unsupported_values() {
+    let mut too_far = full_arc_gauge_config(20, 30);
+    too_far["rotation"] = serde_json::json!(361);
+    let Err(error) = validate_single_arc(too_far) else {
+        panic!("a rotation beyond one turn should fail validation");
+    };
+    let error = error.to_string();
+    assert!(error.contains("rotation") && error.contains("-360..=360"), "{error}");
+
+    let mut unknown_direction = full_arc_gauge_config(20, 30);
+    unknown_direction["fill_direction"] = serde_json::json!("sideways");
+    let Err(error) = validate_single_arc(unknown_direction) else {
+        panic!("an unknown fill direction should fail validation");
+    };
+    let error = error.to_string();
+    assert!(error.contains("fill_direction") && error.contains("sideways"), "{error}");
 }
 
 #[test]

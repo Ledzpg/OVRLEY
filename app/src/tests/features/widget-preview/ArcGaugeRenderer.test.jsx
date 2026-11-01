@@ -12,6 +12,7 @@ function makeWidget(overrides = {}) {
       display_type: 'arc',
       width: 160,
       height: 160,
+      rotation: 0,
       arc_angle: 180,
       inner_widget_offset_x: 0,
       inner_widget_offset_y: 0,
@@ -76,6 +77,31 @@ describe('OverlayArcGaugeWidget', () => {
     expect(filledTrack.getAttribute('d')).toContain('C')
     expect(screen.getByText('180')).toBeInTheDocument()
     expect(screen.getByText('KM/H')).toBeInTheDocument()
+  })
+
+  test('turns the track by the rotation and fills it from the far end when counter-clockwise', () => {
+    const emptyTrackPath = (overrides) => {
+      const { unmount } = render(
+        <OverlayArcGaugeWidget widget={makeWidget(overrides)} activity={activity} previewSecond={0.5} globalOpacity={1} globalScale={1} />,
+      )
+      const path = screen.getByTestId('arc-gauge-empty-track').getAttribute('d')
+      unmount()
+      return path
+    }
+    const filledTrackPath = (overrides) => {
+      const { unmount } = render(
+        <OverlayArcGaugeWidget widget={makeWidget(overrides)} activity={activity} previewSecond={0.5} globalOpacity={1} globalScale={1} />,
+      )
+      const path = screen.getByTestId('arc-gauge-filled-track').getAttribute('d')
+      unmount()
+      return path
+    }
+
+    const top = emptyTrackPath({ arc_angle: 70, fill_direction: 'clockwise' })
+    expect(emptyTrackPath({ arc_angle: 70, rotation: 90, fill_direction: 'clockwise' })).not.toBe(top)
+    expect(filledTrackPath({ arc_angle: 70, rotation: 90, fill_direction: 'counter-clockwise' })).not.toBe(
+      filledTrackPath({ arc_angle: 70, rotation: 90, fill_direction: 'clockwise' }),
+    )
   })
 
   test('uses filled ring paths for a full arc while keeping labels separate', () => {

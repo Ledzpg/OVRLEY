@@ -9,9 +9,19 @@ import {
 
 describe('arcGaugeLayout', () => {
   test('uses vertically symmetric start and end angles for the supported range', () => {
-    expect(getArcAngles(30)).toEqual({ startAngle: 255, endAngle: 285, sweepAngle: 30 })
-    expect(getArcAngles(180)).toEqual({ startAngle: 180, endAngle: 360, sweepAngle: 180 })
-    expect(getArcAngles(360)).toEqual({ startAngle: 90, endAngle: 450, sweepAngle: 360 })
+    expect(getArcAngles(30, 0, 'clockwise')).toEqual({ startAngle: 255, endAngle: 285, sweepAngle: 30 })
+    expect(getArcAngles(180, 0, 'clockwise')).toEqual({ startAngle: 180, endAngle: 360, sweepAngle: 180 })
+    expect(getArcAngles(360, 0, 'clockwise')).toEqual({ startAngle: 90, endAngle: 450, sweepAngle: 360 })
+  })
+
+  test('turns the arc clockwise around its center by the rotation', () => {
+    expect(getArcAngles(70, -90, 'clockwise')).toEqual({ startAngle: 145, endAngle: 215, sweepAngle: 70 })
+    expect(getArcAngles(70, 90, 'clockwise')).toEqual({ startAngle: 325, endAngle: 395, sweepAngle: 70 })
+  })
+
+  test('a counter-clockwise arc starts at the far end and sweeps back', () => {
+    expect(getArcAngles(70, 90, 'counter-clockwise')).toEqual({ startAngle: 395, endAngle: 325, sweepAngle: -70 })
+    expect(getArcAngles(180, 0, 'counter-clockwise')).toEqual({ startAngle: 360, endAngle: 180, sweepAngle: -180 })
   })
 
   test('derives radius from the smaller frame dimension and outer stroke', () => {
@@ -20,7 +30,11 @@ describe('arcGaugeLayout', () => {
   })
 
   test('uses a 50 percent placeholder and sweeps left to right over a half-circle', () => {
-    const layout = getArcGaugeLayout({ width: 160, height: 160, arc_angle: 180, track_thickness: 12, track_border_thickness: 2 }, null, [])
+    const layout = getArcGaugeLayout(
+      { width: 160, height: 160, rotation: 0, arc_angle: 180, fill_direction: 'clockwise', track_thickness: 12, track_border_thickness: 2 },
+      null,
+      [],
+    )
 
     expect(layout.fill).toBe(0.5)
     expect(layout).toMatchObject({ centerX: 80, centerY: 80, radius: 72, startAngle: 180, endAngle: 360, sweepAngle: 180 })

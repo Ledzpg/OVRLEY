@@ -367,6 +367,8 @@ pub struct ValueConfig {
     #[serde(default)]
     pub corner_orientation: Option<String>,
     #[serde(default)]
+    pub fill_direction: Option<String>,
+    #[serde(default)]
     pub inner_widget_offset_x: Option<f32>,
     #[serde(default)]
     pub inner_widget_offset_y: Option<f32>,

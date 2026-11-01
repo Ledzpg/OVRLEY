@@ -52,6 +52,7 @@ function makeArc(overrides = {}) {
       opacity: 1,
       width: 160,
       height: 160,
+      rotation: 0,
       arc_angle: 180,
       track_thickness: 14,
       track_corner_radius: 0,

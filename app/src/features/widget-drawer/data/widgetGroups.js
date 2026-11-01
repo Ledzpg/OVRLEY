@@ -15,7 +15,7 @@ export const WIDGET_GROUPS = Object.freeze([
     shortNameKey: 'widget-drawer.groupTachClusterShort',
     shortNameDefault: 'Cluster',
     nameKey: 'widget-drawer.groupTachCluster',
-    nameDefault: 'Tachometer + speed + gear',
+    nameDefault: 'Tachometer + speed + gear + coolant + fuel',
   },
   {
     id: 'temperature-panel',

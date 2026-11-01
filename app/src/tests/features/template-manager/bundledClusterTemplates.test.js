@@ -64,6 +64,17 @@ describe('cluster template contents', () => {
     expect(backdrops.some((widget) => widget.fill_color === '#ffd400')).toBe(true)
   })
 
+  test('the tachometer cluster has coolant and fuel gauges on its left and right, each with its icon', () => {
+    const { values } = effective('cluster-tacometro-velocimetro')
+    const gauges = values.filter((widget) => widget.display_type === 'arc' && widget.value !== 'rpm')
+    const [coolant, fuel] = gauges
+    expect(gauges.map((widget) => widget.value)).toEqual(['coolant_temperature', 'fuel_level'])
+    expect(coolant).toMatchObject({ rotation: -90, display_unit: 'celsius' })
+    expect(fuel).toMatchObject({ rotation: 90, fill_direction: 'counter-clockwise', fuel_tank_capacity: 21 })
+    const icons = values.filter((widget) => widget.display_type === 'text' && widget.show_icon)
+    expect(icons.map((widget) => widget.value)).toEqual(['coolant_temperature', 'fuel_level'])
+  })
+
   test('the map template puts the route on a raster map with its credit', () => {
     const state = normalizeTemplateFilePayload(loadTemplate('mapa-trajeto'))
     const effective = createBatchRenderTemplate(state.config, state.settings.globalDefaults)

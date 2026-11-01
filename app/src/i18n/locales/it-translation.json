@@ -855,11 +855,14 @@
     "shadowDistance": "Distanza dell'ombra",
     "shadowStrength": "Intensità dell'ombra",
     "fuelTankCapacity": "Capacità del serbatoio",
+    "fillDirection": "Direzione di riempimento",
+    "clockwise": "Orario",
+    "counterClockwise": "Antiorario",
     "gaugeZoneSameAsNext": "Come la successiva"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Cruscotto",
-    "groupTachCluster": "Contagiri + velocità + marcia",
+    "groupTachCluster": "Contagiri + velocità + marcia + temperatura + carburante",
     "groupTemperaturesShort": "Temp.",
     "groupTemperatures": "Temperature del liquido di raffreddamento e dell'aria di aspirazione"
   }

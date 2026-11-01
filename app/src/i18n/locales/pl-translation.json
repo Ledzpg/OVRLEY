@@ -855,11 +855,14 @@
     "shadowDistance": "Odległość cienia",
     "shadowStrength": "Intensywność cienia",
     "fuelTankCapacity": "Pojemność zbiornika",
+    "fillDirection": "Kierunek wypełniania",
+    "clockwise": "Zgodnie z ruchem wskazówek zegara",
+    "counterClockwise": "Przeciwnie do ruchu wskazówek zegara",
     "gaugeZoneSameAsNext": "Jak następne"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Zegary",
-    "groupTachCluster": "Obrotomierz + prędkość + bieg",
+    "groupTachCluster": "Obrotomierz + prędkość + bieg + temperatura + paliwo",
     "groupTemperaturesShort": "Temp.",
     "groupTemperatures": "Temperatura płynu chłodzącego i powietrza dolotowego"
   }

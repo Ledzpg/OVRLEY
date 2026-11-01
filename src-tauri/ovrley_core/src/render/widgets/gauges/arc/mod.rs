@@ -84,6 +84,8 @@ pub fn prepare_arc_gauge_cache(
                 scaled_width as f32,
                 scaled_height as f32,
                 gauge.arc_angle,
+                gauge.rotation,
+                gauge.fill_direction,
                 track_thickness,
                 track_border_thickness,
             ),

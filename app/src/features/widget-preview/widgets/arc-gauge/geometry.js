@@ -7,13 +7,17 @@ export const ARC_LABEL_GAP_PX = 8
 export const CORNER_GAUGE_DEFAULT_FRAME_SIZE = 110
 export const CORNER_GAUGE_INNER_INSET = 22
 
-/** Returns the start/end angles for a vertically symmetric arc. */
-export function getArcAngles(arcAngle) {
-  return {
-    startAngle: 270 - arcAngle * 0.5,
-    endAngle: 270 + arcAngle * 0.5,
-    sweepAngle: arcAngle,
-  }
+/**
+ * Returns the start/end angles of an arc centered on the top (270 degrees) and turned clockwise by `rotation`.
+ * A counter-clockwise gauge starts at the far end and sweeps back, so its sweep is negative.
+ */
+export function getArcAngles(arcAngle, rotation, fillDirection) {
+  const center = 270 + rotation
+  const first = center - arcAngle * 0.5
+  const last = center + arcAngle * 0.5
+  return fillDirection === 'counter-clockwise'
+    ? { startAngle: last, endAngle: first, sweepAngle: -arcAngle }
+    : { startAngle: first, endAngle: last, sweepAngle: arcAngle }
 }
 
 /** Returns the fixed 90-degree track opposite a bottom-corner gauge. */
@@ -53,7 +57,7 @@ export function getArcFillPercentage(value, min, max) {
  * @returns {object} Arc geometry and metric range for rendering.
  */
 export function getArcGaugeLayout(data, value, values) {
-  return getArcShapedGaugeLayout(data, value, values, getArcAngles(data.arc_angle))
+  return getArcShapedGaugeLayout(data, value, values, getArcAngles(data.arc_angle, data.rotation, data.fill_direction))
 }
 
 /**

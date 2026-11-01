@@ -142,6 +142,9 @@ export const GAUGE_NEEDLE_KEYS = [
   'needle_corner_radius',
 ]
 
+/** Optional fill direction of the arc gauge (unset = clockwise). Corner gauges have a fixed direction. */
+const ARC_FILL_DIRECTION_KEYS = ['fill_direction']
+
 export const DISPLAY_VARIANT_KEYS = Object.freeze(
   Object.fromEntries(
     Object.entries(DISPLAY_TYPE_DEFINITIONS)
@@ -152,6 +155,7 @@ export const DISPLAY_VARIANT_KEYS = Object.freeze(
           ...(DISPLAY_VARIANT_FRAME_KEYS_BY_TYPE[displayType] || DISPLAY_VARIANT_FRAME_KEYS),
           ...Object.keys(definition.defaults || {}).filter((key) => !DISPLAY_VARIANT_EXCLUDED_KEYS.has(key)),
           ...(definition.conditionalKeys || []),
+          ...(displayType === 'arc' ? ARC_FILL_DIRECTION_KEYS : []),
           ...(GAUGE_SCALE_DISPLAY_TYPES.has(displayType) ? GAUGE_SCALE_KEYS : []),
           ...(GAUGE_TICK_DISPLAY_TYPES.has(displayType) ? [...GAUGE_TICK_KEYS, ...GAUGE_NEEDLE_KEYS] : []),
         ],

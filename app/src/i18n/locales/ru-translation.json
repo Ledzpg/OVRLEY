@@ -855,11 +855,14 @@
     "shadowDistance": "Расстояние тени",
     "shadowStrength": "Интенсивность тени",
     "fuelTankCapacity": "Объём бака",
+    "fillDirection": "Направление заполнения",
+    "clockwise": "По часовой стрелке",
+    "counterClockwise": "Против часовой стрелки",
     "gaugeZoneSameAsNext": "Как у следующей"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Панель",
-    "groupTachCluster": "Тахометр + скорость + передача",
+    "groupTachCluster": "Тахометр + скорость + передача + температура + топливо",
     "groupTemperaturesShort": "Темп.",
     "groupTemperatures": "Температура охлаждающей жидкости и впускного воздуха"
   }

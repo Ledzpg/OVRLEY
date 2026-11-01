@@ -5,7 +5,7 @@
 //! that geometry, preventing their static and dynamic layers from drifting.
 
 use crate::normalize::{
-    arc_track_radius, corner_track_cap_padding, corner_track_radius,
+    arc_track_radius, corner_track_cap_padding, corner_track_radius, ValidatedArcFillDirection,
     ValidatedCornerGaugeOrientation, MAX_ARC_ANGLE_DEGREES, MIN_ARC_ANGLE_DEGREES,
 };
 use skia_safe::Point;
@@ -33,10 +33,11 @@ pub struct ArcGaugeGeometry {
     pub sweep_angle: f32,
 }
 
-/// Centers a validated arc sweep around the top of its frame.
-pub fn arc_start_end_angles(arc_angle: f32) -> (f32, f32) {
+/// Centers a validated arc sweep around the top of its frame, then turns it clockwise by `rotation` degrees.
+pub fn arc_start_end_angles(arc_angle: f32, rotation: f32) -> (f32, f32) {
     let angle = arc_angle.clamp(MIN_ARC_ANGLE_DEGREES, MAX_ARC_ANGLE_DEGREES);
-    (270.0 - angle * 0.5, 270.0 + angle * 0.5)
+    let center = 270.0 + rotation;
+    (center - angle * 0.5, center + angle * 0.5)
 }
 
 /// Returns the directed quarter-circle sweep for a corner gauge.
@@ -66,10 +67,17 @@ pub fn arc_gauge_geometry(
     width: f32,
     height: f32,
     arc_angle: f32,
+    rotation: f32,
+    fill_direction: ValidatedArcFillDirection,
     track_thickness: f32,
     border_thickness: f32,
 ) -> ArcGaugeGeometry {
-    let (start_angle, end_angle) = arc_start_end_angles(arc_angle);
+    let (first_angle, last_angle) = arc_start_end_angles(arc_angle, rotation);
+    // A counter-clockwise gauge starts at the far end of the arc and fills back towards the near one.
+    let (start_angle, end_angle) = match fill_direction {
+        ValidatedArcFillDirection::Clockwise => (first_angle, last_angle),
+        ValidatedArcFillDirection::CounterClockwise => (last_angle, first_angle),
+    };
     let center_x = width * 0.5;
     let center_y = height * 0.5;
     ArcGaugeGeometry {

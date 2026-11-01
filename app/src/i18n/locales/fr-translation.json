@@ -855,11 +855,14 @@
     "shadowDistance": "Distance de l'ombre",
     "shadowStrength": "Intensité de l'ombre",
     "fuelTankCapacity": "Capacité du réservoir",
+    "fillDirection": "Sens de remplissage",
+    "clockwise": "Sens horaire",
+    "counterClockwise": "Sens antihoraire",
     "gaugeZoneSameAsNext": "Comme la suivante"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Combiné",
-    "groupTachCluster": "Compte-tours + vitesse + rapport",
+    "groupTachCluster": "Compte-tours + vitesse + rapport + température + carburant",
     "groupTemperaturesShort": "Temp.",
     "groupTemperatures": "Températures du liquide de refroidissement et de l'air d'admission"
   }

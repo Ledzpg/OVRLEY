@@ -365,6 +365,8 @@ describe('MetricWidgetEditor arc gauge controls', () => {
 
     expect(screen.getByText('Arc Track')).toBeInTheDocument()
     expect(screen.getByText('Arc Angle')).toBeInTheDocument()
+    expect(screen.getByText('Rotation')).toBeInTheDocument()
+    expect(screen.getByText('Fill Direction')).toBeInTheDocument()
     expect(screen.getByText('Label')).toBeInTheDocument()
     expect(screen.getAllByText('Unit').length).toBeGreaterThan(0)
     expect(screen.getByText('Flat Track')).toBeInTheDocument()
@@ -438,6 +440,8 @@ describe('MetricWidgetEditor corner gauge controls', () => {
     expect(screen.getByText('Corner Track')).toBeInTheDocument()
     expect(screen.getByText('Corner Orientation')).toBeInTheDocument()
     expect(screen.queryByText('Arc Angle')).not.toBeInTheDocument()
+    expect(screen.queryByText('Rotation')).not.toBeInTheDocument()
+    expect(screen.queryByText('Fill Direction')).not.toBeInTheDocument()
 
     expect(screen.getByText('Bottom Left')).toBeInTheDocument()
   })

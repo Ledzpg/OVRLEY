@@ -855,11 +855,14 @@
     "shadowDistance": "Skuggavstånd",
     "shadowStrength": "Skuggstyrka",
     "fuelTankCapacity": "Tankvolym",
+    "fillDirection": "Fyllnadsriktning",
+    "clockwise": "Medurs",
+    "counterClockwise": "Moturs",
     "gaugeZoneSameAsNext": "Samma som nästa"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Instrument",
-    "groupTachCluster": "Varvräknare + hastighet + växel",
+    "groupTachCluster": "Varvräknare + hastighet + växel + temperatur + bränsle",
     "groupTemperaturesShort": "Temp.",
     "groupTemperatures": "Kylvätske- och insugsluftstemperatur"
   }

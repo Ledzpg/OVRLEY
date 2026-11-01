@@ -855,11 +855,14 @@
     "shadowDistance": "그림자 거리",
     "shadowStrength": "그림자 강도",
     "fuelTankCapacity": "연료 탱크 용량",
+    "fillDirection": "채우기 방향",
+    "clockwise": "시계 방향",
+    "counterClockwise": "시계 반대 방향",
     "gaugeZoneSameAsNext": "다음 구간과 동일"
   },
   "widget-drawer": {
     "groupTachClusterShort": "클러스터",
-    "groupTachCluster": "타코미터 + 속도 + 기어",
+    "groupTachCluster": "타코미터 + 속도 + 기어 + 온도 + 연료",
     "groupTemperaturesShort": "온도",
     "groupTemperatures": "냉각수 및 흡기 온도"
   }

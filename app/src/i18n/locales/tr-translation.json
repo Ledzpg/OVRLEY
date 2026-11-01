@@ -855,11 +855,14 @@
     "shadowDistance": "Gölge mesafesi",
     "shadowStrength": "Gölge yoğunluğu",
     "fuelTankCapacity": "Depo kapasitesi",
+    "fillDirection": "Doldurma Yönü",
+    "clockwise": "Saat yönünde",
+    "counterClockwise": "Saat yönünün tersi",
     "gaugeZoneSameAsNext": "Sonrakiyle aynı"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Gösterge",
-    "groupTachCluster": "Devir göstergesi + hız + vites",
+    "groupTachCluster": "Devir göstergesi + hız + vites + sıcaklık + yakıt",
     "groupTemperaturesShort": "Sıcak.",
     "groupTemperatures": "Soğutma suyu ve emme havası sıcaklıkları"
   }

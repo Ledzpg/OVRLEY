@@ -855,11 +855,14 @@
     "valueColor": "Value Color",
     "width": "Width",
     "fuelTankCapacity": "Tank Capacity",
+    "fillDirection": "Fill Direction",
+    "clockwise": "Clockwise",
+    "counterClockwise": "Counter-clockwise",
     "gaugeZoneSameAsNext": "Same as next"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Cluster",
-    "groupTachCluster": "Tachometer + speed + gear",
+    "groupTachCluster": "Tachometer + speed + gear + coolant + fuel",
     "groupTemperaturesShort": "Temps.",
     "groupTemperatures": "Coolant + intake air temperatures"
   }

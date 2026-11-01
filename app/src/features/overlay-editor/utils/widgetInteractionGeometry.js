@@ -32,7 +32,8 @@ export function captureWidgetLayout(target, widget, globalScale) {
     top: readStylePosition(target, 'top', data.y ?? 0),
     width: readStyleLength(target, 'width', (data.width ?? 0) * (globalScale || 1)),
     height: readStyleLength(target, 'height', (data.height ?? 0) * (globalScale || 1)),
-    rotation: data.rotation ?? 0,
+    // Only raster and course frames turn as a whole; an arc's `rotation` turns the track inside its frame.
+    rotation: widget.type === 'raster' || widget.type === 'course' ? (data.rotation ?? 0) : 0,
     transform: target?.style?.transform || '',
   }
 }

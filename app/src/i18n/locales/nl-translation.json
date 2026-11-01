@@ -855,11 +855,14 @@
     "shadowDistance": "Schaduwafstand",
     "shadowStrength": "Schaduwsterkte",
     "fuelTankCapacity": "Tankinhoud",
+    "fillDirection": "Vulrichting",
+    "clockwise": "Met de klok mee",
+    "counterClockwise": "Tegen de klok in",
     "gaugeZoneSameAsNext": "Zelfde als volgende"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Cluster",
-    "groupTachCluster": "Toerenteller + snelheid + versnelling",
+    "groupTachCluster": "Toerenteller + snelheid + versnelling + temperatuur + brandstof",
     "groupTemperaturesShort": "Temp.",
     "groupTemperatures": "Koelvloeistof- en inlaatluchttemperatuur"
   }

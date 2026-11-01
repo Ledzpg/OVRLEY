@@ -855,11 +855,14 @@
     "valueColor": "Cor do valor",
     "width": "Largura",
     "fuelTankCapacity": "Capacidade do tanque",
+    "fillDirection": "Sentido do preenchimento",
+    "clockwise": "Horário",
+    "counterClockwise": "Anti-horário",
     "gaugeZoneSameAsNext": "Igual à próxima"
   },
   "widget-drawer": {
     "groupTachClusterShort": "Cluster",
-    "groupTachCluster": "Tacômetro + velocímetro + marcha",
+    "groupTachCluster": "Tacômetro + velocímetro + marcha + temperatura + combustível",
     "groupTemperaturesShort": "Temps.",
     "groupTemperatures": "Temperaturas do arrefecimento e da admissão"
   }

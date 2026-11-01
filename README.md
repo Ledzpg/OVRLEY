@@ -75,6 +75,8 @@ These apply to the arc, corner and linear gauges unless noted.
 - **Needle** (arc and corner gauges): length, width, offset from the track, corner radius, border, and a fill that can
   be a solid color or a gradient, with color **and opacity** for each end.
 - The vertical offset of an arc gauge label can now go up to ±150 px (it was ±50).
+- **Arc rotation and fill direction**: an arc gauge can be turned around its center (±180°) and can fill
+  counter-clockwise, so a short arc can sit on the left or right and fill from the bottom up (coolant and fuel gauges).
 
 ## Widgets
 
@@ -104,7 +106,8 @@ bulk use.
 
 New templates in [`templates/`](templates):
 
-- `cluster-tacometro-velocimetro`: RPM dial with a redline, large speed, a gear box and a small RPM readout.
+- `cluster-tacometro-velocimetro`: RPM dial with a redline, large speed, a gear box, a small RPM readout, and a coolant
+  temperature gauge (left) and fuel gauge (right), each with its icon.
 - `cluster-barras-verticais`: speed and gear plus two vertical bars (RPM and coolant temperature).
 - `painel-temperaturas`: two dials for coolant and intake air temperature.
 - `mapa-trajeto`: route widget with the raster map behind it.

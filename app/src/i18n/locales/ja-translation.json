@@ -855,11 +855,14 @@
     "shadowDistance": "影の距離",
     "shadowStrength": "影の強さ",
     "fuelTankCapacity": "タンク容量",
+    "fillDirection": "塗りつぶしの方向",
+    "clockwise": "時計回り",
+    "counterClockwise": "反時計回り",
     "gaugeZoneSameAsNext": "次の帯と同じ"
   },
   "widget-drawer": {
     "groupTachClusterShort": "メーター",
-    "groupTachCluster": "タコメーター＋速度＋ギア",
+    "groupTachCluster": "タコメーター＋速度＋ギア＋水温＋燃料",
     "groupTemperaturesShort": "温度",
     "groupTemperatures": "冷却水温と吸気温"
   }

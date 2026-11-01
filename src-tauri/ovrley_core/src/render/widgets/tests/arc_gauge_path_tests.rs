@@ -6,10 +6,19 @@
 
 use super::super::gauges::arc::{arc_gauge_geometry, ArcGaugeGeometry, ArcTrackSpec, RevealClip};
 use super::super::gauges::track_path::TRACK_PATH_EPSILON;
+use crate::normalize::ValidatedArcFillDirection;
 
 #[test]
 fn reveal_clip_handles_zero_and_tiny_fills() {
-    let geometry = arc_gauge_geometry(160.0, 160.0, 180.0, 12.0, 2.0);
+    let geometry = arc_gauge_geometry(
+        160.0,
+        160.0,
+        180.0,
+        0.0,
+        ValidatedArcFillDirection::Clockwise,
+        12.0,
+        2.0,
+    );
     let rounded = ArcTrackSpec::full(geometry, 12.0, 6.0);
     let minimum_positive_fill = 0.000_001;
 

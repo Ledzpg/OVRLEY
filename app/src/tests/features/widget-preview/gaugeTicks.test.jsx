@@ -36,6 +36,7 @@ function makeArc(overrides = {}) {
       opacity: 1,
       width: 360,
       height: 360,
+      rotation: 0,
       arc_angle: 270,
       track_thickness: 8,
       track_corner_radius: 0,
