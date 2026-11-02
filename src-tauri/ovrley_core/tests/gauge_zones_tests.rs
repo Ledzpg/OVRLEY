@@ -325,3 +325,25 @@ fn a_band_cannot_have_both_an_end_color_and_follow_the_next_band() {
 
     assert!(error.contains("fill_zones[0].end_color: cannot be combined with end_follows_next"), "got {error}");
 }
+
+/// A rotated arc can start below 0 degrees or end past 360; its gradient must still follow the track.
+#[test]
+fn an_arc_gradient_follows_a_track_that_crosses_the_zero_angle() {
+    let mut value = with(arc(), "rotation", serde_json::json!(90));
+    value = with(value, "arc_angle", serde_json::json!(180));
+    value = with(value, "fill_zones", serde_json::json!([{ "start": 0, "color": "#ff0000", "end_color": "#0000ff" }]));
+    for key in ["redline_value", "redline_color", "redline_fill_all"] {
+        value = without(value, key);
+    }
+    let image = render(&config_for(value).unwrap(), 11000.0, 0.0, "arc_gradient_crosses_zero.png");
+
+    // The track runs from 270 to 450 degrees around (200, 200) at a radius of about 170.
+    let at = |fraction: f32| {
+        let radians = (270.0 + 180.0 * fraction).to_radians();
+        let (x, y) = (200.0 + 170.0 * radians.cos(), 200.0 + 170.0 * radians.sin());
+        image.get_pixel(x.round() as u32, y.round() as u32).0
+    };
+    let (early, late) = (at(0.1), at(0.9));
+    assert!(early[0] > early[2] + 100, "the start of the track is red, got {early:?}");
+    assert!(late[2] > late[0] + 100, "the end of the track is blue, got {late:?}");
+}

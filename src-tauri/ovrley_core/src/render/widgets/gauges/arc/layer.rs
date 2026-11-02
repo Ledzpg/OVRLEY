@@ -440,7 +440,8 @@ fn zone_fill_paint(cache: &ArcGaugeCache, spec: &ArcTrackSpec) -> Paint {
         .map(|(_, color)| skia_safe::Color4f::from(*color))
         .collect();
     let positions: Vec<f32> = ordered.iter().map(|(position, _)| *position).collect();
-    let angles = if reversed { (end, start) } else { (start, end) };
+    let first_angle = if reversed { end } else { start };
+    let span = (end - start).abs();
     let center = (spec.geometry.center_x, spec.geometry.center_y);
     let gradient = skia_safe::gradient::Gradient::new(
         skia_safe::gradient::Colors::new(
@@ -451,7 +452,15 @@ fn zone_fill_paint(cache: &ArcGaugeCache, spec: &ArcTrackSpec) -> Paint {
         ),
         skia_safe::gradient::Interpolation::default(),
     );
-    let shader = skia_safe::gradient::shaders::sweep_gradient(center, angles, &gradient, None);
+    // Skia only resolves sweep angles inside 0..360, and a rotated arc can start below 0 or end past
+    // 360. The gradient is built from 0 and turned to the arc's first angle with a matrix instead.
+    let rotation = skia_safe::Matrix::rotate_deg_pivot(first_angle, center);
+    let shader = skia_safe::gradient::shaders::sweep_gradient(
+        center,
+        (0.0, span),
+        &gradient,
+        Some(&rotation),
+    );
     let mut paint = track_paint(skia_safe::Color::WHITE, None);
     match shader {
         Some(shader) => {
